@@ -113,7 +113,7 @@ export default function Activar() {
             Tu contraseña fue creada. Ahora descarga la app e inicia sesión con tu correo y contraseña.
           </p>
           <a
-            href="https://github.com/SRJ-T/turnos-movil/releases/download/v1.0.0/app-debug.apk"
+            href="https://drive.google.com/uc?export=download&confirm=t&id=1BgN5A5o8Xu8B316FdCNRiTWD8D5-kYA3"
             className="block bg-blue-600 text-white font-bold text-base py-4 rounded-xl mb-3 hover:bg-blue-700 transition-colors"
           >
             📲 Descargar Turnos Móvil
