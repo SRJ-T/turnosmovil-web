@@ -107,14 +107,15 @@ export default function Landing() {
             <a href="#integrations" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Integraciones</a>
             <a href="#pricing" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Precios</a>
             <a href="#faq" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">FAQ</a>
+            <a href="#descargar" className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">Descargar App</a>
           </div>
 
           <div className="hidden md:flex items-center gap-4">
             <Link to="/app" className="text-sm font-bold text-slate-700 hover:text-blue-600 transition-colors px-4 py-2">
               Iniciar sesión
             </Link>
-            <a href="#pricing" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-6 py-3 rounded-full transition-all shadow-md shadow-blue-600/20">
-              Ver precios
+            <a href="#descargar" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-6 py-3 rounded-full transition-all shadow-md shadow-blue-600/20">
+              Descargar App
             </a>
           </div>
 
@@ -832,6 +833,90 @@ export default function Landing() {
             <button className="bg-blue-600 text-white font-bold px-6 py-2 rounded-xl hover:bg-blue-700 transition-colors">
               Hablar con soporte
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Download Section */}
+      <section id="descargar" className="py-24 px-6 bg-white border-t border-slate-200">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-xs font-black uppercase tracking-widest mb-4">
+              Disponible para Android
+            </span>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 mb-4">
+              Descarga Turnos Móvil gratis.
+            </h2>
+            <p className="text-slate-500 font-medium text-lg max-w-xl mx-auto">
+              Instala la app en tu Android y empieza a gestionar tu negocio desde el primer día.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Left: steps + button */}
+            <div>
+              <div className="space-y-6 mb-10">
+                {[
+                  { n: '1', title: 'Descarga el archivo APK', desc: 'Toca el botón de abajo para descargar Turnos Móvil en tu Android.' },
+                  { n: '2', title: 'Permite instalar apps externas', desc: 'En Ajustes → Seguridad → activa "Fuentes desconocidas" o "Instalar apps desconocidas".' },
+                  { n: '3', title: 'Abre el archivo descargado', desc: 'Toca el APK descargado y sigue los pasos de instalación.' },
+                  { n: '4', title: '¡Listo! Inicia sesión', desc: 'Abre la app, entra con tu cuenta y comienza a usar Turnos Móvil.' },
+                ].map((s) => (
+                  <div key={s.n} className="flex gap-4 items-start">
+                    <div className="w-9 h-9 bg-blue-600 text-white rounded-full flex items-center justify-center font-black text-sm shrink-0">
+                      {s.n}
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-900">{s.title}</p>
+                      <p className="text-sm text-slate-500 mt-0.5">{s.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <a
+                href="https://github.com/SRJ-T/turnos-movil/releases/download/v1.0.0/turnos-movil.apk"
+                className="inline-flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white font-black text-lg px-10 py-4 rounded-2xl transition-all shadow-lg shadow-blue-600/25"
+              >
+                <Smartphone size={22} />
+                Descargar APK
+              </a>
+              <p className="text-xs text-slate-400 mt-3 font-medium">Android · Gratis · v1.0.0</p>
+            </div>
+
+            {/* Right: phone mockup */}
+            <div className="flex justify-center">
+              <div className="w-[220px] h-[440px] bg-slate-900 rounded-[2.5rem] p-2.5 shadow-2xl border-4 border-slate-800 relative">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-slate-900 rounded-b-xl z-20"></div>
+                <div className="w-full h-full bg-slate-50 rounded-[2rem] overflow-hidden flex flex-col">
+                  <div className="h-7 bg-white shrink-0"></div>
+                  <div className="flex-1 p-3 space-y-3">
+                    <div className="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm">
+                      <p className="text-[8px] text-slate-400 font-bold">BIENVENIDO</p>
+                      <p className="text-[11px] font-black text-slate-900">Cafetería El Buen Sabor</p>
+                    </div>
+                    <div className="bg-blue-600 rounded-2xl p-3 text-white">
+                      <p className="text-[8px] font-bold opacity-70">PRÓXIMO TURNO</p>
+                      <p className="text-[11px] font-black">Hoy · 9:00 AM – 5:00 PM</p>
+                    </div>
+                    <div className="bg-white rounded-2xl p-3 border border-slate-100 flex justify-between items-center">
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-800">Mañana</p>
+                        <p className="text-[9px] text-slate-400">2:00 PM – 9:00 PM</p>
+                      </div>
+                      <span className="text-[8px] bg-yellow-100 text-yellow-800 font-bold px-2 py-0.5 rounded-full">Pendiente</span>
+                    </div>
+                    <div className="bg-white rounded-2xl p-3 border border-slate-100 flex justify-between items-center">
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-800">Jueves</p>
+                        <p className="text-[9px] text-slate-400">10:00 AM – 6:00 PM</p>
+                      </div>
+                      <span className="text-[8px] bg-green-100 text-green-800 font-bold px-2 py-0.5 rounded-full">Aceptado</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
