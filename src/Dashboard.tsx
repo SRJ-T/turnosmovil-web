@@ -412,68 +412,100 @@ function TeamView({bizId}:{bizId:string}) {
 
   return (
     <div>
-      <div className="px-5 pt-6 pb-5" style={{background:T.white,borderBottom:`1px solid ${T.border}`}}>
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold" style={{color:T.black}}>Personal</h1>
+      {/* Header */}
+      <div className="px-6 pt-6 pb-4" style={{background:T.white,borderBottom:`1px solid ${T.border}`}}>
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h1 className="text-xl font-bold" style={{color:T.black}}>Personal</h1>
+            <p className="text-xs mt-0.5" style={{color:T.gray}}>{employees.length} miembro{employees.length!==1?'s':''} en el equipo</p>
+          </div>
           <div className="flex gap-2">
             <button onClick={load} className="size-10 rounded-xl flex items-center justify-center" style={{background:T.bg,border:`1px solid ${T.border}`}}><RefreshCw size={16} color={T.gray}/></button>
-            <button onClick={openAdd} className="h-10 px-4 rounded-xl flex items-center gap-2 text-xs font-bold text-white" style={{background:T.green}}><UserPlus size={15}/> Invitar empleado</button>
+            <button onClick={openAdd} className="h-10 px-4 rounded-xl flex items-center gap-2 text-[13px] font-bold text-white" style={{background:T.green}}><UserPlus size={15}/> Invitar empleado</button>
           </div>
         </div>
-        <div className="flex gap-2">
-          {(['all','active','pending','inactive'] as const).map(f=>{
-            const labels={all:'Todos',active:'Activos',pending:'Pendientes',inactive:'Inactivos'};
-            const colors={all:{bg:T.blueLt,fg:T.blue},active:{bg:T.greenLt,fg:T.green},pending:{bg:T.amberLt,fg:T.amber},inactive:{bg:T.grayLt,fg:T.grayMid}};
-            const c=colors[f]; const sel=filter===f;
-            return(
-              <button key={f} onClick={()=>setFilter(f)} className="flex items-center gap-1.5 h-8 px-3 rounded-xl text-xs font-semibold transition-all" style={{background:sel?c.bg:'transparent',color:sel?c.fg:T.gray,border:`1px solid ${sel?c.fg+'44':T.border}`}}>
-                {labels[f]} <span className="font-bold">({counts[f]})</span>
-              </button>
-            );
-          })}
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={14} color={T.grayMid}/>
+            <input type="text" placeholder="Buscar miembro…" value={search} onChange={e=>setSearch(e.target.value)} className="w-full h-9 pl-9 pr-3 rounded-xl text-[13px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+          </div>
+          <div className="flex gap-1">
+            {(['all','active','pending','inactive'] as const).map(f=>{
+              const labels={all:'Todos',active:'Activos',pending:'Pendientes',inactive:'Inactivos'};
+              const fgMap={all:T.blue,active:T.green,pending:T.amber,inactive:T.grayMid};
+              const sel=filter===f;
+              return(
+                <button key={f} onClick={()=>setFilter(f)} className="h-9 px-3 rounded-xl text-[12px] font-semibold transition-all" style={{background:sel?T.black:'transparent',color:sel?T.white:T.gray,border:`1px solid ${sel?T.black:T.border}`}}>
+                  {labels[f]} <span style={{color:sel?'rgba(255,255,255,0.55)':fgMap[f]}}>({counts[f]})</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      <div className="p-5 space-y-3">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2" size={16} color={T.gray}/>
-          <input type="text" placeholder="Buscar por nombre o puesto…" value={search} onChange={e=>setSearch(e.target.value)} className="w-full h-11 pl-11 pr-4 rounded-2xl text-[14px]" style={{background:T.white,border:`1.5px solid ${T.border}`,color:T.black,outline:'none'}}/>
-        </div>
-
-        {loading?Array.from({length:3}).map((_,i)=><div key={i} className="h-24 rounded-2xl animate-pulse" style={{background:T.white}}/>):
-        filtered.length===0?(
-          <div className="rounded-2xl py-16 flex flex-col items-center" style={CARD}>
-            <div className="size-16 rounded-2xl flex items-center justify-center mb-4" style={{background:T.blueLt}}><Users size={32} color={T.blue}/></div>
-            <p className="text-[15px] font-bold" style={{color:T.black}}>Sin empleados</p>
-            <p className="text-sm mt-1" style={{color:T.gray}}>{search?'Intenta otra búsqueda':'Invita a tu primer empleado'}</p>
+      {/* Table */}
+      <div className="p-6">
+        {loading?(
+          <div className="rounded-2xl overflow-hidden" style={CARD}>
+            {Array.from({length:4}).map((_,i)=>(
+              <div key={i} className="flex items-center gap-4 px-5 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
+                <div className="size-10 rounded-full animate-pulse" style={{background:T.grayLt}}/>
+                <div className="flex-1 space-y-2"><div className="h-3 w-36 rounded animate-pulse" style={{background:T.grayLt}}/><div className="h-2.5 w-24 rounded animate-pulse" style={{background:T.grayLt}}/></div>
+                <div className="h-3 w-20 rounded animate-pulse" style={{background:T.grayLt}}/>
+                <div className="h-3 w-14 rounded animate-pulse" style={{background:T.grayLt}}/>
+                <div className="h-6 w-20 rounded-full animate-pulse" style={{background:T.grayLt}}/>
+              </div>
+            ))}
           </div>
-        ):filtered.map((emp,i)=>{
-          const color=empColor(emp,i);
-          return(
-            <motion.div key={emp.id} layout initial={{opacity:0,y:8}} animate={{opacity:emp.status==='inactive'?0.55:1,y:0}} className="rounded-2xl overflow-hidden" style={CARD}>
-              <div className="flex items-center gap-3 px-4 py-4">
-                <div className="size-12 rounded-[14px] flex items-center justify-center text-lg font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[15px] font-bold leading-tight" style={{color:T.black}}>{empName(emp)}</p>
-                  <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    {emp.job_title&&<span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{background:`${color}20`,color}}>{emp.job_title}</span>}
-                    <span className="text-[11px]" style={{color:T.gray}}>${emp.hourly_rate}/hr</span>
-                    {emp.phone&&<span className="text-[11px]" style={{color:T.gray}}>· {emp.phone}</span>}
+        ):filtered.length===0?(
+          <div className="rounded-2xl py-16 flex flex-col items-center" style={CARD}>
+            <div className="size-14 rounded-2xl flex items-center justify-center mb-3" style={{background:T.blueLt}}><Users size={28} color={T.blue}/></div>
+            <p className="text-[14px] font-bold" style={{color:T.black}}>Sin empleados</p>
+            <p className="text-xs mt-1" style={{color:T.gray}}>{search?'Intenta otra búsqueda':'Invita a tu primer empleado'}</p>
+          </div>
+        ):(
+          <div className="rounded-2xl overflow-hidden" style={CARD}>
+            {/* Table header */}
+            <div className="grid px-5 py-3" style={{gridTemplateColumns:'2.5fr 1.5fr 1.2fr 1fr 1fr auto',background:T.bg,borderBottom:`1px solid ${T.border}`}}>
+              {['Empleado','Puesto','Contacto','Salario/hr','Estado',''].map((h,i)=>(
+                <span key={i} className="text-[11px] font-bold uppercase tracking-wide" style={{color:T.grayMid}}>{h}</span>
+              ))}
+            </div>
+            {/* Rows */}
+            {filtered.map((emp,i)=>{
+              const color=empColor(emp,i);
+              return(
+                <motion.div key={emp.id} layout initial={{opacity:0}} animate={{opacity:emp.status==='inactive'?0.5:1}} className="group grid px-5 py-3.5 items-center transition-colors hover:bg-[#FAFAFA]" style={{gridTemplateColumns:'2.5fr 1.5fr 1.2fr 1fr 1fr auto',borderBottom:i<filtered.length-1?`1px solid ${T.border}`:'none'}}>
+                  {/* Employee */}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="size-9 rounded-full flex items-center justify-center text-[13px] font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-semibold truncate leading-tight" style={{color:T.black}}>{empName(emp)}</p>
+                      <p className="text-[11px] truncate" style={{color:T.grayMid}}>{emp.email}</p>
+                    </div>
                   </div>
-                </div>
-                <StatusChip status={emp.status}/>
-              </div>
-              <div className="flex items-center gap-2 px-4 pb-3 pt-1 flex-wrap" style={{borderTop:`1px solid ${T.border}`}}>
-                {emp.status==='pending'&&<button onClick={async()=>{const{data:{session}}=await supabase.auth.getSession();await fetch('https://ctdxqijdmpigqgktlwxb.supabase.co/functions/v1/invite-employee',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session?.access_token}`},body:JSON.stringify({employee_id:emp.id})});}} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold" style={{background:T.blueLt,color:T.blue}}><Send size={13}/> Reenviar</button>}
-                {emp.status==='active'&&<button onClick={()=>handleToggle(emp)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold" style={{background:T.amberLt,color:T.amber}}><MinusCircle size={13}/> Desactivar</button>}
-                {emp.status==='inactive'&&<button onClick={()=>handleToggle(emp)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold" style={{background:T.greenLt,color:T.green}}><CheckCircle2 size={13}/> Activar</button>}
-                <div className="flex-1"/>
-                <button onClick={()=>openEdit(emp)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold" style={{background:T.indigoLt,color:T.indigo}}><Pencil size={13}/> Editar</button>
-                <button onClick={()=>setConfirmDeleteId(emp.id)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold" style={{background:T.redLt,color:T.red}}><Trash2 size={13}/> Eliminar</button>
-              </div>
-            </motion.div>
-          );
-        })}
+                  {/* Puesto */}
+                  <div>{emp.job_title?<span className="text-[11px] font-semibold px-2.5 py-1 rounded-full" style={{background:`${color}18`,color}}>{emp.job_title}</span>:<span className="text-[11px]" style={{color:T.grayMid}}>—</span>}</div>
+                  {/* Contacto */}
+                  <p className="text-[12px] truncate" style={{color:T.gray}}>{emp.phone||'—'}</p>
+                  {/* Salario */}
+                  <p className="text-[13px] font-semibold" style={{color:T.black}}>{emp.hourly_rate?`$${Number(emp.hourly_rate).toFixed(2)}/hr`:'—'}</p>
+                  {/* Estado */}
+                  <div><StatusChip status={emp.status}/></div>
+                  {/* Acciones — visibles en hover */}
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {emp.status==='pending'&&<button onClick={async()=>{const{data:{session}}=await supabase.auth.getSession();await fetch('https://ctdxqijdmpigqgktlwxb.supabase.co/functions/v1/invite-employee',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session?.access_token}`},body:JSON.stringify({employee_id:emp.id})});}} title="Reenviar invitación" className="size-8 rounded-xl flex items-center justify-center" style={{background:T.blueLt,color:T.blue}}><Send size={13}/></button>}
+                    {emp.status==='active'&&<button onClick={()=>handleToggle(emp)} title="Desactivar" className="size-8 rounded-xl flex items-center justify-center" style={{background:T.amberLt,color:T.amber}}><MinusCircle size={13}/></button>}
+                    {emp.status==='inactive'&&<button onClick={()=>handleToggle(emp)} title="Activar" className="size-8 rounded-xl flex items-center justify-center" style={{background:T.greenLt,color:T.green}}><CheckCircle2 size={13}/></button>}
+                    <button onClick={()=>openEdit(emp)} title="Editar" className="size-8 rounded-xl flex items-center justify-center" style={{background:T.indigoLt,color:T.indigo}}><Pencil size={13}/></button>
+                    <button onClick={()=>setConfirmDeleteId(emp.id)} title="Eliminar" className="size-8 rounded-xl flex items-center justify-center" style={{background:T.redLt,color:T.red}}><Trash2 size={13}/></button>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <AnimatePresence>
