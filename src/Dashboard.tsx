@@ -852,7 +852,7 @@ function ApprovalsView({bizId}:{bizId:string}) {
               <input type="text" placeholder="Filtrar por empleado…" value={historyFilter} onChange={e=>setHistoryFilter(e.target.value)} className="w-full h-10 pl-9 pr-3 rounded-xl text-xs" style={{background:T.white,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
             </div>
             {filteredHistory.length===0?<div className="rounded-2xl py-14 flex flex-col items-center" style={CARD}><p className="text-sm" style={{color:T.gray}}>Sin resultados</p></div>:
-            filteredHistory.map((entry,i)=>{
+            filteredHistory.map((entry)=>{
               const hrs=diffHours(entry.clock_in,entry.clock_out);
               const ci=new Date(entry.clock_in); const co=entry.clock_out?new Date(entry.clock_out):null;
               const ss=entry.status==='approved'?{bg:T.greenLt,fg:T.green,label:'Aprobado'}:entry.status==='paid'?{bg:T.blueLt,fg:T.blue,label:'Procesado'}:{bg:T.amberLt,fg:T.amber,label:'Ajustado'};

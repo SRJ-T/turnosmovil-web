@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import {
   CheckCircle2, Clock, Calendar, DollarSign, Menu, X,
   ShieldCheck, Star, ChevronDown, Smartphone, MessageCircle,
-  Coffee, ShoppingBag, Scissors, Store, Loader2, Users,
+  Coffee, ShoppingBag, Scissors, Store, Loader2,
   ArrowRight, Zap, BarChart3, ClipboardCheck, ChevronRight,
   Globe, Play
 } from 'lucide-react';
