@@ -36,8 +36,8 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/activar" element={<Activar />} />
-        <Route path="/login" element={session ? <Navigate to="/app" replace /> : <Login />} />
-        <Route path="/app/*" element={
+        <Route path="/login" element={session ? <Navigate to="/panel" replace /> : <Login />} />
+        <Route path="/panel/*" element={
           <AuthGuard session={session}>
             <Dashboard session={session!} />
           </AuthGuard>
