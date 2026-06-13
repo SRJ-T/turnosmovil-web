@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import {
   LayoutDashboard, Calendar as CalendarIcon, Users, DollarSign, Settings,
-  TrendingUp, ClipboardCheck, Bell, Menu, X, Plus, Download,
-  CheckCircle2, XCircle, FileText, ChevronLeft, ChevronRight, Clock,
+  ClipboardCheck, Bell, Menu, X, Plus, Download,
+  CheckCircle2, XCircle, ChevronLeft, ChevronRight, Clock,
   UserPlus, AlertTriangle, Trash2, Search, BarChart3, HelpCircle,
   MinusCircle, LogOut, RefreshCw, ChevronDown, ChevronUp,
   RadioTower, TimerOff, Send, Pencil, Undo2, LayoutGrid, List
@@ -154,24 +154,12 @@ export default function Dashboard({session}:{session:Session}) {
               {activeTab==='calendar'  && <TurnosView bizId={bizId}/>}
               {activeTab==='approvals' && <ApprovalsView bizId={bizId}/>}
               {activeTab==='payroll'   && <PayrollView bizId={bizId}/>}
-              {activeTab==='reports'   && <ReportsView/>}
-              {activeTab==='settings'  && <div className="p-6"><div className="rounded-2xl p-16 text-center" style={CARD}><Settings size={44} color={T.grayMid} className="mx-auto mb-4"/><p className="text-lg font-bold" style={{color:T.black}}>Configuración</p><p className="text-sm mt-1" style={{color:T.gray}}>Disponible próximamente.</p></div></div>}
+              {activeTab==='reports'   && <ReportsView bizId={bizId}/>}
+              {activeTab==='settings'  && <SettingsView bizId={bizId}/>}
             </motion.div>
           )}
         </div>
       </main>
-    </div>
-  );
-}
-
-// ─── MINI CHART ───────────────────────────────────────────────────────────────
-function MiniBarChart({data,color}:{data:number[];color:string}) {
-  const max = Math.max(...data,1);
-  return (
-    <div className="flex items-end gap-1 h-10">
-      {data.map((v,i)=>(
-        <div key={i} className="flex-1 rounded-sm transition-all" style={{height:`${Math.max((v/max)*100,8)}%`,background:i===data.length-1?color:`${color}50`}}/>
-      ))}
     </div>
   );
 }
@@ -183,21 +171,18 @@ function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string
   const [activity,setActivity] = useState<ClockEntry[]>([]);
   const [monthApproved,setMonthApproved] = useState(0);
   const [monthTotal,setMonthTotal] = useState(0);
-  const [weekData,setWeekData] = useState<number[]>([0,0,0,0,0,0,0]);
   const [loading,setLoading] = useState(true);
 
   useEffect(()=>{
     (async()=>{
       const today=isoDate(new Date()); const now=new Date();
       const monthStart=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
-      const days=weekDays(now); const weekStart=isoDate(days[0]);
 
-      const [shiftsRes,pendingRes,actRes,mShiftsRes,weekEntriesRes]=await Promise.all([
+      const [shiftsRes,pendingRes,actRes,mShiftsRes]=await Promise.all([
         supabase.from('shifts').select('*,profiles(*)').eq('business_id',bizId).eq('date',today).order('start_time'),
         supabase.from('clock_entries').select('id').eq('business_id',bizId).eq('status','pending'),
         supabase.from('clock_entries').select('*,profiles(*)').eq('business_id',bizId).order('clock_in',{ascending:false}).limit(8),
         supabase.from('shifts').select('id,start_time,end_time,break_minutes,date').eq('business_id',bizId).gte('date',monthStart),
-        supabase.from('clock_entries').select('clock_in,clock_out,break_minutes').eq('business_id',bizId).eq('status','approved').not('clock_out','is',null).gte('clock_in',`${weekStart}T00:00:00`),
       ]);
 
       const shifts:Shift[]=((shiftsRes.data??[]) as any[]).map(s=>({...s,employee:s.profiles}));
@@ -222,13 +207,6 @@ function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string
       if(mIds.length>0){const{data:appr}=await supabase.from('clock_entries').select('clock_in,clock_out,break_minutes').in('shift_id',mIds).eq('status','approved');
         for(const e of(appr??[])){if(e.clock_out)approvedMins+=Math.max(0,(new Date(e.clock_out).getTime()-new Date(e.clock_in).getTime())/60000-((e.break_minutes??0) as number));}}
 
-      // Weekly bar chart
-      const wd=Array(7).fill(0);
-      for(const e of(weekEntriesRes.data??[])){
-        const d=new Date(e.clock_in); const idx=(d.getDay()+6)%7;
-        wd[idx]+=diffHours(e.clock_in,e.clock_out);
-      }
-      setWeekData(wd);
       setStats({activeNow,notClockedIn,todayShifts:shifts.length,pending:pendingRes.data?.length??0});
       setActivity(((actRes.data??[]) as any[]).map(e=>({...e,employee:e.profiles})));
       setMonthApproved(approvedMins); setMonthTotal(totalMins);
@@ -578,6 +556,12 @@ function TurnosView({bizId}:{bizId:string}) {
   const [editShift,setEditShift] = useState<Shift|null>(null);
   const [loading,setLoading] = useState(true);
   const [form,setForm] = useState({employee_id:'',date:isoDate(new Date()),start_time:'09:00',end_time:'17:00',status:'draft',break_minutes:0});
+  const [showBulkModal,setShowBulkModal] = useState(false);
+  const [bulkEmps,setBulkEmps] = useState<string[]>([]);
+  const [bulkDays,setBulkDays] = useState<number[]>([0,1,2,3,4]);
+  const [bulkTime,setBulkTime] = useState({start:'09:00',end:'17:00',break_minutes:0});
+  const [bulkSaving,setBulkSaving] = useState(false);
+  const [copying,setCopying] = useState(false);
 
   const days=weekDays(weekAnchor);
 
@@ -611,6 +595,33 @@ function TurnosView({bizId}:{bizId:string}) {
   const handleDelete=async(id:string)=>{ if(!confirm('¿Eliminar turno?'))return; await supabase.from('shifts').delete().eq('id',id); setShowModal(false);await load(); };
   const handlePublishAll=async()=>{ const drafts=shifts.filter(s=>s.status==='draft').map(s=>s.id); if(!drafts.length)return; await supabase.from('shifts').update({status:'published'}).in('id',drafts);await load(); };
 
+  const handleCopyWeek=async()=>{
+    if(!shifts.length){alert('No hay turnos esta semana para copiar.');return;}
+    if(!confirm(`¿Copiar ${shifts.length} turno${shifts.length>1?'s':''} a la próxima semana?`))return;
+    setCopying(true);
+    const addDays=(dt:string,d:number)=>{const t=new Date(dt.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));t.setDate(t.getDate()+d);return t.toISOString().slice(0,19);};
+    const rows=shifts.map(s=>({business_id:bizId,employee_id:s.employee_id,
+      date:isoDate(new Date(new Date(s.date+'T12:00:00').getTime()+7*24*3600*1000)),
+      start_time:addDays(s.start_time,7),end_time:addDays(s.end_time,7),
+      status:'draft' as const,break_minutes:s.break_minutes??0}));
+    await supabase.from('shifts').insert(rows);
+    setCopying(false);
+    setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()+7);return n;});
+  };
+
+  const handleBulkCreate=async()=>{
+    if(!bulkEmps.length||!bulkDays.length)return;
+    setBulkSaving(true);
+    const rows=bulkEmps.flatMap(empId=>bulkDays.map(di=>{
+      const dateStr=isoDate(days[di]);
+      return{business_id:bizId,employee_id:empId,date:dateStr,
+        start_time:`${dateStr}T${bulkTime.start}:00`,end_time:`${dateStr}T${bulkTime.end}:00`,
+        status:'draft' as const,break_minutes:bulkTime.break_minutes};
+    }));
+    await supabase.from('shifts').insert(rows);
+    setBulkSaving(false);setShowBulkModal(false);setBulkEmps([]);setBulkDays([0,1,2,3,4]);await load();
+  };
+
   const getShift=(empId:string,date:string)=>shifts.filter(s=>s.employee_id===empId&&s.date===date);
   const selectedShifts=shifts.filter(s=>s.date===selectedDate);
   const draftsCount=shifts.filter(s=>s.status==='draft').length;
@@ -627,6 +638,8 @@ function TurnosView({bizId}:{bizId:string}) {
               <button onClick={()=>setViewMode('grid')} className="size-8 rounded-lg flex items-center justify-center" style={{background:viewMode==='grid'?T.white:'transparent',boxShadow:viewMode==='grid'?'0 1px 3px rgba(0,0,0,0.1)':'none'}}><LayoutGrid size={15} color={viewMode==='grid'?T.black:T.grayMid}/></button>
               <button onClick={()=>setViewMode('list')} className="size-8 rounded-lg flex items-center justify-center" style={{background:viewMode==='list'?T.white:'transparent',boxShadow:viewMode==='list'?'0 1px 3px rgba(0,0,0,0.1)':'none'}}><List size={15} color={viewMode==='list'?T.black:T.grayMid}/></button>
             </div>
+            <button onClick={handleCopyWeek} disabled={copying} title="Copiar esta semana a la siguiente" className="h-10 px-3 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-all" style={{background:T.indigoLt,color:T.indigo,border:`1px solid ${T.indigo}33`}}>{copying?<span className="size-4 border-2 rounded-full animate-spin" style={{borderColor:`${T.indigo}30`,borderTopColor:T.indigo}}/>:<RefreshCw size={14}/>} Copiar semana</button>
+            <button onClick={()=>{setBulkEmps([]);setBulkDays([0,1,2,3,4]);setShowBulkModal(true);}} className="h-10 px-3 rounded-xl flex items-center gap-1.5 text-xs font-bold" style={{background:T.greenLt,color:T.green,border:`1px solid ${T.green}33`}}><Users size={14}/> Masivo</button>
             <button onClick={()=>openAdd(selectedDate)} className="h-10 px-4 rounded-xl flex items-center gap-2 text-xs font-bold text-white" style={{background:T.blue}}><Plus size={15} strokeWidth={2.5}/> Crear turno</button>
           </div>
         </div>
@@ -757,6 +770,74 @@ function TurnosView({bizId}:{bizId:string}) {
                   <button type="submit" className="flex-1 h-12 rounded-2xl text-white text-sm font-bold" style={{background:T.black}}>{editShift?'Guardar cambios':'Crear Turno'}</button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showBulkModal&&(
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:'#00000066'}} onClick={()=>setShowBulkModal(false)}>
+            <motion.div initial={{scale:0.95,opacity:0}} animate={{scale:1,opacity:1}} exit={{scale:0.95,opacity:0}} transition={{type:'spring',damping:28,stiffness:300}} className="w-full max-w-lg rounded-3xl overflow-hidden" style={{background:T.white}} onClick={e=>e.stopPropagation()}>
+              <div className="px-6 py-5 flex items-center justify-between" style={{borderBottom:`1px solid ${T.border}`}}>
+                <div><p className="text-lg font-bold" style={{color:T.black}}>Turno en masa</p><p className="text-xs mt-0.5" style={{color:T.gray}}>Crea turnos para múltiples empleados a la vez</p></div>
+                <button onClick={()=>setShowBulkModal(false)} className="p-2 rounded-xl" style={{color:T.gray}}><X size={20}/></button>
+              </div>
+              <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+                {/* Employees */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-bold" style={{color:T.black}}>Empleados</label>
+                    <button type="button" onClick={()=>setBulkEmps(bulkEmps.length===employees.length?[]:employees.map(e=>e.id))} className="text-[11px] font-semibold" style={{color:T.blue}}>{bulkEmps.length===employees.length?'Deseleccionar todos':'Seleccionar todos'}</button>
+                  </div>
+                  <div className="space-y-1.5">
+                    {employees.map((emp,i)=>{
+                      const sel=bulkEmps.includes(emp.id); const color=empColor(emp,i);
+                      return(
+                        <button key={emp.id} type="button" onClick={()=>setBulkEmps(prev=>sel?prev.filter(id=>id!==emp.id):[...prev,emp.id])} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left" style={{background:sel?`${color}15`:T.bg,border:`1.5px solid ${sel?color:T.border}`}}>
+                          <div className="size-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
+                          <div className="flex-1 min-w-0"><p className="text-[13px] font-semibold truncate" style={{color:T.black}}>{empName(emp)}</p><p className="text-[11px]" style={{color:T.gray}}>{emp.job_title??'—'}</p></div>
+                          <div className="size-5 rounded-md border-2 flex items-center justify-center shrink-0" style={{background:sel?color:'transparent',borderColor:sel?color:T.border}}>{sel&&<span className="text-white text-[10px] font-bold">✓</span>}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {/* Days */}
+                <div>
+                  <label className="text-xs font-bold block mb-2" style={{color:T.black}}>Días de la semana</label>
+                  <div className="grid grid-cols-7 gap-1.5">
+                    {days.map((d,i)=>{
+                      const sel=bulkDays.includes(i);
+                      return(
+                        <button key={i} type="button" onClick={()=>setBulkDays(prev=>sel?prev.filter(x=>x!==i):[...prev,i].sort())} className="flex flex-col items-center py-2.5 rounded-xl transition-all" style={{background:sel?T.blue:T.bg,border:`1px solid ${sel?T.blue:T.border}`}}>
+                          <span className="text-[9px] font-bold" style={{color:sel?'rgba(255,255,255,0.7)':T.gray}}>{DAY_ES[d.getDay()]}</span>
+                          <span className="text-sm font-bold mt-0.5" style={{color:sel?T.white:T.black}}>{d.getDate()}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {/* Time */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div><label className="text-xs font-bold block mb-1" style={{color:T.black}}>Entrada</label><input type="time" value={bulkTime.start} onChange={e=>setBulkTime(p=>({...p,start:e.target.value}))} className="w-full h-11 rounded-xl px-3 text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/></div>
+                  <div><label className="text-xs font-bold block mb-1" style={{color:T.black}}>Salida</label><input type="time" value={bulkTime.end} onChange={e=>setBulkTime(p=>({...p,end:e.target.value}))} className="w-full h-11 rounded-xl px-3 text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/></div>
+                  <div><label className="text-xs font-bold block mb-1" style={{color:T.black}}>Break</label><select value={bulkTime.break_minutes} onChange={e=>setBulkTime(p=>({...p,break_minutes:Number(e.target.value)}))} className="w-full h-11 rounded-xl px-3 text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}><option value={0}>Sin break</option><option value={15}>15 min</option><option value={30}>30 min</option><option value={60}>1 hora</option></select></div>
+                </div>
+                {/* Preview count */}
+                {bulkEmps.length>0&&bulkDays.length>0&&(
+                  <div className="p-3 rounded-xl flex items-center gap-2" style={{background:T.blueLt}}>
+                    <span className="text-sm font-bold" style={{color:T.blue}}>Se crearán {bulkEmps.length * bulkDays.length} turnos</span>
+                    <span className="text-xs" style={{color:`${T.blue}99`}}>({bulkEmps.length} empleado{bulkEmps.length>1?'s':''} × {bulkDays.length} día{bulkDays.length>1?'s':''})</span>
+                  </div>
+                )}
+              </div>
+              <div className="px-6 py-4 flex gap-3" style={{borderTop:`1px solid ${T.border}`}}>
+                <button onClick={()=>setShowBulkModal(false)} className="flex-1 h-12 rounded-2xl text-sm font-semibold" style={{background:T.grayLt,color:T.black}}>Cancelar</button>
+                <button onClick={handleBulkCreate} disabled={bulkSaving||!bulkEmps.length||!bulkDays.length} className="flex-1 h-12 rounded-2xl text-sm font-bold text-white flex items-center justify-center gap-2" style={{background:T.black,opacity:(!bulkEmps.length||!bulkDays.length)?0.4:1}}>
+                  {bulkSaving?<span className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin"/>:<><Plus size={16}/>Crear turnos</>}
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
@@ -1013,33 +1094,243 @@ function PayrollView({bizId}:{bizId:string}) {
 }
 
 // ─── REPORTES ─────────────────────────────────────────────────────────────────
-function ReportsView() {
-  const reports=[{id:1,title:'Reporte SURI',period:'Q1 2026 (Ene – Mar)',date:'Abr 10, 2026'},{id:2,title:'Reporte DTRH',period:'Q1 2026 (Ene – Mar)',date:'Abr 10, 2026'},{id:3,title:'Reporte SINOT',period:'Q1 2026 (Ene – Mar)',date:'Abr 11, 2026'}];
+function ReportsView({bizId}:{bizId:string}) {
+  type EmpReport = {emp:Employee;hours:number;cost:number;entries:number;overtime:number};
+  const [period,setPeriod] = useState<'week'|'month'|'quarter'>('month');
+  const [rows,setRows] = useState<EmpReport[]>([]);
+  const [weeklyTrend,setWeeklyTrend] = useState<{label:string;hrs:number}[]>([]);
+  const [loading,setLoading] = useState(true);
+
+  useEffect(()=>{
+    (async()=>{
+      setLoading(true);
+      const now=new Date();
+      let startDate:string;
+      if(period==='week'){startDate=isoDate(weekDays(now)[0]);}
+      else if(period==='month'){startDate=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;}
+      else{const q=Math.floor(now.getMonth()/3);startDate=`${now.getFullYear()}-${String(q*3+1).padStart(2,'0')}-01`;}
+
+      const[empRes,entryRes]=await Promise.all([
+        supabase.from('profiles').select('*').eq('business_id',bizId).eq('role','employee'),
+        supabase.from('clock_entries').select('employee_id,clock_in,clock_out').eq('business_id',bizId).in('status',['approved','paid']).not('clock_out','is',null).gte('clock_in',`${startDate}T00:00:00`),
+      ]);
+      const emps=(empRes.data??[]) as Employee[];
+      const entries=entryRes.data??[];
+      const hrMap:Record<string,{hours:number;entries:number}>={};
+      for(const e of entries){if(!hrMap[e.employee_id])hrMap[e.employee_id]={hours:0,entries:0};hrMap[e.employee_id].hours+=diffHours(e.clock_in,e.clock_out);hrMap[e.employee_id].entries++;}
+      const reportRows:EmpReport[]=emps.filter(e=>hrMap[e.id]?.hours>0).map(emp=>{
+        const{hours,entries}=hrMap[emp.id]??{hours:0,entries:0};
+        const overtime=Math.max(0,hours-40);
+        const cost=Math.min(hours,40)*(emp.hourly_rate??0)+overtime*(emp.hourly_rate??0)*1.5;
+        return{emp,hours,cost,entries,overtime};
+      }).sort((a,b)=>b.hours-a.hours);
+      setRows(reportRows);
+
+      // Weekly trend last 8 weeks
+      const trend:{label:string;hrs:number}[]=[];
+      for(let w=7;w>=0;w--){
+        const anchor=new Date(now);anchor.setDate(now.getDate()-w*7);
+        const wd=weekDays(anchor);
+        const{data:we}=await supabase.from('clock_entries').select('clock_in,clock_out').eq('business_id',bizId).in('status',['approved','paid']).not('clock_out','is',null).gte('clock_in',`${isoDate(wd[0])}T00:00:00`).lte('clock_in',`${isoDate(wd[6])}T23:59:59`);
+        trend.push({label:`${wd[0].getDate()}/${wd[0].getMonth()+1}`,hrs:(we??[]).reduce((s:number,e:any)=>s+diffHours(e.clock_in,e.clock_out),0)});
+      }
+      setWeeklyTrend(trend);
+      setLoading(false);
+    })();
+  },[bizId,period]);
+
+  const totalHours=rows.reduce((s,r)=>s+r.hours,0);
+  const totalCost=rows.reduce((s,r)=>s+r.cost,0);
+  const maxHours=Math.max(...rows.map(r=>r.hours),1);
+  const trendMax=Math.max(...weeklyTrend.map(w=>w.hrs),1);
+
+  const exportCSV=()=>{
+    const header='Empleado,Puesto,Horas Reg,Horas OT,Costo Total';
+    const lines=[header,...rows.map(r=>`"${empName(r.emp)}","${r.emp.job_title??''}",${Math.min(r.hours,40).toFixed(1)},${r.overtime.toFixed(1)},$${r.cost.toFixed(2)}`)];
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv'}));a.download=`reporte-${period}-${isoDate(new Date())}.csv`;a.click();
+  };
+
   return(
     <div>
-      <div className="px-5 pt-6 pb-5" style={{background:T.white,borderBottom:`1px solid ${T.border}`}}>
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold" style={{color:T.black}}>Reportes y CPA</h1>
-          <button className="h-10 px-4 rounded-xl flex items-center gap-2 text-xs font-bold text-white" style={{background:T.green}}><FileText size={15}/>Generar</button>
+      <div className="px-6 pt-6 pb-4" style={{background:T.white,borderBottom:`1px solid ${T.border}`}}>
+        <div className="flex items-center justify-between mb-4">
+          <div><h1 className="text-xl font-bold" style={{color:T.black}}>Reportes</h1><p className="text-xs mt-0.5" style={{color:T.gray}}>Horas trabajadas y costo laboral</p></div>
+          <button onClick={exportCSV} disabled={rows.length===0} className="h-10 px-4 rounded-xl flex items-center gap-2 text-[13px] font-bold text-white" style={{background:T.green,opacity:rows.length===0?0.5:1}}><Download size={15}/>Exportar CSV</button>
         </div>
-      </div>
-      <div className="p-5 space-y-4">
-        <div className="rounded-2xl p-5 relative overflow-hidden" style={{background:'linear-gradient(135deg,#064E3B,#1D4ED8)'}}>
-          <div className="absolute right-0 top-0 opacity-10"><TrendingUp size={120} color="white"/></div>
-          <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{color:'rgba(255,255,255,0.6)'}}>Estado Actual</p>
-          <h3 className="text-lg font-bold text-white">Todo en Orden</h3>
-          <p className="text-sm mt-1" style={{color:'rgba(255,255,255,0.7)'}}>Radicaciones del Q1 completadas. Próximo cierre: 1 Jul 2026.</p>
-        </div>
-        <div className="rounded-2xl overflow-hidden" style={CARD}>
-          {reports.map((rep,i)=>(
-            <div key={rep.id} className="flex items-center gap-4 px-4 py-4" style={{borderBottom:i<reports.length-1?`1px solid #F5F5F5`:'none'}}>
-              <div className="size-10 rounded-xl flex items-center justify-center shrink-0" style={{background:T.blueLt}}><FileText size={20} color={T.blue}/></div>
-              <div className="flex-1 min-w-0"><p className="text-[13px] font-semibold" style={{color:T.black}}>{rep.title}</p><p className="text-xs" style={{color:T.gray}}>{rep.period} · {rep.date}</p></div>
-              <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full mr-2" style={{background:T.greenLt,color:T.green}}>Completado</span>
-              <button className="size-9 rounded-xl flex items-center justify-center" style={{background:T.bg,border:`1px solid ${T.border}`}}><Download size={16} color={T.blue}/></button>
-            </div>
+        <div className="flex gap-1.5">
+          {([['week','Esta semana'],['month','Este mes'],['quarter','Este trimestre']] as const).map(([p,l])=>(
+            <button key={p} onClick={()=>setPeriod(p)} className="h-9 px-4 rounded-xl text-[12px] font-semibold transition-all" style={{background:period===p?T.black:'transparent',color:period===p?T.white:T.gray,border:`1px solid ${period===p?T.black:T.border}`}}>{l}</button>
           ))}
         </div>
+      </div>
+
+      <div className="p-6 space-y-5">
+        {loading?<>{Array.from({length:3}).map((_,i)=><div key={i} className="h-28 rounded-2xl animate-pulse" style={{background:T.white}}/>)}</>:(
+          <>
+            {/* Summary cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {([
+                {label:'Total horas',value:fmtHours(totalHours),color:T.blue,bg:T.blueLt,Icon:Clock},
+                {label:'Costo laboral',value:`$${totalCost.toFixed(0)}`,color:T.violet,bg:T.violetLt,Icon:DollarSign},
+                {label:'Con horas',value:String(rows.length),color:T.green,bg:T.greenLt,Icon:Users},
+                {label:'Promedio/persona',value:fmtHours(rows.length>0?totalHours/rows.length:0),color:T.indigo,bg:T.indigoLt,Icon:BarChart3},
+              ] as const).map(({label,value,color,bg,Icon})=>(
+                <div key={label} className="rounded-2xl p-4" style={{background:bg}}>
+                  <div className="flex items-center gap-2 mb-2"><Icon size={14} style={{color}}/><span className="text-[10px] font-bold uppercase tracking-wide" style={{color:`${color}99`}}>{label}</span></div>
+                  <p className="text-2xl font-black" style={{color}}>{value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Employee bars */}
+            {rows.length===0?(
+              <div className="rounded-2xl py-14 flex flex-col items-center" style={CARD}><BarChart3 size={40} color={T.grayMid} className="mb-3"/><p className="text-sm font-semibold" style={{color:T.gray}}>Sin horas aprobadas en este período</p></div>
+            ):(
+              <div className="rounded-2xl overflow-hidden" style={CARD}>
+                <div className="px-5 py-4 flex items-center justify-between" style={{borderBottom:`1px solid ${T.border}`}}>
+                  <span className="text-[13px] font-bold" style={{color:T.black}}>Horas por empleado</span>
+                  <span className="text-[11px]" style={{color:T.gray}}>{rows.length} empleado{rows.length!==1?'s':''}</span>
+                </div>
+                <div className="p-5 space-y-4">
+                  {rows.map((r,i)=>{
+                    const color=empColor(r.emp,i);
+                    return(
+                      <div key={r.emp.id}>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <div className="flex items-center gap-2">
+                            <div className="size-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{background:color}}>{empInitials(r.emp)}</div>
+                            <span className="text-[13px] font-semibold" style={{color:T.black}}>{empName(r.emp)}</span>
+                            {r.overtime>0&&<span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{background:T.amberLt,color:T.amber}}>OT +{fmtHours(r.overtime)}</span>}
+                          </div>
+                          <div className="text-right flex items-baseline gap-2">
+                            <span className="text-[13px] font-bold" style={{color:T.black}}>{fmtHours(r.hours)}</span>
+                            <span className="text-[11px]" style={{color:T.gray}}>${r.cost.toFixed(0)}</span>
+                          </div>
+                        </div>
+                        <div className="h-2 rounded-full overflow-hidden" style={{background:T.grayLt}}>
+                          <div className="h-full rounded-full transition-all duration-700" style={{width:`${r.hours/maxHours*100}%`,background:color}}/>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Weekly trend */}
+            <div className="rounded-2xl p-5" style={CARD}>
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[13px] font-bold" style={{color:T.black}}>Tendencia semanal (últimas 8 semanas)</span>
+                <span className="text-[13px] font-bold" style={{color:T.indigo}}>{fmtHours(weeklyTrend[weeklyTrend.length-1]?.hrs??0)} esta semana</span>
+              </div>
+              <div className="flex items-end gap-1.5 h-24">
+                {weeklyTrend.map((w,i)=>{
+                  const isLast=i===weeklyTrend.length-1;
+                  return(
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                      <div className="w-full rounded-t-md transition-all" style={{height:`${Math.max(w.hrs/trendMax*100,4)}%`,background:isLast?T.indigo:`${T.indigo}55`}}/>
+                      <span className="text-[9px] font-semibold" style={{color:isLast?T.indigo:T.grayMid}}>{w.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── CONFIGURACIÓN ────────────────────────────────────────────────────────────
+function SettingsView({bizId}:{bizId:string}) {
+  const [form,setForm] = useState({name:'',timezone:'America/Puerto_Rico',pay_period_type:'biweekly',overtime_weekly_hrs:40,geofence_radius_meters:100});
+  const [loading,setLoading] = useState(true);
+  const [saving,setSaving] = useState(false);
+  const [saved,setSaved] = useState(false);
+
+  useEffect(()=>{
+    supabase.from('businesses').select('name,timezone,pay_period_type,overtime_weekly_hrs,geofence_radius_meters').eq('id',bizId).single().then(({data})=>{
+      if(data)setForm({name:data.name??'',timezone:data.timezone??'America/Puerto_Rico',pay_period_type:data.pay_period_type??'biweekly',overtime_weekly_hrs:data.overtime_weekly_hrs??40,geofence_radius_meters:data.geofence_radius_meters??100});
+      setLoading(false);
+    });
+  },[bizId]);
+
+  const handleSave=async(e:React.FormEvent)=>{
+    e.preventDefault();setSaving(true);
+    await supabase.from('businesses').update({name:form.name,timezone:form.timezone,pay_period_type:form.pay_period_type,overtime_weekly_hrs:form.overtime_weekly_hrs,geofence_radius_meters:form.geofence_radius_meters}).eq('id',bizId);
+    setSaving(false);setSaved(true);setTimeout(()=>setSaved(false),2500);
+  };
+
+  const Field=({label,children}:{label:string;children:React.ReactNode})=>(
+    <div><label className="text-xs font-bold block mb-1.5" style={{color:T.black}}>{label}</label>{children}</div>
+  );
+
+  return(
+    <div>
+      <div className="px-6 pt-6 pb-4" style={{background:T.white,borderBottom:`1px solid ${T.border}`}}>
+        <h1 className="text-xl font-bold" style={{color:T.black}}>Configuración</h1>
+        <p className="text-xs mt-0.5" style={{color:T.gray}}>Ajustes del negocio, nómina y geocerca</p>
+      </div>
+
+      <div className="p-6 max-w-2xl">
+        {loading?<div className="h-64 rounded-2xl animate-pulse" style={{background:T.white}}/>:(
+          <form onSubmit={handleSave} className="space-y-5">
+
+            {/* Negocio */}
+            <div className="rounded-2xl p-5 space-y-4" style={CARD}>
+              <p className="text-[13px] font-bold pb-1" style={{color:T.black,borderBottom:`1px solid ${T.border}`}}>Información del negocio</p>
+              <Field label="Nombre del negocio">
+                <input type="text" value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} className="w-full h-11 rounded-xl px-3 text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+              </Field>
+              <Field label="Zona horaria">
+                <select value={form.timezone} onChange={e=>setForm(p=>({...p,timezone:e.target.value}))} className="w-full h-11 rounded-xl px-3 text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}>
+                  {[['America/Puerto_Rico','Puerto Rico (AST)'],['America/New_York','New York (ET)'],['America/Chicago','Chicago (CT)'],['America/Denver','Denver (MT)'],['America/Los_Angeles','Los Angeles (PT)'],['America/Mexico_City','México (CT)'],['America/Bogota','Colombia (COT)'],['America/Lima','Perú (PET)'],['America/Santo_Domingo','Rep. Dominicana (AST)']].map(([v,l])=><option key={v} value={v}>{l}</option>)}
+                </select>
+              </Field>
+            </div>
+
+            {/* Nómina */}
+            <div className="rounded-2xl p-5 space-y-4" style={CARD}>
+              <p className="text-[13px] font-bold pb-1" style={{color:T.black,borderBottom:`1px solid ${T.border}`}}>Reglas de nómina</p>
+              <Field label="Período de pago">
+                <div className="grid grid-cols-4 gap-2">
+                  {[{v:'weekly',l:'Semanal'},{v:'biweekly',l:'Quincenal'},{v:'semimonthly',l:'Semi-mensual'},{v:'monthly',l:'Mensual'}].map(({v,l})=>(
+                    <button key={v} type="button" onClick={()=>setForm(p=>({...p,pay_period_type:v}))} className="py-2.5 rounded-xl text-xs font-semibold transition-all" style={{background:form.pay_period_type===v?T.black:'transparent',color:form.pay_period_type===v?T.white:T.gray,border:`1px solid ${form.pay_period_type===v?T.black:T.border}`}}>{l}</button>
+                  ))}
+                </div>
+              </Field>
+              <Field label="Overtime — después de cuántas horas semanales">
+                <div className="flex items-center gap-3">
+                  <input type="number" min={1} max={80} value={form.overtime_weekly_hrs} onChange={e=>setForm(p=>({...p,overtime_weekly_hrs:Number(e.target.value)}))} className="w-24 h-11 rounded-xl px-3 text-sm text-center font-bold" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+                  <div><p className="text-sm font-semibold" style={{color:T.black}}>horas por semana</p><p className="text-[11px]" style={{color:T.grayMid}}>Las horas adicionales se pagan a 1.5×</p></div>
+                </div>
+              </Field>
+            </div>
+
+            {/* Geocerca */}
+            <div className="rounded-2xl p-5 space-y-4" style={CARD}>
+              <div className="flex items-center justify-between pb-1" style={{borderBottom:`1px solid ${T.border}`}}>
+                <p className="text-[13px] font-bold" style={{color:T.black}}>Geocerca (Geofence)</p>
+                <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold" style={{background:T.indigoLt,color:T.indigo}}>App móvil</span>
+              </div>
+              <p className="text-xs" style={{color:T.gray}}>Radio desde la ubicación del negocio donde los empleados pueden ponchar.</p>
+              <Field label="Radio permitido">
+                <div className="flex items-center gap-3">
+                  <input type="number" min={50} max={5000} step={50} value={form.geofence_radius_meters} onChange={e=>setForm(p=>({...p,geofence_radius_meters:Number(e.target.value)}))} className="w-24 h-11 rounded-xl px-3 text-sm text-center font-bold" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+                  <div><p className="text-sm font-semibold" style={{color:T.black}}>metros</p><p className="text-[11px]" style={{color:T.grayMid}}>Recomendado: 100–300m</p></div>
+                </div>
+                <div className="mt-3 h-2 rounded-full overflow-hidden" style={{background:T.grayLt}}>
+                  <div className="h-full rounded-full transition-all" style={{width:`${Math.min(form.geofence_radius_meters/5000*100,100)}%`,background:T.indigo}}/>
+                </div>
+              </Field>
+            </div>
+
+            <button type="submit" disabled={saving} className="w-full h-12 rounded-2xl text-white text-sm font-bold flex items-center justify-center gap-2 transition-all" style={{background:saved?T.green:T.black,opacity:saving?0.7:1}}>
+              {saving?<span className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin"/>:saved?<><CheckCircle2 size={18}/>¡Guardado!</>:<>Guardar cambios</>}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );
