@@ -247,18 +247,19 @@ function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string
           <button onClick={()=>setActiveTab('calendar')} className="size-11 rounded-2xl flex items-center justify-center shadow-lg active:scale-95 transition-transform" style={{background:T.orange}}><Plus size={22} color="white" strokeWidth={2.5}/></button>
         </div>
         {loading?(
-          <div className="grid grid-cols-2 gap-3">{[0,1,2,3].map(i=><div key={i} className="h-20 rounded-2xl animate-pulse" style={{background:'rgba(255,255,255,0.1)'}}/>)}</div>
+          <div className="grid grid-cols-4 gap-2">{[0,1,2,3].map(i=><div key={i} className="h-16 rounded-2xl animate-pulse" style={{background:'rgba(255,255,255,0.1)'}}/>)}</div>
         ):(
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-4 gap-2">
             {[
               {label:'En turno ahora',value:stats.activeNow, color:'#1D9E75',icon:RadioTower},
               {label:'Sin ponchar',   value:stats.notClockedIn,color:T.amber,icon:TimerOff},
               {label:'Turnos hoy',   value:stats.todayShifts,color:T.blue, icon:Users},
               {label:'Por aprobar',  value:stats.pending,   color:T.red,  icon:AlertTriangle,tab:'approvals'},
             ].map(({label,value,color,icon:Icon,tab})=>(
-              <div key={label} onClick={tab?()=>setActiveTab(tab):undefined} className={`flex items-center gap-3 p-4 rounded-2xl ${tab?'cursor-pointer':''}`} style={{background:'#F2F2F4'}}>
-                <div className="size-10 rounded-xl flex items-center justify-center shrink-0" style={{background:`${color}30`}}><Icon size={20} color={color}/></div>
-                <div><p className="text-2xl font-bold leading-none" style={{color}}>{value}</p><p className="text-[10px] mt-0.5 leading-tight" style={{color:`${color}99`}}>{label}</p></div>
+              <div key={label} onClick={tab?()=>setActiveTab(tab):undefined} className={`flex flex-col items-start gap-1.5 p-3 rounded-2xl ${tab?'cursor-pointer':''}`} style={{background:'#F2F2F4'}}>
+                <div className="size-7 rounded-lg flex items-center justify-center shrink-0" style={{background:`${color}30`}}><Icon size={14} color={color}/></div>
+                <p className="text-xl font-bold leading-none" style={{color}}>{value}</p>
+                <p className="text-[9px] leading-tight" style={{color:`${color}99`}}>{label}</p>
               </div>
             ))}
           </div>
@@ -284,20 +285,6 @@ function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string
               </div>
             </div>
 
-            {/* Weekly hours bar */}
-            <div className="rounded-2xl p-5" style={CARD}>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[13px] font-semibold" style={{color:T.black}}>Horas esta semana</span>
-                <span className="text-[13px] font-bold" style={{color:T.indigo}}>{fmtHours(weekData.reduce((a,b)=>a+b,0))}</span>
-              </div>
-              <MiniBarChart data={weekData} color={T.indigo}/>
-              <div className="flex mt-1.5">
-                {['L','M','M','J','V','S','D'].map((d,i)=>(
-                  <div key={i} className="flex-1 text-center text-[9px] font-semibold" style={{color:i===new Date().getDay()-1?T.indigo:T.grayMid}}>{d}</div>
-                ))}
-              </div>
-            </div>
-
             {/* Today employees */}
             {!loading&&(todayShifts.length>0?(
               <div className="rounded-2xl overflow-hidden" style={CARD}>
@@ -320,10 +307,9 @@ function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string
                 })}
               </div>
             ):(
-              <div onClick={()=>setActiveTab('calendar')} className="rounded-2xl py-10 flex flex-col items-center cursor-pointer" style={CARD}>
-                <div className="size-14 rounded-full flex items-center justify-center mb-4" style={{background:T.blueLt}}><CalendarIcon size={28} color={T.blue}/></div>
-                <p className="text-[15px] font-bold" style={{color:T.black}}>Sin turnos para hoy</p>
-                <p className="text-sm mt-1" style={{color:T.gray}}>Toca para crear turnos</p>
+              <div onClick={()=>setActiveTab('calendar')} className="rounded-2xl py-5 flex items-center gap-3 px-5 cursor-pointer" style={CARD}>
+                <div className="size-9 rounded-full flex items-center justify-center shrink-0" style={{background:T.blueLt}}><CalendarIcon size={18} color={T.blue}/></div>
+                <div><p className="text-[13px] font-bold" style={{color:T.black}}>Sin turnos para hoy</p><p className="text-xs mt-0.5" style={{color:T.gray}}>Toca para crear turnos</p></div>
               </div>
             ))}
           </div>
