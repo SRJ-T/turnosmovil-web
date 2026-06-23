@@ -843,7 +843,7 @@ function TurnosView({bizId}:{bizId:string}) {
                 <div className="flex" style={{paddingLeft:150,borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
                   {hourTicks.filter((_,i)=>i%2===0).map(h=>(
                     <div key={h} style={{flex:`0 0 ${2/( H_END-H_START)*100}%`,textAlign:'center',padding:'6px 0',borderLeft:'1px solid rgba(255,255,255,0.06)'}}>
-                      <span style={{fontSize:10,color:'rgba(255,255,255,0.35)',fontWeight:600}}>{fmtHour(h)}</span>
+                      <span style={{fontSize:12,color:'rgba(255,255,255,0.45)',fontWeight:600}}>{fmtHour(h)}</span>
                     </div>
                   ))}
                 </div>
@@ -858,7 +858,7 @@ function TurnosView({bizId}:{bizId:string}) {
                       <div className="flex items-center gap-2.5 px-3 shrink-0" style={{width:150}}>
                         <div className="size-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
                         <div className="min-w-0">
-                          <p className="text-[12px] font-semibold truncate text-white">{emp.name}</p>
+                          <p className="text-sm font-semibold truncate text-white">{emp.name}</p>
                         </div>
                       </div>
 
@@ -890,7 +890,7 @@ function TurnosView({bizId}:{bizId:string}) {
                               onClick={e=>{e.stopPropagation();openEdit(s);}}
                               className="absolute flex items-center px-2.5 rounded-lg cursor-pointer hover:brightness-110 transition-all"
                               style={{left:`${left}%`,width:`${width}%`,top:9,height:38,background:color,zIndex:5,opacity:s.status==='rejected'?0.5:1}}>
-                              <span className="text-[11px] font-semibold truncate text-white select-none">
+                              <span className="text-[13px] font-semibold truncate text-white select-none">
                                 {shortTime(s.start_time)} – {shortTime(s.end_time)} · {durH}h
                               </span>
                             </div>
