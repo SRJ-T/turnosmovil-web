@@ -4,9 +4,9 @@ import {
   LayoutDashboard, Calendar as CalendarIcon, Users, DollarSign, Settings,
   ClipboardCheck, Bell, Menu, X, Plus, Download,
   CheckCircle2, XCircle, ChevronLeft, ChevronRight, Clock,
-  UserPlus, AlertTriangle, Trash2, Search, BarChart3, HelpCircle,
+  UserPlus, AlertTriangle, Trash2, Search, BarChart3,
   MinusCircle, LogOut, RefreshCw, ChevronDown, ChevronUp,
-  RadioTower, TimerOff, Send, Pencil, Undo2, LayoutGrid, List
+  RadioTower, Send, Pencil, Undo2, LayoutGrid, List
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase, fmtShiftDt, diffHours } from './lib/supabase';
@@ -93,35 +93,34 @@ export default function Dashboard({session}:{session:Session}) {
     supabase.from('profiles').select('name,last_name').eq('id',uid).single().then(({data})=>{if(data)setOwnerName(`${data.name}${data.last_name?' '+data.last_name:''}`)});
   },[uid]);
 
+  const SB = '#0f1f5c';
   const sidebar = (
-    <div className="flex flex-col h-full" style={{background:T.black}}>
-      <div className="p-5 flex items-center justify-between" style={{borderBottom:`1px solid ${T.white}10`}}>
-        <div className="flex items-center gap-3">
-          <div className="size-10 rounded-2xl flex items-center justify-center text-lg font-black" style={{background:T.blue,color:T.white}}>T</div>
-          <div><p className="font-bold text-white text-[15px] leading-tight">Turnos Móvil</p><p className="text-[9px] font-semibold uppercase tracking-widest mt-0.5" style={{color:`${T.white}45`}}>Business Portal</p></div>
+    <div className="flex flex-col h-full" style={{background:SB}}>
+      <div className="px-4 pt-5 pb-4 flex items-center justify-between" style={{borderBottom:`1px solid rgba(255,255,255,0.08)`}}>
+        <div className="flex items-center gap-2.5">
+          <div className="size-8 rounded-lg flex items-center justify-center text-sm font-black" style={{background:T.white,color:SB}}>T</div>
+          <div><p className="font-semibold text-white text-[13px] leading-tight">Turnos Móvil</p><p className="text-[9px] font-medium mt-0.5" style={{color:`rgba(255,255,255,0.35)`}}>Business Portal</p></div>
         </div>
-        <button onClick={()=>setSidebarOpen(false)} className="lg:hidden p-1.5 rounded-lg" style={{color:`${T.white}45`}}><X size={18}/></button>
+        <button onClick={()=>setSidebarOpen(false)} className="lg:hidden p-1.5 rounded-lg" style={{color:`rgba(255,255,255,0.4)`}}><X size={18}/></button>
       </div>
-      <div className="mx-3 mt-4 mb-2 p-3 rounded-2xl flex items-center gap-3" style={{background:`${T.white}08`}}>
-        <div className="size-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0" style={{background:T.blueLt,color:T.blue}}>{ownerName?ownerName[0].toUpperCase():'?'}</div>
-        <div className="min-w-0"><p className="text-[13px] font-semibold text-white truncate leading-tight">{ownerName||'Dueño'}</p><p className="text-[10px] truncate" style={{color:`${T.white}45`}}>Administrador</p></div>
-      </div>
-      <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0.5">
-        <NavItem icon={LayoutDashboard} label="Inicio"        active={activeTab==='dashboard'} onClick={()=>{setActiveTab('dashboard');setSidebarOpen(false)}} color={NAV.dashboard}/>
-        <NavItem icon={Users}          label="Personal"      active={activeTab==='team'}      onClick={()=>{setActiveTab('team');setSidebarOpen(false)}} color={NAV.team}/>
-        <NavItem icon={CalendarIcon}   label="Turnos"        active={activeTab==='calendar'}  onClick={()=>{setActiveTab('calendar');setSidebarOpen(false)}} color={NAV.calendar}/>
+      <div className="flex-1 overflow-y-auto px-2.5 py-3 space-y-0.5">
+        <NavItem icon={LayoutDashboard} label="Dashboard"    active={activeTab==='dashboard'} onClick={()=>{setActiveTab('dashboard');setSidebarOpen(false)}} color={NAV.dashboard}/>
+        <NavItem icon={CalendarIcon}   label="Horario"       active={activeTab==='calendar'}  onClick={()=>{setActiveTab('calendar');setSidebarOpen(false)}} color={NAV.calendar}/>
         <NavItem icon={ClipboardCheck} label="Horas"         active={activeTab==='approvals'} onClick={()=>{setActiveTab('approvals');setSidebarOpen(false)}} color={NAV.approvals}/>
+        <NavItem icon={Users}          label="Personal"      active={activeTab==='team'}      onClick={()=>{setActiveTab('team');setSidebarOpen(false)}} color={NAV.team}/>
+        <div className="pt-3 pb-1 px-2"><p className="text-[9px] font-semibold uppercase tracking-widest" style={{color:`rgba(255,255,255,0.25)`}}>Gestión</p></div>
         <NavItem icon={DollarSign}     label="Nómina"        active={activeTab==='payroll'}   onClick={()=>{setActiveTab('payroll');setSidebarOpen(false)}} color={NAV.payroll}/>
-        <div className="pt-3 pb-1 px-3"><p className="text-[9px] font-bold uppercase tracking-widest" style={{color:`${T.white}35`}}>Gestión</p></div>
         <NavItem icon={BarChart3}      label="Reportes"      active={activeTab==='reports'}   onClick={()=>{setActiveTab('reports');setSidebarOpen(false)}} color={NAV.reports}/>
         <NavItem icon={Settings}       label="Configuración" active={activeTab==='settings'}  onClick={()=>{setActiveTab('settings');setSidebarOpen(false)}} color={NAV.settings}/>
-        <NavItem icon={HelpCircle}     label="Ayuda"         active={false} onClick={()=>{}} color={T.indigo}/>
       </div>
-      <div className="p-3" style={{borderTop:`1px solid ${T.white}10`}}>
-        <div className="px-3 py-1 text-[10px] truncate mb-1" style={{color:`${T.white}35`}}>{session.user.email}</div>
-        <button onClick={()=>supabase.auth.signOut()} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:opacity-80">
-          <div className="size-8 rounded-xl flex items-center justify-center shrink-0" style={{background:`${T.red}22`}}><LogOut size={15} color={T.red}/></div>
-          <span className="text-[13px] font-semibold" style={{color:T.red}}>Cerrar Sesión</span>
+      <div className="p-3" style={{borderTop:`1px solid rgba(255,255,255,0.08)`}}>
+        <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl mb-1" style={{background:`rgba(255,255,255,0.06)`}}>
+          <div className="size-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style={{background:T.indigo,color:T.white}}>{ownerName?ownerName[0].toUpperCase():'?'}</div>
+          <div className="flex-1 min-w-0"><p className="text-[12px] font-medium text-white truncate">{ownerName||'Dueño'}</p><p className="text-[9px] truncate" style={{color:`rgba(255,255,255,0.35)`}}>Administrador</p></div>
+        </div>
+        <button onClick={()=>supabase.auth.signOut()} className="w-full flex items-center gap-2.5 px-2 py-2 rounded-xl hover:opacity-80">
+          <div className="size-7 rounded-lg flex items-center justify-center shrink-0" style={{background:`${T.red}22`}}><LogOut size={13} color={T.red}/></div>
+          <span className="text-[12px] font-medium" style={{color:T.red}}>Cerrar Sesión</span>
         </button>
       </div>
     </div>
@@ -166,171 +165,253 @@ export default function Dashboard({session}:{session:Session}) {
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string)=>void}) {
-  const [stats,setStats] = useState({activeNow:0,notClockedIn:0,todayShifts:0,pending:0});
-  const [todayShifts,setTodayShifts] = useState<Shift[]>([]);
-  const [activity,setActivity] = useState<ClockEntry[]>([]);
-  const [monthApproved,setMonthApproved] = useState(0);
-  const [monthTotal,setMonthTotal] = useState(0);
   const [loading,setLoading] = useState(true);
+  const [activeNow,setActiveNow] = useState(0);
+  const [notClockedIn,setNotClockedIn] = useState(0);
+  const [_pendingCount,setPendingCount] = useState(0);
+  const [laborCostToday,setLaborCostToday] = useState(0);
+  const [weekHours,setWeekHours] = useState<{label:string;hours:number;isToday:boolean}[]>([]);
+  const [liveEmps,setLiveEmps] = useState<{emp:Employee;minutesWorked:number}[]>([]);
+  const [empProgress,setEmpProgress] = useState<{emp:Employee;approved:number;total:number;color:string}[]>([]);
+  const [hourStatus,setHourStatus] = useState({approved:0,pending:0,other:0});
 
   useEffect(()=>{
     (async()=>{
-      const today=isoDate(new Date()); const now=new Date();
+      const now=new Date(); const today=isoDate(now);
+      const days=weekDays(now);
+      const weekStart=isoDate(days[0]); const weekEnd=isoDate(days[6]);
       const monthStart=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
 
-      const [shiftsRes,pendingRes,actRes,mShiftsRes]=await Promise.all([
-        supabase.from('shifts').select('*,profiles(*)').eq('business_id',bizId).eq('date',today).order('start_time'),
+      const [shiftsRes,pendingRes,weekClockRes,monthClockRes,empRes]=await Promise.all([
+        supabase.from('shifts').select('*,profiles(*)').eq('business_id',bizId).eq('date',today),
         supabase.from('clock_entries').select('id').eq('business_id',bizId).eq('status','pending'),
-        supabase.from('clock_entries').select('*,profiles(*)').eq('business_id',bizId).order('clock_in',{ascending:false}).limit(8),
-        supabase.from('shifts').select('id,start_time,end_time,break_minutes,date').eq('business_id',bizId).gte('date',monthStart),
+        supabase.from('clock_entries').select('*,profiles(*)').eq('business_id',bizId)
+          .gte('clock_in',`${weekStart}T00:00:00`).lte('clock_in',`${weekEnd}T23:59:59`),
+        supabase.from('clock_entries').select('employee_id,clock_in,clock_out,status')
+          .eq('business_id',bizId).gte('clock_in',`${monthStart}T00:00:00`).not('clock_out','is',null),
+        supabase.from('profiles').select('*').eq('business_id',bizId).eq('role','employee').eq('status','active'),
       ]);
 
-      const shifts:Shift[]=((shiftsRes.data??[]) as any[]).map(s=>({...s,employee:s.profiles}));
-      setTodayShifts(shifts);
+      const todayShifts:Shift[]=((shiftsRes.data??[]) as any[]).map(s=>({...s,employee:s.profiles}));
+      const weekClocks:ClockEntry[]=((weekClockRes.data??[]) as any[]).map(e=>({...e,employee:e.profiles}));
+      const monthClocks=(monthClockRes.data??[]) as any[];
+      const employees=(empRes.data??[]) as Employee[];
 
-      const shiftIds=shifts.map(s=>s.id);
-      let entries:ClockEntry[]=[];
-      if(shiftIds.length>0){const{data}=await supabase.from('clock_entries').select('*').in('shift_id',shiftIds).neq('status','rejected');entries=(data??[]) as ClockEntry[];}
+      // Active now
+      const todayClocks=weekClocks.filter(e=>isoDate(new Date(e.clock_in))===today);
+      const activeList=todayClocks.filter(e=>e.clock_in&&!e.clock_out);
+      setActiveNow(activeList.length);
+      setNotClockedIn(todayShifts.filter(s=>!todayClocks.find(e=>e.shift_id===s.id)).length);
+      setPendingCount(pendingRes.data?.length??0);
 
-      const activeNow=shifts.filter(s=>entries.find(e=>e.shift_id===s.id&&e.clock_in&&!e.clock_out)).length;
-      const notClockedIn=shifts.filter(s=>!entries.find(e=>e.shift_id===s.id)).length;
+      // Live employees
+      const live=activeList.map(e=>({
+        emp:e.employee as Employee,
+        minutesWorked:Math.floor((now.getTime()-new Date(e.clock_in).getTime())/60000),
+      })).filter(l=>l.emp);
+      setLiveEmps(live);
 
-      // Monthly total
-      let totalMins=0;
-      for(const s of(mShiftsRes.data??[])){
-        const clean=(dt:string)=>dt.replace(/\+00(:\d{2})?$/,'').replace(' ','T');
-        const dtS=new Date(clean(s.start_time||`${s.date}T00:00:00`)); const dtE=new Date(clean(s.end_time||`${s.date}T00:00:00`));
-        if(!isNaN(dtS.getTime())&&!isNaN(dtE.getTime()))totalMins+=Math.max(0,(dtE.getTime()-dtS.getTime())/60000-(s.break_minutes??0));
+      // Labor cost today
+      setLaborCostToday(live.reduce((s,l)=>s+(l.minutesWorked/60)*(l.emp?.hourly_rate??0),0));
+
+      // Week hours by day
+      const DAY_SHORT=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+      setWeekHours(days.map(d=>{
+        const iso=isoDate(d);
+        const h=weekClocks.filter(e=>isoDate(new Date(e.clock_in))===iso)
+          .reduce((s,e)=>s+(e.clock_out?diffHours(e.clock_in,e.clock_out):0),0);
+        return{label:iso===today?'HOY':DAY_SHORT[d.getDay()],hours:Math.round(h*10)/10,isToday:iso===today};
+      }));
+
+      // Hour status for donut
+      let approved=0,pending=0,other=0;
+      for(const e of monthClocks){
+        const h=diffHours(e.clock_in,e.clock_out);
+        if(e.status==='approved'||e.status==='paid')approved+=h;
+        else if(e.status==='pending')pending+=h;
+        else other+=h;
       }
-      let approvedMins=0;
-      const mIds=(mShiftsRes.data??[]).map((s:any)=>s.id).filter(Boolean);
-      if(mIds.length>0){const{data:appr}=await supabase.from('clock_entries').select('clock_in,clock_out,break_minutes').in('shift_id',mIds).eq('status','approved');
-        for(const e of(appr??[])){if(e.clock_out)approvedMins+=Math.max(0,(new Date(e.clock_out).getTime()-new Date(e.clock_in).getTime())/60000-((e.break_minutes??0) as number));}}
+      setHourStatus({approved:Math.round(approved),pending:Math.round(pending),other:Math.round(other)});
 
-      setStats({activeNow,notClockedIn,todayShifts:shifts.length,pending:pendingRes.data?.length??0});
-      setActivity(((actRes.data??[]) as any[]).map(e=>({...e,employee:e.profiles})));
-      setMonthApproved(approvedMins); setMonthTotal(totalMins);
+      // Employee progress
+      const prog=employees.map((emp,i)=>{
+        const ec=monthClocks.filter(e=>e.employee_id===emp.id);
+        const app=ec.filter(e=>e.status==='approved'||e.status==='paid').reduce((s,e)=>s+diffHours(e.clock_in,e.clock_out),0);
+        const tot=ec.reduce((s,e)=>s+diffHours(e.clock_in,e.clock_out),0);
+        return{emp,approved:Math.round(app),total:Math.round(tot),color:empColor(emp,i)};
+      }).filter(e=>e.total>0).sort((a,b)=>b.total-a.total).slice(0,4);
+      setEmpProgress(prog);
+
       setLoading(false);
     })();
   },[bizId]);
 
-  const progress=monthTotal>0?Math.min(monthApproved/monthTotal,1):0;
-  const todayLabel=new Date().toLocaleDateString('es-PR',{weekday:'long',day:'numeric',month:'long'});
+  const totalHours=hourStatus.approved+hourStatus.pending+hourStatus.other;
+  const CIRC=2*Math.PI*38;
+  const approvedArc=totalHours>0?(hourStatus.approved/totalHours)*CIRC:0;
+  const pendingArc=totalHours>0?(hourStatus.pending/totalHours)*CIRC:0;
+  const maxWeek=Math.max(...weekHours.map(d=>d.hours),1);
+  const weekTotal=weekHours.reduce((s,d)=>s+d.hours,0);
+  const maxProg=Math.max(...empProgress.map(e=>e.total),1);
+
+  const hour=new Date().getHours();
+  const greeting=hour<12?'Buenos días':hour<18?'Buenas tardes':'Buenas noches';
+  const dateLabel=new Date().toLocaleDateString('es-PR',{weekday:'long',day:'numeric',month:'long'});
 
   return (
-    <div>
-      <div style={{background:'linear-gradient(135deg,#064E3B,#1D4ED8)'}} className="px-5 pt-6 pb-6">
-        <div className="flex items-center justify-between mb-5">
-          <div><p className="text-sm capitalize" style={{color:'rgba(255,255,255,0.65)'}}>{todayLabel}</p><h1 className="text-2xl font-bold text-white mt-0.5">Dashboard</h1></div>
-          <button onClick={()=>setActiveTab('calendar')} className="size-11 rounded-2xl flex items-center justify-center shadow-lg active:scale-95 transition-transform" style={{background:T.orange}}><Plus size={22} color="white" strokeWidth={2.5}/></button>
+    <div className="p-5 lg:p-6 space-y-5 max-w-screen-xl">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold" style={{color:T.black}}>{greeting} 👋</h1>
+          <p className="text-xs mt-0.5 capitalize" style={{color:T.gray}}>{dateLabel} · {activeNow} empleado{activeNow!==1?'s':''} activo{activeNow!==1?'s':''} ahora</p>
         </div>
-        {loading?(
-          <div className="grid grid-cols-4 gap-2">{[0,1,2,3].map(i=><div key={i} className="h-16 rounded-2xl animate-pulse" style={{background:'rgba(255,255,255,0.1)'}}/>)}</div>
-        ):(
-          <div className="grid grid-cols-4 gap-2">
-            {[
-              {label:'En turno ahora',value:stats.activeNow, color:'#1D9E75',icon:RadioTower},
-              {label:'Sin ponchar',   value:stats.notClockedIn,color:T.amber,icon:TimerOff},
-              {label:'Turnos hoy',   value:stats.todayShifts,color:T.blue, icon:Users},
-              {label:'Por aprobar',  value:stats.pending,   color:T.red,  icon:AlertTriangle,tab:'approvals'},
-            ].map(({label,value,color,icon:Icon,tab})=>(
-              <div key={label} onClick={tab?()=>setActiveTab(tab):undefined} className={`flex flex-col items-start gap-1.5 p-3 rounded-2xl ${tab?'cursor-pointer':''}`} style={{background:'#F2F2F4'}}>
-                <div className="size-7 rounded-lg flex items-center justify-center shrink-0" style={{background:`${color}30`}}><Icon size={14} color={color}/></div>
-                <p className="text-xl font-bold leading-none" style={{color}}>{value}</p>
-                <p className="text-[9px] leading-tight" style={{color:`${color}99`}}>{label}</p>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="hidden lg:flex gap-2">
+          <button className="h-9 px-4 rounded-xl flex items-center gap-2 text-xs font-semibold" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black}}><Download size={13}/> Exportar</button>
+          <button onClick={()=>setActiveTab('calendar')} className="h-9 px-4 rounded-xl flex items-center gap-2 text-xs font-semibold text-white" style={{background:'#0f1f5c'}}><Plus size={13}/> Crear turno</button>
+        </div>
       </div>
 
-      <div className="p-5">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Left column */}
-          <div className="space-y-4">
-            {/* Monthly progress */}
-            <div className="rounded-2xl p-5" style={CARD}>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[13px] font-semibold" style={{color:T.black}}>Horas aprobadas este mes</span>
-                <span className="text-[13px] font-bold" style={{color:T.blue}}>{Math.round(progress*100)}%</span>
-              </div>
-              <div className="h-2.5 rounded-full overflow-hidden" style={{background:T.blueLt}}>
-                <div className="h-full rounded-full transition-all duration-700" style={{width:`${progress*100}%`,background:T.blue}}/>
-              </div>
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-xs font-semibold" style={{color:T.black}}>{fmtHours(monthApproved/60)}</span>
-                <span className="text-xs" style={{color:T.gray}}>de {fmtHours(monthTotal/60)}</span>
-              </div>
+      {/* Stat cards */}
+      {loading?(
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">{[0,1,2,3].map(i=><div key={i} className="h-28 rounded-2xl animate-pulse" style={{background:T.white}}/>)}</div>
+      ):(
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {[
+            {Icon:RadioTower, iBg:'#F0FDF4', iColor:'#16A34A', val:activeNow, lbl:'En turno ahora',    chip:'● En vivo',  cBg:'#F0FDF4', cFg:'#16A34A', tab:null},
+            {Icon:AlertTriangle,iBg:'#FEF3C7',iColor:T.amber, val:notClockedIn,lbl:'Sin ponchar hoy',   chip:'Ver ahora', cBg:'#FEF3C7', cFg:T.amber,   tab:'approvals'},
+            {Icon:DollarSign,  iBg:'#EEF2FF', iColor:T.indigo, val:`$${Math.round(laborCostToday)}`, lbl:'Costo laboral hoy', chip:'Estimado', cBg:'#EEF2FF', cFg:T.indigo, tab:null},
+            {Icon:Clock,       iBg:'#EFF6FF', iColor:T.blue,   val:`${hourStatus.approved}h`, lbl:'Horas aprobadas', chip:`${totalHours>0?Math.round(hourStatus.approved/totalHours*100):0}% del mes`, cBg:'#EFF6FF', cFg:T.blue, tab:null},
+          ].map(({Icon,iBg,iColor,val,lbl,chip,cBg,cFg,tab})=>(
+            <div key={lbl} onClick={tab?()=>setActiveTab(tab as string):undefined}
+              className={`rounded-2xl p-4 ${tab?'cursor-pointer':''}`} style={CARD}>
+              <div className="size-9 rounded-xl flex items-center justify-center mb-3" style={{background:iBg}}><Icon size={18} color={iColor}/></div>
+              <p className="text-2xl font-bold leading-none" style={{color:T.black}}>{val}</p>
+              <p className="text-xs mt-1.5" style={{color:T.gray}}>{lbl}</p>
+              <span className="inline-flex items-center text-[10px] font-semibold px-2 py-1 rounded-full mt-2" style={{background:cBg,color:cFg}}>{chip}</span>
             </div>
+          ))}
+        </div>
+      )}
 
-            {/* Today employees */}
-            {!loading&&(todayShifts.length>0?(
-              <div className="rounded-2xl overflow-hidden" style={CARD}>
-                <div className="flex items-center justify-between px-4 py-3" style={{borderBottom:`1px solid ${T.border}`}}>
-                  <span className="text-[13px] font-bold" style={{color:T.black}}>Empleados hoy</span>
-                  <span className="text-[11px] font-semibold" style={{color:T.blue}}>{todayShifts.length} turnos</span>
-                </div>
-                {todayShifts.map((s,i)=>{
-                  const color=empColor(s.employee,i);
-                  return(
-                    <div key={s.id} className="flex items-center gap-3 px-4 py-3" style={{borderBottom:i<todayShifts.length-1?`1px solid #F5F5F5`:'none'}}>
-                      <div className="size-9 rounded-[10px] flex items-center justify-center text-xs font-bold text-white shrink-0" style={{background:color}}>{empInitials(s.employee)}</div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-semibold truncate" style={{color:T.black}}>{empName(s.employee)}</p>
-                        <p className="text-xs flex items-center gap-1" style={{color:T.gray}}><Clock size={10}/>{fmtShiftDt(s.start_time)} – {fmtShiftDt(s.end_time)}</p>
-                      </div>
-                      <StatusChip status={s.status}/>
-                    </div>
-                  );
-                })}
-              </div>
-            ):(
-              <div onClick={()=>setActiveTab('calendar')} className="rounded-2xl py-5 flex items-center gap-3 px-5 cursor-pointer" style={CARD}>
-                <div className="size-9 rounded-full flex items-center justify-center shrink-0" style={{background:T.blueLt}}><CalendarIcon size={18} color={T.blue}/></div>
-                <div><p className="text-[13px] font-bold" style={{color:T.black}}>Sin turnos para hoy</p><p className="text-xs mt-0.5" style={{color:T.gray}}>Toca para crear turnos</p></div>
-              </div>
-            ))}
+      {/* Row 1: Bar chart + Live employees */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 rounded-2xl overflow-hidden" style={CARD}>
+          <div className="flex items-center justify-between px-5 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
+            <span className="text-[13px] font-bold" style={{color:T.black}}>Horas trabajadas — esta semana</span>
+            <span className="text-[11px]" style={{color:T.gray}}>{weekTotal.toFixed(0)}h total</span>
           </div>
-
-          {/* Right column */}
-          <div className="space-y-4">
-            {/* Quick actions */}
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                {label:'Crear Turno',  icon:Plus,         color:T.blue,   bg:T.blueLt,  tab:'calendar'},
-                {label:'Ver Personal', icon:Users,         color:T.green,  bg:T.greenLt, tab:'team'},
-                {label:'Aprobar Horas',icon:ClipboardCheck,color:T.amber,  bg:T.amberLt, tab:'approvals'},
-                {label:'Ver Nómina',   icon:DollarSign,    color:T.violet, bg:T.violetLt,tab:'payroll'},
-              ].map(({label,icon:Icon,color,bg,tab})=>(
-                <button key={label} onClick={()=>setActiveTab(tab)} className="flex items-center gap-2.5 p-3.5 rounded-xl text-left transition-all hover:opacity-80 active:scale-95" style={{background:bg}}>
-                  <Icon size={16} style={{color,flexShrink:0}}/>
-                  <span className="text-[12px] font-bold" style={{color}}>{label}</span>
-                </button>
+          <div className="px-5 pt-4 pb-3">
+            <div className="flex items-end gap-2" style={{height:96}}>
+              {weekHours.map((d,i)=>(
+                <div key={i} className="flex-1 flex flex-col items-center gap-1" style={{height:'100%',justifyContent:'flex-end'}}>
+                  <span className="text-[9px]" style={{color:T.gray}}>{d.hours>0?d.hours+'h':''}</span>
+                  <div className="w-full rounded-t-md" style={{height:`${Math.max(d.hours/maxWeek*80,d.hours>0?4:0)}px`,background:d.isToday?'#0f1f5c':'#CBD5E1'}}/>
+                  <span className="text-[9px] font-semibold" style={{color:d.isToday?'#0f1f5c':T.gray}}>{d.label}</span>
+                </div>
               ))}
             </div>
+            <div className="flex items-center justify-between mt-3 pt-3" style={{borderTop:`1px solid ${T.border}`}}>
+              <span className="text-[11px]" style={{color:T.gray}}>Costo estimado: <strong style={{color:T.black}}>${(weekTotal*12).toFixed(0)}</strong></span>
+              <button className="text-[11px] flex items-center gap-1 font-medium" style={{color:T.blue,background:'none',border:'none',cursor:'pointer'}}><Download size={11}/> Exportar Excel</button>
+            </div>
+          </div>
+        </div>
 
-            {/* Recent activity */}
-            {!loading&&activity.length>0&&(
-              <div className="rounded-2xl overflow-hidden" style={CARD}>
-                <div className="flex items-center justify-between px-4 py-3" style={{borderBottom:`1px solid ${T.border}`}}>
-                  <span className="text-[13px] font-bold" style={{color:T.black}}>Actividad reciente</span>
-                </div>
-                {activity.map((e,i)=>{
-                  const hrs=diffHours(e.clock_in,e.clock_out);
-                  const s=e.status==='approved'?{bg:T.greenLt,fg:T.green,label:'Aprobado'}:e.status==='rejected'?{bg:T.redLt,fg:T.red,label:'Rechazado'}:{bg:T.amberLt,fg:T.amber,label:'Pendiente'};
-                  return(
-                    <div key={e.id} className="flex items-center gap-3 px-4 py-3" style={{borderBottom:i<activity.length-1?`1px solid #F5F5F5`:'none'}}>
-                      <div className="size-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{background:T.blueLt,color:T.blue}}>{empInitials(e.employee)}</div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-semibold truncate" style={{color:T.black}}>{empName(e.employee)}</p>
-                        <p className="text-xs" style={{color:T.gray}}>{new Date(e.clock_in).toLocaleString('es-PR',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true})}{hrs>0&&` · ${fmtHours(hrs)}`}</p>
-                      </div>
-                      <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full shrink-0" style={{background:s.bg,color:s.fg}}>{s.label}</span>
-                    </div>
-                  );
-                })}
+        <div className="rounded-2xl overflow-hidden" style={CARD}>
+          <div className="flex items-center justify-between px-4 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
+            <span className="text-[13px] font-bold" style={{color:T.black}}>En turno ahora</span>
+            <span className="size-2 rounded-full animate-pulse" style={{background:'#16A34A'}}/>
+          </div>
+          {loading?(
+            <div className="p-4 space-y-3">{[0,1,2].map(i=><div key={i} className="h-12 rounded-xl animate-pulse" style={{background:T.grayLt}}/>)}</div>
+          ):liveEmps.length===0?(
+            <div className="flex flex-col items-center justify-center py-10 gap-2">
+              <RadioTower size={28} color={T.grayMid}/>
+              <p className="text-[12px]" style={{color:T.gray}}>Nadie en turno ahora</p>
+            </div>
+          ):liveEmps.map((l,i)=>(
+            <div key={i} className="flex items-center gap-3 px-4 py-3" style={{borderBottom:i<liveEmps.length-1?`1px solid #F5F5F5`:'none'}}>
+              <div className="size-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{background:empColor(l.emp,i)}}>{empInitials(l.emp)}</div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-semibold truncate" style={{color:T.black}}>{empName(l.emp)}</p>
+                <p className="text-[10px]" style={{color:T.gray}}>{fmtHours(l.minutesWorked/60)} trabajado</p>
               </div>
+              <span className="text-[10px] font-semibold px-2 py-1 rounded-full" style={{background:'#F0FDF4',color:'#16A34A'}}>Activo</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Row 2: Employee progress + Donut */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 rounded-2xl overflow-hidden" style={CARD}>
+          <div className="flex items-center justify-between px-5 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
+            <span className="text-[13px] font-bold" style={{color:T.black}}>Horas por empleado — este mes</span>
+            <button onClick={()=>setActiveTab('reports')} className="text-[11px] font-semibold" style={{color:T.blue,background:'none',border:'none',cursor:'pointer'}}>Ver reportes →</button>
+          </div>
+          {loading?(
+            <div className="p-5 space-y-4">{[0,1,2,3].map(i=><div key={i} className="h-8 rounded-xl animate-pulse" style={{background:T.grayLt}}/>)}</div>
+          ):empProgress.length===0?(
+            <div className="py-12 flex flex-col items-center"><p className="text-sm" style={{color:T.gray}}>Sin horas este mes</p></div>
+          ):(
+            <div className="px-5 py-4 space-y-4">
+              {empProgress.map((ep,i)=>(
+                <div key={i}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-2">
+                      <div className="size-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0" style={{background:ep.color}}>{empInitials(ep.emp)}</div>
+                      <span className="text-[12px] font-semibold" style={{color:T.black}}>{empName(ep.emp)}</span>
+                    </div>
+                    <span className="text-[11px]" style={{color:T.gray}}>{ep.approved}h aprob. / {ep.total}h total</span>
+                  </div>
+                  <div className="h-2 rounded-full overflow-hidden" style={{background:T.grayLt}}>
+                    <div className="h-full rounded-full transition-all duration-700" style={{width:`${ep.total/maxProg*100}%`,background:ep.color}}/>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-2xl overflow-hidden" style={CARD}>
+          <div className="px-4 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
+            <span className="text-[13px] font-bold" style={{color:T.black}}>Estado de horas</span>
+            <p className="text-[10px] mt-0.5" style={{color:T.gray}}>Este mes</p>
+          </div>
+          <div className="flex flex-col items-center px-5 py-5 gap-4">
+            {loading?(
+              <div className="w-24 h-24 rounded-full animate-pulse" style={{background:T.grayLt}}/>
+            ):(
+              <svg width="120" height="120" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#F3F4F6" strokeWidth="13"/>
+                {totalHours>0&&<>
+                  <circle cx="50" cy="50" r="38" fill="none" stroke="#16A34A" strokeWidth="13"
+                    strokeDasharray={`${approvedArc} ${CIRC}`} strokeDashoffset="0"
+                    strokeLinecap="round" transform="rotate(-90 50 50)"/>
+                  <circle cx="50" cy="50" r="38" fill="none" stroke="#D97706" strokeWidth="13"
+                    strokeDasharray={`${pendingArc} ${CIRC}`} strokeDashoffset={`${-approvedArc}`}
+                    strokeLinecap="round" transform="rotate(-90 50 50)"/>
+                </>}
+                <text x="50" y="47" textAnchor="middle" fontSize="13" fontWeight="600" fill="#111">{totalHours}h</text>
+                <text x="50" y="60" textAnchor="middle" fontSize="8" fill="#9CA3AF">total</text>
+              </svg>
             )}
+            <div className="w-full space-y-2.5">
+              {[
+                {label:'Aprobadas',  value:hourStatus.approved, color:'#16A34A', bg:'#F0FDF4'},
+                {label:'Pendientes', value:hourStatus.pending,  color:T.amber,   bg:'#FEF3C7'},
+                {label:'Sin aprobar',value:hourStatus.other,    color:T.grayMid, bg:T.grayLt},
+              ].map(({label,value,color,bg})=>(
+                <div key={label} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="size-2.5 rounded-full shrink-0" style={{background:color}}/>
+                    <span className="text-[12px]" style={{color:T.black}}>{label}</span>
+                  </div>
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md" style={{background:bg,color}}>{value}h</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
