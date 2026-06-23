@@ -642,18 +642,22 @@ function TurnosView({bizId}:{bizId:string}) {
   const [bulkSaving,setBulkSaving] = useState(false);
   const [copying,setCopying] = useState(false);
   const [nowTick,setNowTick] = useState(new Date());
+  const [liveEntries,setLiveEntries] = useState<any[]>([]);
+  const [showLive,setShowLive] = useState(false);
   useEffect(()=>{const t=setInterval(()=>setNowTick(new Date()),60000);return()=>clearInterval(t);},[]);
 
   const days=weekDays(weekAnchor);
 
   const load=useCallback(async()=>{
     setLoading(true);
-    const[empRes,shiftRes]=await Promise.all([
+    const[empRes,shiftRes,liveRes]=await Promise.all([
       supabase.from('profiles').select('*').eq('business_id',bizId).eq('role','employee').eq('status','active'),
       supabase.from('shifts').select('*,profiles(*)').eq('business_id',bizId).gte('date',isoDate(days[0])).lte('date',isoDate(days[6])).order('start_time'),
+      supabase.from('clock_entries').select('*,profiles(*)').eq('business_id',bizId).is('clock_out',null),
     ]);
     setEmployees((empRes.data??[]) as Employee[]);
     setShifts(((shiftRes.data??[]) as any[]).map(s=>({...s,employee:s.profiles})));
+    setLiveEntries(((liveRes.data??[]) as any[]).map(e=>({...e,employee:e.profiles})));
     setLoading(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[bizId,isoDate(days[0])]);
@@ -706,15 +710,16 @@ function TurnosView({bizId}:{bizId:string}) {
   const draftsCount=shifts.filter(s=>s.status==='draft').length;
   const dayShifts=(empId:string)=>shifts.filter(s=>s.employee_id===empId&&s.date===selectedDate);
 
-  // Timeline helpers
-  const H_START=6, H_END=22, RANGE=( H_END-H_START)*60;
-  const toMins=(dt:string)=>{const d=new Date(dt.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));return d.getHours()*60+d.getMinutes();};
+  // Timeline helpers — 6am to 4am next day (covers overnight shifts)
+  const H_START=6, H_END=28, RANGE=(H_END-H_START)*60;
+  const toMins=(dt:string)=>{const d=new Date(dt.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));let m=d.getHours()*60+d.getMinutes();return m;};
+  const toMinsEnd=(startDt:string,endDt:string)=>{const sm=toMins(startDt);let em=toMins(endDt);if(em<sm)em+=24*60;return em;};
   const pct=(mins:number)=>Math.max(0,Math.min(100,(mins-H_START*60)/RANGE*100));
-  const nowMins=nowTick.getHours()*60+nowTick.getMinutes();
+  const nowMins=(()=>{let m=nowTick.getHours()*60+nowTick.getMinutes();if(m<H_START*60)m+=24*60;return m;})();
   const nowPct=pct(nowMins);
   const isViewingToday=selectedDate===isoDate(new Date());
   const hourTicks=Array.from({length:H_END-H_START+1},(_,i)=>H_START+i);
-  const fmtHour=(h:number)=>{const ampm=h<12?'am':'pm';const h12=h===0?12:h>12?h-12:h;return`${h12}${ampm}`;};
+  const fmtHour=(h:number)=>{const hh=h%24;const ampm=hh<12?'am':'pm';const h12=hh===0?12:hh>12?hh-12:hh;return`${h12}${ampm}`;};
   const statusBar=(status:string)=>({
     published:{bg:'#16A34A',text:'#fff'},
     accepted: {bg:'#16A34A',text:'#fff'},
@@ -731,6 +736,10 @@ function TurnosView({bizId}:{bizId:string}) {
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold" style={{color:T.black}}>Horario</h1>
           <div className="flex items-center gap-2">
+            <button onClick={()=>setShowLive(v=>!v)} className="h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold transition-all" style={{background:showLive?'#DC2626':liveEntries.length>0?'#FEE2E2':'#F5F5F7',color:showLive?'#fff':'#DC2626',border:`1px solid ${liveEntries.length>0?'#FECACA':'#E8E8E8'}`}}>
+              <span className="relative flex size-2"><span className={`${liveEntries.length>0?'animate-ping':''}  absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75`}/><span className="relative inline-flex rounded-full size-2 bg-red-500"/></span>
+              En Vivo {liveEntries.length>0&&`(${liveEntries.length})`}
+            </button>
             <button onClick={handleCopyWeek} disabled={copying} className="h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold transition-all" style={{background:T.indigoLt,color:T.indigo}}>
               {copying?<span className="size-3.5 border-2 rounded-full animate-spin" style={{borderColor:`${T.indigo}30`,borderTopColor:T.indigo}}/>:<RefreshCw size={13}/>} Copiar semana
             </button>
@@ -767,6 +776,42 @@ function TurnosView({bizId}:{bizId:string}) {
           <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()+7);return n;})} className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:T.bg,border:`1px solid ${T.border}`}}><ChevronRight size={15} color={T.gray}/></button>
         </div>
       </div>
+
+      {/* ── En Vivo panel ── */}
+      {showLive&&(
+        <div className="px-5 py-4" style={{background:'#FFF5F5',borderBottom:`1px solid #FECACA`}}>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="relative flex size-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"/><span className="relative inline-flex rounded-full size-2.5 bg-red-500"/></span>
+            <span className="text-[13px] font-bold" style={{color:'#DC2626'}}>Trabajando Ahora</span>
+            <span className="text-[11px]" style={{color:'#EF4444'}}>{liveEntries.length} empleado{liveEntries.length!==1?'s':''} activo{liveEntries.length!==1?'s':''}</span>
+          </div>
+          {liveEntries.length===0?(
+            <p className="text-xs" style={{color:'#EF4444'}}>Nadie está trabajando en este momento.</p>
+          ):(
+            <div className="flex flex-wrap gap-3">
+              {liveEntries.map(e=>{
+                const ci=new Date(e.clock_in.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));
+                const elMin=Math.floor((nowTick.getTime()-ci.getTime())/60000);
+                const elH=Math.floor(elMin/60); const elM=elMin%60;
+                const emp=e.employee;
+                const color=emp?empColor(emp,0):'#6B7280';
+                const initials=emp?`${(emp.name??'?')[0]}${(emp.last_name??'')[0]??''}`.toUpperCase():'?';
+                return(
+                  <div key={e.id} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl" style={{background:'#fff',border:'1px solid #FECACA',minWidth:180}}>
+                    <div className="size-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{background:color}}>{initials}</div>
+                    <div>
+                      <p className="text-[12px] font-semibold" style={{color:'#111'}}>{emp?.name??'—'} {emp?.last_name??''}</p>
+                      <p className="text-[10px]" style={{color:'#6B7280'}}>Entró {ci.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true})}</p>
+                      <p className="text-[11px] font-bold mt-0.5" style={{color:'#16A34A'}}>{elH>0?`${elH}h `:''}${elM}m trabajando</p>
+                    </div>
+                    <span className="ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{background:'#DC2626',color:'#fff'}}>LIVE</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Timeline body ── */}
       <div className="p-5">
@@ -835,9 +880,9 @@ function TurnosView({bizId}:{bizId:string}) {
                         {/* Shift bars */}
                         {empShifts.length>0?empShifts.map(s=>{
                           const startM=toMins(s.start_time);
-                          const endM=toMins(s.end_time);
+                          const endM=toMinsEnd(s.start_time,s.end_time);
                           const left=pct(startM);
-                          const width=Math.max(2,pct(endM)-left);
+                          const width=Math.max(1,pct(endM)-left);
                           const sc=statusBar(s.status);
                           return(
                             <div key={s.id}
