@@ -836,7 +836,7 @@ function TurnosView({bizId}:{bizId:string}) {
               <p className="text-sm" style={{color:'rgba(255,255,255,0.4)'}}>No hay empleados activos</p>
             </div>
           ):(
-            <div className="overflow-x-auto" style={{background:'#12122a'}}>
+            <div className="overflow-x-auto" style={{background:'#12122a',scrollbarWidth:'none'} as React.CSSProperties}>
               <div style={{minWidth:700}}>
 
                 {/* Hour ruler — ticks every 2 hours */}
