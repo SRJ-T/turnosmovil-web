@@ -30,7 +30,6 @@ const EMP_COLORS = ['#6366F1','#2563EB','#0D9488','#16A34A','#D97706','#DC2626',
 const JOB_TITLES = ['Cajero/a','Mesero/a','Cocinero/a','Chef','Bartender','Host / Hostess','Gerente','Supervisor/a','Limpieza','Seguridad','Recepcionista','Vendedor/a','Almacenista','Repartidor/a','Técnico/a','Contador/a','Asistente Administrativo/a','Instructor/a','Mecánico/a','Electricista','Chofer','Otro'];
 const NAV = { dashboard: T.indigo, team: T.green, calendar: T.blue, approvals: T.amber, payroll: T.violet, reports: T.green, settings: T.gray };
 const DAY_ES = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
-const MONTH_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Employee { id:string; name:string; last_name:string|null; email:string; phone:string|null; job_title:string|null; role:string; hourly_rate:number; employee_color:string|null; status:string; business_id:string; }
