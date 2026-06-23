@@ -6,7 +6,7 @@ import {
   CheckCircle2, XCircle, ChevronLeft, ChevronRight, Clock,
   UserPlus, AlertTriangle, Trash2, Search, BarChart3,
   MinusCircle, LogOut, RefreshCw, ChevronDown, ChevronUp,
-  RadioTower, Send, Pencil, Undo2, LayoutGrid, List
+  RadioTower, Send, Pencil, Undo2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase, fmtShiftDt, diffHours } from './lib/supabase';
@@ -626,13 +626,12 @@ function TeamView({bizId}:{bizId:string}) {
   );
 }
 
-// ─── TURNOS ───────────────────────────────────────────────────────────────────
+// ─── TURNOS (Timeline) ────────────────────────────────────────────────────────
 function TurnosView({bizId}:{bizId:string}) {
   const [employees,setEmployees] = useState<Employee[]>([]);
   const [shifts,setShifts] = useState<Shift[]>([]);
   const [weekAnchor,setWeekAnchor] = useState(new Date());
   const [selectedDate,setSelectedDate] = useState(isoDate(new Date()));
-  const [viewMode,setViewMode] = useState<'grid'|'list'>('grid');
   const [showModal,setShowModal] = useState(false);
   const [editShift,setEditShift] = useState<Shift|null>(null);
   const [loading,setLoading] = useState(true);
@@ -643,6 +642,8 @@ function TurnosView({bizId}:{bizId:string}) {
   const [bulkTime,setBulkTime] = useState({start:'09:00',end:'17:00',break_minutes:0});
   const [bulkSaving,setBulkSaving] = useState(false);
   const [copying,setCopying] = useState(false);
+  const [nowTick,setNowTick] = useState(new Date());
+  useEffect(()=>{const t=setInterval(()=>setNowTick(new Date()),60000);return()=>clearInterval(t);},[]);
 
   const days=weekDays(weekAnchor);
 
@@ -703,128 +704,180 @@ function TurnosView({bizId}:{bizId:string}) {
     setBulkSaving(false);setShowBulkModal(false);setBulkEmps([]);setBulkDays([0,1,2,3,4]);await load();
   };
 
-  const getShift=(empId:string,date:string)=>shifts.filter(s=>s.employee_id===empId&&s.date===date);
-  const selectedShifts=shifts.filter(s=>s.date===selectedDate);
   const draftsCount=shifts.filter(s=>s.status==='draft').length;
+  const dayShifts=(empId:string)=>shifts.filter(s=>s.employee_id===empId&&s.date===selectedDate);
 
-  const statusColor=(status:string)=>({published:{bg:T.greenLt,fg:T.green},accepted:{bg:T.greenLt,fg:T.green},rejected:{bg:T.redLt,fg:T.red},draft:{bg:T.amberLt,fg:T.amber}}[status]??{bg:T.grayLt,fg:T.gray});
+  // Timeline helpers
+  const H_START=6, H_END=22, RANGE=( H_END-H_START)*60;
+  const toMins=(dt:string)=>{const d=new Date(dt.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));return d.getHours()*60+d.getMinutes();};
+  const pct=(mins:number)=>Math.max(0,Math.min(100,(mins-H_START*60)/RANGE*100));
+  const nowMins=nowTick.getHours()*60+nowTick.getMinutes();
+  const nowPct=pct(nowMins);
+  const isViewingToday=selectedDate===isoDate(new Date());
+  const hourTicks=Array.from({length:H_END-H_START+1},(_,i)=>H_START+i);
+  const fmtHour=(h:number)=>{const ampm=h<12?'am':'pm';const h12=h===0?12:h>12?h-12:h;return`${h12}${ampm}`;};
+  const statusBar=(status:string)=>({
+    published:{bg:'#16A34A',text:'#fff'},
+    accepted: {bg:'#16A34A',text:'#fff'},
+    draft:    {bg:'#D97706',text:'#fff'},
+    rejected: {bg:'#DC2626',text:'#fff'},
+  }[status]??{bg:T.grayMid,text:'#fff'});
+
+  const selectedDayShifts=shifts.filter(s=>s.date===selectedDate);
 
   return (
     <div>
-      <div className="px-5 pt-6 pb-5" style={{background:T.white,borderBottom:`1px solid ${T.border}`}}>
-        <div className="flex items-center justify-between mb-3">
-          <h1 className="text-xl font-bold" style={{color:T.black}}>Turnos</h1>
+      {/* ── Header ── */}
+      <div className="px-5 pt-5 pb-4" style={{background:T.white,borderBottom:`1px solid ${T.border}`}}>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-bold" style={{color:T.black}}>Horario</h1>
           <div className="flex items-center gap-2">
-            <div className="flex p-1 rounded-xl gap-1" style={{background:T.bg,border:`1px solid ${T.border}`}}>
-              <button onClick={()=>setViewMode('grid')} className="size-8 rounded-lg flex items-center justify-center" style={{background:viewMode==='grid'?T.white:'transparent',boxShadow:viewMode==='grid'?'0 1px 3px rgba(0,0,0,0.1)':'none'}}><LayoutGrid size={15} color={viewMode==='grid'?T.black:T.grayMid}/></button>
-              <button onClick={()=>setViewMode('list')} className="size-8 rounded-lg flex items-center justify-center" style={{background:viewMode==='list'?T.white:'transparent',boxShadow:viewMode==='list'?'0 1px 3px rgba(0,0,0,0.1)':'none'}}><List size={15} color={viewMode==='list'?T.black:T.grayMid}/></button>
-            </div>
-            <button onClick={handleCopyWeek} disabled={copying} title="Copiar esta semana a la siguiente" className="h-10 px-3 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-all" style={{background:T.indigoLt,color:T.indigo,border:`1px solid ${T.indigo}33`}}>{copying?<span className="size-4 border-2 rounded-full animate-spin" style={{borderColor:`${T.indigo}30`,borderTopColor:T.indigo}}/>:<RefreshCw size={14}/>} Copiar semana</button>
-            <button onClick={()=>{setBulkEmps([]);setBulkDays([0,1,2,3,4]);setShowBulkModal(true);}} className="h-10 px-3 rounded-xl flex items-center gap-1.5 text-xs font-bold" style={{background:T.greenLt,color:T.green,border:`1px solid ${T.green}33`}}><Users size={14}/> Masivo</button>
-            <button onClick={()=>openAdd(selectedDate)} className="h-10 px-4 rounded-xl flex items-center gap-2 text-xs font-bold text-white" style={{background:T.blue}}><Plus size={15} strokeWidth={2.5}/> Crear turno</button>
+            <button onClick={handleCopyWeek} disabled={copying} className="h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold transition-all" style={{background:T.indigoLt,color:T.indigo}}>
+              {copying?<span className="size-3.5 border-2 rounded-full animate-spin" style={{borderColor:`${T.indigo}30`,borderTopColor:T.indigo}}/>:<RefreshCw size={13}/>} Copiar semana
+            </button>
+            <button onClick={()=>{setBulkEmps([]);setBulkDays([0,1,2,3,4]);setShowBulkModal(true);}} className="h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold" style={{background:T.greenLt,color:T.green}}>
+              <Users size={13}/> Masivo
+            </button>
+            <button onClick={handlePublishAll} disabled={draftsCount===0} className="h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white transition-all" style={{background:draftsCount>0?T.amber:T.green,opacity:draftsCount===0?0.6:1}}>
+              <CheckCircle2 size={13}/>{draftsCount>0?`Publicar ${draftsCount}`:'Publicado'}
+            </button>
+            <button onClick={()=>openAdd(selectedDate)} className="h-9 px-4 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white" style={{background:'#0f1f5c'}}>
+              <Plus size={13}/> Crear turno
+            </button>
           </div>
         </div>
-        <div className="flex items-center justify-between">
-          <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()-7);return n;})} className="size-8 rounded-xl flex items-center justify-center" style={{background:T.bg,border:`1px solid ${T.border}`}}><ChevronLeft size={16} color={T.gray}/></button>
-          <span className="text-[13px] font-semibold" style={{color:T.black}}>{MONTH_ES[days[0].getMonth()]} {days[0].getDate()} – {MONTH_ES[days[6].getMonth()]} {days[6].getDate()}, {days[0].getFullYear()}</span>
-          <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()+7);return n;})} className="size-8 rounded-xl flex items-center justify-center" style={{background:T.bg,border:`1px solid ${T.border}`}}><ChevronRight size={16} color={T.gray}/></button>
+
+        {/* Week day selector */}
+        <div className="flex items-center gap-2">
+          <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()-7);return n;})} className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:T.bg,border:`1px solid ${T.border}`}}><ChevronLeft size={15} color={T.gray}/></button>
+          <div className="flex flex-1 gap-1.5">
+            {days.map(d=>{
+              const iso=isoDate(d);
+              const sel=iso===selectedDate;
+              const isToday=iso===isoDate(new Date());
+              const hasShift=shifts.some(s=>s.date===iso);
+              return(
+                <button key={iso} onClick={()=>setSelectedDate(iso)} className="flex-1 flex flex-col items-center py-2 rounded-xl transition-all" style={{background:sel?'#0f1f5c':isToday?'#EEF2FF':T.bg,border:`1px solid ${sel?'#0f1f5c':T.border}`}}>
+                  <span className="text-[9px] font-semibold uppercase" style={{color:sel?'rgba(255,255,255,0.6)':T.grayMid}}>{DAY_ES[d.getDay()]}</span>
+                  <span className="text-[15px] font-bold leading-tight mt-0.5" style={{color:sel?'#fff':T.black}}>{d.getDate()}</span>
+                  <div className="w-1.5 h-1.5 rounded-full mt-1" style={{background:hasShift?(sel?'rgba(255,255,255,0.5)':'#16A34A'):'transparent'}}/>
+                </button>
+              );
+            })}
+          </div>
+          <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()+7);return n;})} className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:T.bg,border:`1px solid ${T.border}`}}><ChevronRight size={15} color={T.gray}/></button>
         </div>
       </div>
 
-      <div className="p-5 space-y-4">
-        <div className="flex justify-between items-center">
-          <p className="text-xs" style={{color:T.gray}}>{shifts.length} turno{shifts.length!==1?'s':''} esta semana</p>
-          <button onClick={handlePublishAll} disabled={draftsCount===0} className="h-9 px-4 rounded-xl flex items-center gap-2 text-xs font-bold text-white transition-all" style={{background:draftsCount>0?T.amber:T.green,opacity:draftsCount===0?0.7:1}}>
-            <CheckCircle2 size={14}/>{draftsCount>0?`Publicar ${draftsCount} turno${draftsCount>1?'s':''}`:'Todo publicado'}
-          </button>
-        </div>
+      {/* ── Timeline body ── */}
+      <div className="p-5">
+        <div className="rounded-2xl overflow-hidden" style={CARD}>
 
-        {loading?<div className="h-64 rounded-2xl animate-pulse" style={{background:T.white}}/>:
-
-        viewMode==='grid'?(
-          <div className="rounded-2xl overflow-hidden" style={CARD}>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[700px]">
-                <thead>
-                  <tr style={{background:T.bg,borderBottom:`1px solid ${T.border}`}}>
-                    <th className="text-left px-4 py-3 text-xs font-bold w-36" style={{color:T.gray}}>Empleado</th>
-                    {days.map(d=>{
-                      const iso=isoDate(d); const isToday=iso===isoDate(new Date());
-                      return(
-                        <th key={iso} onClick={()=>setSelectedDate(iso)} className="text-center px-2 py-3 text-xs font-bold cursor-pointer min-w-[90px]" style={{color:isToday?T.blue:T.gray,background:selectedDate===iso?T.blueDim:'transparent'}}>
-                          <div>{DAY_ES[d.getDay()]}</div>
-                          <div className="text-base font-black mt-0.5" style={{color:isToday?T.blue:T.black}}>{d.getDate()}</div>
-                        </th>
-                      );
-                    })}
-                  </tr>
-                </thead>
-                <tbody>
-                  {employees.length===0?(
-                    <tr><td colSpan={8} className="text-center py-12 text-sm" style={{color:T.gray}}>No hay empleados activos</td></tr>
-                  ):employees.map((emp,ei)=>(
-                    <tr key={emp.id} style={{borderBottom:`1px solid #F5F5F5`}}>
-                      <td className="px-4 py-2">
-                        <div className="flex items-center gap-2">
-                          <div className="size-8 rounded-[9px] flex items-center justify-center text-xs font-bold text-white shrink-0" style={{background:empColor(emp,ei)}}>{empInitials(emp)}</div>
-                          <div className="min-w-0"><p className="text-xs font-semibold truncate" style={{color:T.black}}>{emp.name}</p><p className="text-[10px] truncate" style={{color:T.gray}}>{emp.job_title??'—'}</p></div>
-                        </div>
-                      </td>
-                      {days.map(d=>{
-                        const iso=isoDate(d); const dayShifts=getShift(emp.id,iso);
-                        const isSel=selectedDate===iso;
-                        return(
-                          <td key={iso} className="px-1.5 py-2 align-top" style={{background:isSel?T.blueDim:'transparent',cursor:'pointer'}} onClick={()=>setSelectedDate(iso)}>
-                            {dayShifts.length>0?dayShifts.map(s=>{const sc=statusColor(s.status);return(
-                              <div key={s.id} onClick={(e)=>{e.stopPropagation();openEdit(s);}} className="rounded-lg px-2 py-1 mb-1 text-[10px] font-semibold leading-tight cursor-pointer hover:opacity-80" style={{background:sc.bg,color:sc.fg,border:`1px solid ${sc.fg}33`}}>
-                                {fmtShiftDt(s.start_time)}–{fmtShiftDt(s.end_time)}
-                              </div>
-                            );}):(
-                              <div onClick={(e)=>{e.stopPropagation();openAdd(iso,emp.id);}} className="h-7 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity" style={{border:`1.5px dashed ${T.border}`}}>
-                                <Plus size={12} color={T.grayMid}/>
-                              </div>
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {/* Date + summary bar */}
+          <div className="flex items-center justify-between px-5 py-3" style={{borderBottom:`1px solid ${T.border}`,background:T.bg}}>
+            <div>
+              <span className="text-[13px] font-semibold" style={{color:T.black}}>
+                {new Date(selectedDate+'T12:00:00').toLocaleDateString('es-PR',{weekday:'long',day:'numeric',month:'long'})}
+              </span>
+              {isViewingToday&&<span className="ml-2 text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{background:'#EEF2FF',color:'#4F46E5'}}>Hoy</span>}
             </div>
+            <span className="text-[11px]" style={{color:T.gray}}>{selectedDayShifts.length} turno{selectedDayShifts.length!==1?'s':''}</span>
           </div>
-        ):(
-          <>
-            <div className="grid grid-cols-7 gap-1.5">
-              {days.map(d=>{const iso=isoDate(d);const sel=iso===selectedDate;const has=shifts.some(s=>s.date===iso);const isToday=iso===isoDate(new Date());
-                return(<button key={iso} onClick={()=>setSelectedDate(iso)} className="flex flex-col items-center py-2.5 rounded-2xl transition-all active:scale-95" style={{background:sel?T.blue:isToday?T.blueLt:T.white,border:`1px solid ${sel?T.blue:T.border}`}}>
-                  <span className="text-[9px] font-bold uppercase" style={{color:sel?'rgba(255,255,255,0.7)':T.grayMid}}>{DAY_ES[d.getDay()]}</span>
-                  <span className="text-lg font-bold leading-none mt-0.5" style={{color:sel?T.white:T.black}}>{d.getDate()}</span>
-                  <div className="w-2 h-2 rounded-full mt-1.5" style={{background:has?(sel?'white':T.green):'transparent'}}/>
-                </button>);
-              })}
+
+          {loading?(
+            <div className="p-5 space-y-3">{[0,1,2,3].map(i=><div key={i} className="h-14 rounded-xl animate-pulse" style={{background:T.grayLt}}/>)}</div>
+          ):employees.length===0?(
+            <div className="py-16 flex flex-col items-center gap-3">
+              <Users size={36} color={T.grayMid}/>
+              <p className="text-sm" style={{color:T.gray}}>No hay empleados activos</p>
             </div>
-            {selectedShifts.length===0?(
-              <div className="rounded-2xl py-14 flex flex-col items-center" style={CARD}>
-                <p className="text-sm font-semibold mb-3" style={{color:T.gray}}>No hay turnos para este día</p>
-                <button onClick={()=>openAdd(selectedDate)} className="h-10 px-5 rounded-xl text-xs font-bold text-white" style={{background:T.blue}}>Crear Turno</button>
-              </div>
-            ):(
-              <div className="rounded-2xl overflow-hidden" style={CARD}>
-                {selectedShifts.map((s,i)=>{const sc=statusColor(s.status);const color=empColor(s.employee);
-                  return(<div key={s.id} className="flex items-center gap-3 px-4 py-3.5 cursor-pointer hover:bg-gray-50" onClick={()=>openEdit(s)} style={{borderBottom:i<selectedShifts.length-1?`1px solid #F5F5F5`:'none'}}>
-                    <div className="size-10 rounded-[12px] flex items-center justify-center text-sm font-bold text-white shrink-0" style={{background:color}}>{empInitials(s.employee)}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-semibold" style={{color:T.black}}>{empName(s.employee)}</p>
-                      <div className="flex items-center gap-1 mt-0.5"><Clock size={11} color={T.gray}/><p className="text-xs" style={{color:T.gray}}>{fmtShiftDt(s.start_time)} – {fmtShiftDt(s.end_time)}{s.break_minutes>0&&` · ${s.break_minutes}min break`}</p></div>
+          ):(
+            <div className="overflow-x-auto">
+              {/* Hour ruler */}
+              <div style={{minWidth:700}}>
+                <div className="flex" style={{paddingLeft:160,borderBottom:`1px solid ${T.border}`,background:T.bg}}>
+                  {hourTicks.map(h=>(
+                    <div key={h} className="flex-1 text-center py-2 relative" style={{borderLeft:`1px solid ${T.border}`}}>
+                      <span className="text-[9px]" style={{color:T.grayMid}}>{fmtHour(h)}</span>
                     </div>
-                    <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full shrink-0" style={{background:sc.bg,color:sc.fg}}>{s.status==='published'?'Publicado':s.status==='accepted'?'Aceptado':s.status==='rejected'?'Rechazado':'Borrador'}</span>
-                  </div>);
+                  ))}
+                </div>
+
+                {/* Employee rows */}
+                {employees.map((emp,ei)=>{
+                  const empShifts=dayShifts(emp.id);
+                  const color=empColor(emp,ei);
+                  return(
+                    <div key={emp.id} className="flex items-center" style={{borderBottom:`1px solid #F5F5F7`,minHeight:52}}>
+                      {/* Name column */}
+                      <div className="flex items-center gap-2.5 px-4 shrink-0" style={{width:160}}>
+                        <div className="size-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
+                        <div className="min-w-0">
+                          <p className="text-[12px] font-semibold truncate" style={{color:T.black}}>{emp.name}</p>
+                          <p className="text-[10px] truncate" style={{color:T.grayMid}}>{emp.job_title??'—'}</p>
+                        </div>
+                      </div>
+
+                      {/* Track */}
+                      <div className="flex-1 relative" style={{height:52,cursor:'pointer'}}
+                        onClick={()=>openAdd(selectedDate,emp.id)}>
+                        {/* Hour grid lines */}
+                        {hourTicks.map(h=>(
+                          <div key={h} className="absolute top-0 bottom-0" style={{left:`${(h-H_START)/(H_END-H_START)*100}%`,width:1,background:`${T.border}88`}}/>
+                        ))}
+
+                        {/* Now line */}
+                        {isViewingToday&&nowMins>=H_START*60&&nowMins<=H_END*60&&(
+                          <div className="absolute top-0 bottom-0 z-10" style={{left:`${nowPct}%`,width:2,background:'#EF4444'}}>
+                            <div style={{width:8,height:8,background:'#EF4444',borderRadius:'50%',position:'absolute',top:4,left:-3}}/>
+                          </div>
+                        )}
+
+                        {/* Shift bars */}
+                        {empShifts.length>0?empShifts.map(s=>{
+                          const startM=toMins(s.start_time);
+                          const endM=toMins(s.end_time);
+                          const left=pct(startM);
+                          const width=Math.max(2,pct(endM)-left);
+                          const sc=statusBar(s.status);
+                          return(
+                            <div key={s.id}
+                              onClick={e=>{e.stopPropagation();openEdit(s);}}
+                              className="absolute flex items-center px-2 rounded-md cursor-pointer hover:brightness-95 transition-all"
+                              style={{left:`${left}%`,width:`${width}%`,top:10,height:32,background:sc.bg,zIndex:5}}
+                              title={`${fmtShiftDt(s.start_time)} – ${fmtShiftDt(s.end_time)}`}>
+                              <span className="text-[10px] font-semibold truncate" style={{color:sc.text}}>
+                                {fmtShiftDt(s.start_time)}–{fmtShiftDt(s.end_time)}
+                                {s.break_minutes>0&&` · ${s.break_minutes}m`}
+                              </span>
+                            </div>
+                          );
+                        }):(
+                          <div className="absolute inset-2 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity" style={{border:`1.5px dashed ${T.border}`}}>
+                            <Plus size={13} color={T.grayMid}/>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
                 })}
+
+                {/* Now time label */}
+                {isViewingToday&&nowMins>=H_START*60&&nowMins<=H_END*60&&(
+                  <div className="flex items-center gap-1.5 px-4 py-2.5" style={{borderTop:`1px solid ${T.border}`,background:'#FFF5F5'}}>
+                    <div className="size-2 rounded-full" style={{background:'#EF4444'}}/>
+                    <span className="text-[11px] font-semibold" style={{color:'#EF4444'}}>
+                      Hora actual: {nowTick.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true})}
+                    </span>
+                    <span className="text-[11px]" style={{color:T.gray,marginLeft:8}}>
+                      {selectedDayShifts.filter(s=>{const sm=toMins(s.start_time);const em=toMins(s.end_time);return sm<=nowMins&&em>=nowMins;}).length} empleado(s) activos ahora
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
-          </>
-        )}
+            </div>
+          )}
+        </div>
       </div>
 
       <AnimatePresence>
