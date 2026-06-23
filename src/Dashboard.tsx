@@ -815,34 +815,35 @@ function TurnosView({bizId}:{bizId:string}) {
 
       {/* ── Timeline body ── */}
       <div className="p-5">
-        <div className="rounded-2xl overflow-hidden" style={CARD}>
+        <div className="rounded-2xl overflow-hidden" style={{boxShadow:'0 2px 12px rgba(0,0,0,0.18)'}}>
 
-          {/* Date + summary bar */}
-          <div className="flex items-center justify-between px-5 py-3" style={{borderBottom:`1px solid ${T.border}`,background:T.bg}}>
-            <div>
-              <span className="text-[13px] font-semibold" style={{color:T.black}}>
+          {/* Date bar */}
+          <div className="flex items-center justify-between px-5 py-3" style={{background:'#1a1a2e',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+            <div className="flex items-center gap-2">
+              <span className="text-[13px] font-semibold text-white">
                 {new Date(selectedDate+'T12:00:00').toLocaleDateString('es-PR',{weekday:'long',day:'numeric',month:'long'})}
               </span>
-              {isViewingToday&&<span className="ml-2 text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{background:'#EEF2FF',color:'#4F46E5'}}>Hoy</span>}
+              {isViewingToday&&<span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{background:'#312e81',color:'#a5b4fc'}}>Hoy</span>}
             </div>
-            <span className="text-[11px]" style={{color:T.gray}}>{selectedDayShifts.length} turno{selectedDayShifts.length!==1?'s':''}</span>
+            <span className="text-[11px]" style={{color:'rgba(255,255,255,0.4)'}}>{selectedDayShifts.length} turno{selectedDayShifts.length!==1?'s':''}</span>
           </div>
 
           {loading?(
-            <div className="p-5 space-y-3">{[0,1,2,3].map(i=><div key={i} className="h-14 rounded-xl animate-pulse" style={{background:T.grayLt}}/>)}</div>
+            <div className="p-5 space-y-3" style={{background:'#12122a'}}>{[0,1,2,3].map(i=><div key={i} className="h-14 rounded-xl animate-pulse" style={{background:'rgba(255,255,255,0.06)'}}/>)}</div>
           ):employees.length===0?(
-            <div className="py-16 flex flex-col items-center gap-3">
-              <Users size={36} color={T.grayMid}/>
-              <p className="text-sm" style={{color:T.gray}}>No hay empleados activos</p>
+            <div className="py-16 flex flex-col items-center gap-3" style={{background:'#12122a'}}>
+              <Users size={36} color={'rgba(255,255,255,0.3)'}/>
+              <p className="text-sm" style={{color:'rgba(255,255,255,0.4)'}}>No hay empleados activos</p>
             </div>
           ):(
-            <div className="overflow-x-auto">
-              {/* Hour ruler */}
+            <div className="overflow-x-auto" style={{background:'#12122a'}}>
               <div style={{minWidth:700}}>
-                <div className="flex" style={{paddingLeft:160,borderBottom:`1px solid ${T.border}`,background:T.bg}}>
-                  {hourTicks.map(h=>(
-                    <div key={h} className="flex-1 text-center py-2 relative" style={{borderLeft:`1px solid ${T.border}`}}>
-                      <span className="text-[9px]" style={{color:T.grayMid}}>{fmtHour(h)}</span>
+
+                {/* Hour ruler — ticks every 2 hours */}
+                <div className="flex" style={{paddingLeft:150,borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
+                  {hourTicks.filter((_,i)=>i%2===0).map(h=>(
+                    <div key={h} style={{flex:`0 0 ${2/( H_END-H_START)*100}%`,textAlign:'center',padding:'6px 0',borderLeft:'1px solid rgba(255,255,255,0.06)'}}>
+                      <span style={{fontSize:10,color:'rgba(255,255,255,0.35)',fontWeight:600}}>{fmtHour(h)}</span>
                     </div>
                   ))}
                 </div>
@@ -852,28 +853,27 @@ function TurnosView({bizId}:{bizId:string}) {
                   const empShifts=dayShifts(emp.id);
                   const color=empColor(emp,ei);
                   return(
-                    <div key={emp.id} className="flex items-center" style={{borderBottom:`1px solid #F5F5F7`,minHeight:52}}>
+                    <div key={emp.id} className="flex items-center" style={{borderBottom:'1px solid rgba(255,255,255,0.05)',minHeight:56}}>
                       {/* Name column */}
-                      <div className="flex items-center gap-2.5 px-4 shrink-0" style={{width:160}}>
+                      <div className="flex items-center gap-2.5 px-3 shrink-0" style={{width:150}}>
                         <div className="size-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
                         <div className="min-w-0">
-                          <p className="text-[12px] font-semibold truncate" style={{color:T.black}}>{emp.name}</p>
-                          <p className="text-[10px] truncate" style={{color:T.grayMid}}>{emp.job_title??'—'}</p>
+                          <p className="text-[12px] font-semibold truncate text-white">{emp.name}</p>
                         </div>
                       </div>
 
                       {/* Track */}
-                      <div className="flex-1 relative" style={{height:52,cursor:'pointer'}}
+                      <div className="flex-1 relative" style={{height:56,cursor:'pointer'}}
                         onClick={()=>openAdd(selectedDate,emp.id)}>
-                        {/* Hour grid lines */}
-                        {hourTicks.map(h=>(
-                          <div key={h} className="absolute top-0 bottom-0" style={{left:`${(h-H_START)/(H_END-H_START)*100}%`,width:1,background:`${T.border}88`}}/>
+                        {/* Hour grid lines every 2h */}
+                        {hourTicks.filter((_,i)=>i%2===0).map(h=>(
+                          <div key={h} className="absolute top-0 bottom-0" style={{left:`${(h-H_START)/(H_END-H_START)*100}%`,width:1,background:'rgba(255,255,255,0.06)'}}/>
                         ))}
 
                         {/* Now line */}
                         {isViewingToday&&nowMins>=H_START*60&&nowMins<=H_END*60&&(
                           <div className="absolute top-0 bottom-0 z-10" style={{left:`${nowPct}%`,width:2,background:'#EF4444'}}>
-                            <div style={{width:8,height:8,background:'#EF4444',borderRadius:'50%',position:'absolute',top:4,left:-3}}/>
+                            <div style={{width:8,height:8,background:'#EF4444',borderRadius:'50%',position:'absolute',top:6,left:-3}}/>
                           </div>
                         )}
 
@@ -883,22 +883,21 @@ function TurnosView({bizId}:{bizId:string}) {
                           const endM=toMinsEnd(s.start_time,s.end_time);
                           const left=pct(startM);
                           const width=Math.max(1,pct(endM)-left);
-                          const sc=statusBar(s.status);
+                          const durH=Math.round((endM-startM)/60*10)/10;
+                          const shortTime=(dt:string)=>{const d=new Date(dt.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));const h=d.getHours();const m=d.getMinutes();const hh=h===0?12:h>12?h-12:h;const ap=h<12?'a':'p';return m>0?`${hh}:${String(m).padStart(2,'0')}${ap}`:`${hh}${ap}`;};
                           return(
                             <div key={s.id}
                               onClick={e=>{e.stopPropagation();openEdit(s);}}
-                              className="absolute flex items-center px-2 rounded-md cursor-pointer hover:brightness-95 transition-all"
-                              style={{left:`${left}%`,width:`${width}%`,top:10,height:32,background:sc.bg,zIndex:5}}
-                              title={`${fmtShiftDt(s.start_time)} – ${fmtShiftDt(s.end_time)}`}>
-                              <span className="text-[10px] font-semibold truncate" style={{color:sc.text}}>
-                                {fmtShiftDt(s.start_time)}–{fmtShiftDt(s.end_time)}
-                                {s.break_minutes>0&&` · ${s.break_minutes}m`}
+                              className="absolute flex items-center px-2.5 rounded-lg cursor-pointer hover:brightness-110 transition-all"
+                              style={{left:`${left}%`,width:`${width}%`,top:9,height:38,background:color,zIndex:5,opacity:s.status==='rejected'?0.5:1}}>
+                              <span className="text-[11px] font-semibold truncate text-white select-none">
+                                {shortTime(s.start_time)} – {shortTime(s.end_time)} · {durH}h
                               </span>
                             </div>
                           );
                         }):(
-                          <div className="absolute inset-2 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity" style={{border:`1.5px dashed ${T.border}`}}>
-                            <Plus size={13} color={T.grayMid}/>
+                          <div className="absolute flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity" style={{inset:'8px 4px',border:'1.5px dashed rgba(255,255,255,0.15)',borderRadius:8}}>
+                            <Plus size={13} color={'rgba(255,255,255,0.4)'}/>
                           </div>
                         )}
                       </div>
@@ -906,18 +905,21 @@ function TurnosView({bizId}:{bizId:string}) {
                   );
                 })}
 
-                {/* Now time label */}
-                {isViewingToday&&nowMins>=H_START*60&&nowMins<=H_END*60&&(
-                  <div className="flex items-center gap-1.5 px-4 py-2.5" style={{borderTop:`1px solid ${T.border}`,background:'#FFF5F5'}}>
-                    <div className="size-2 rounded-full" style={{background:'#EF4444'}}/>
-                    <span className="text-[11px] font-semibold" style={{color:'#EF4444'}}>
+                {/* Footer: current time + active count */}
+                <div className="flex items-center gap-3 px-4 py-2.5" style={{borderTop:'1px solid rgba(255,255,255,0.07)',background:'rgba(239,68,68,0.08)'}}>
+                  {isViewingToday&&nowMins>=H_START*60&&nowMins<=H_END*60&&<>
+                    <div className="w-1 h-4 rounded-full" style={{background:'#EF4444'}}/>
+                    <span className="text-[11px] font-semibold" style={{color:'#FCA5A5'}}>
                       Hora actual: {nowTick.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true})}
                     </span>
-                    <span className="text-[11px]" style={{color:T.gray,marginLeft:8}}>
-                      {selectedDayShifts.filter(s=>{const sm=toMins(s.start_time);const em=toMins(s.end_time);return sm<=nowMins&&em>=nowMins;}).length} empleado(s) activos ahora
+                    <span className="text-[11px]" style={{color:'rgba(255,255,255,0.35)'}}>
+                      {selectedDayShifts.filter(s=>{const sm=toMins(s.start_time);const em=toMinsEnd(s.start_time,s.end_time);return sm<=nowMins&&em>=nowMins;}).length} empleados activos ahora
                     </span>
-                  </div>
-                )}
+                  </>}
+                  {(!isViewingToday||nowMins<H_START*60||nowMins>H_END*60)&&
+                    <span className="text-[11px]" style={{color:'rgba(255,255,255,0.25)'}}>{selectedDayShifts.length} turnos programados</span>
+                  }
+                </div>
               </div>
             </div>
           )}
