@@ -5,11 +5,11 @@ import {
   ClipboardCheck, Bell, Menu, X, Plus, Download,
   CheckCircle2, XCircle, ChevronLeft, ChevronRight, Clock,
   UserPlus, AlertTriangle, Trash2, Search, BarChart3,
-  MinusCircle, LogOut, RefreshCw, ChevronDown, ChevronUp,
+  MinusCircle, LogOut, RefreshCw,
   RadioTower, Send, Pencil, Undo2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { supabase, fmtShiftDt, diffHours } from './lib/supabase';
+import { supabase, diffHours } from './lib/supabase';
 
 // ─── Theme ────────────────────────────────────────────────────────────────────
 const T = {
@@ -720,13 +720,6 @@ function TurnosView({bizId}:{bizId:string}) {
   const isViewingToday=selectedDate===isoDate(new Date());
   const hourTicks=Array.from({length:H_END-H_START+1},(_,i)=>H_START+i);
   const fmtHour=(h:number)=>{const hh=h%24;const ampm=hh<12?'am':'pm';const h12=hh===0?12:hh>12?hh-12:hh;return`${h12}${ampm}`;};
-  const statusBar=(status:string)=>({
-    published:{bg:'#16A34A',text:'#fff'},
-    accepted: {bg:'#16A34A',text:'#fff'},
-    draft:    {bg:'#D97706',text:'#fff'},
-    rejected: {bg:'#DC2626',text:'#fff'},
-  }[status]??{bg:T.grayMid,text:'#fff'});
-
   const selectedDayShifts=shifts.filter(s=>s.date===selectedDate);
 
   return (
