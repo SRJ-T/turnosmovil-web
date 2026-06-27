@@ -862,7 +862,7 @@ function TurnosView({bizId}:{bizId:string}) {
                         <div className="min-w-0">
                           <p className="text-[14px] font-bold truncate" style={{color:T.black}}>{emp.name}</p>
                           {emp.job_title&&<p className="text-[11px] truncate" style={{color:T.grayMid}}>{emp.job_title}</p>}
-                          {totalHrs>0&&(
+                          {empShifts.length>0&&(
                             <p className="text-[12px] font-semibold" style={{color:T.green}}>
                               {fmtHours(totalHrs)}{cost>0?` / $${cost.toFixed(2)}`:''}
                             </p>
