@@ -40,7 +40,7 @@ interface ClockEntry { id:string; employee_id:string; business_id:string; shift_
 function isoDate(d:Date) { return d.toISOString().split('T')[0]; }
 function weekDays(anchor:Date) {
   const mon = new Date(anchor); const dow = mon.getDay();
-  mon.setDate(mon.getDate()-(dow===0?6:dow-1));
+  mon.setDate(mon.getDate()-dow);
   return Array.from({length:7},(_,i)=>{ const d=new Date(mon); d.setDate(mon.getDate()+i); return d; });
 }
 function empName(e?:Employee|null) { if(!e)return'Empleado'; return `${e.name}${e.last_name?' '+e.last_name:''}`; }
