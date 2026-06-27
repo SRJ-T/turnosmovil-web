@@ -871,12 +871,6 @@ function TurnosView({bizId}:{bizId:string}) {
                           <div key={h} className="absolute top-0 bottom-0" style={{left:`${(h-H_START)/(H_END-H_START)*100}%`,width:1,background:T.border}}/>
                         ))}
 
-                        {/* Now line */}
-                        {isViewingToday&&nowMins>=H_START*60&&nowMins<=H_END*60&&(
-                          <div className="absolute top-0 bottom-0 z-10" style={{left:`${nowPct}%`,width:2,background:'#EF4444'}}>
-                            <div style={{width:9,height:9,background:'#EF4444',borderRadius:'50%',position:'absolute',top:5,left:-4}}/>
-                          </div>
-                        )}
 
                         {/* Shift bars */}
                         {empShifts.length>0?empShifts.map(s=>{
