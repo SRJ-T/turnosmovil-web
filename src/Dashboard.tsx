@@ -81,10 +81,14 @@ function StatusChip({status}:{status:string}) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 export default function Dashboard({session}:{session:Session}) {
-  const [activeTab,setActiveTab] = useState('dashboard');
+  const TAB_SLUG:Record<string,string>={dashboard:'dashboard',calendar:'horario',approvals:'horas',team:'personal',payroll:'nomina',reports:'reportes',settings:'configuracion'};
+  const SLUG_TAB:Record<string,string>={dashboard:'dashboard',horario:'calendar',horas:'approvals',personal:'team',nomina:'payroll',reportes:'reports',configuracion:'settings'};
+  const TAB_LABEL:Record<string,string>={dashboard:'Dashboard',calendar:'Horario',approvals:'Horas',team:'Personal',payroll:'Nómina',reports:'Reportes',settings:'Configuración'};
+  const initTab=(()=>{const slug=window.location.pathname.split('/').pop()??'';return SLUG_TAB[slug]??'dashboard';})();
+  const [activeTab,setActiveTab] = useState(initTab);
   const [sidebarOpen,setSidebarOpen] = useState(false);
-  const TAB_TITLES:Record<string,string>={dashboard:'Dashboard',calendar:'Horario',approvals:'Horas',team:'Personal',payroll:'Nómina',reports:'Reportes',settings:'Configuración'};
-  useEffect(()=>{document.title=`${TAB_TITLES[activeTab]??'Turnos Móvil'} · Turnos Móvil`;},[activeTab]);
+  const navigate=(tab:string)=>{setActiveTab(tab);window.history.pushState(null,'',`/${TAB_SLUG[tab]??'dashboard'}`);document.title=`${TAB_LABEL[tab]??'Turnos Móvil'} · Turnos Móvil`;};
+  useEffect(()=>{document.title=`${TAB_LABEL[activeTab]??'Turnos Móvil'} · Turnos Móvil`;},[activeTab]);
   const [bizId,setBizId] = useState<string|null>(null);
   const [ownerName,setOwnerName] = useState('');
   const uid = session.user.id;
@@ -105,14 +109,14 @@ export default function Dashboard({session}:{session:Session}) {
         <button onClick={()=>setSidebarOpen(false)} className="lg:hidden p-1.5 rounded-lg" style={{color:`rgba(255,255,255,0.4)`}}><X size={18}/></button>
       </div>
       <div className="flex-1 overflow-y-auto px-2.5 py-3 space-y-0.5">
-        <NavItem icon={LayoutDashboard} label="Dashboard"    active={activeTab==='dashboard'} onClick={()=>{setActiveTab('dashboard');setSidebarOpen(false)}} color={NAV.dashboard}/>
-        <NavItem icon={CalendarIcon}   label="Horario"       active={activeTab==='calendar'}  onClick={()=>{setActiveTab('calendar');setSidebarOpen(false)}} color={NAV.calendar}/>
-        <NavItem icon={ClipboardCheck} label="Horas"         active={activeTab==='approvals'} onClick={()=>{setActiveTab('approvals');setSidebarOpen(false)}} color={NAV.approvals}/>
-        <NavItem icon={Users}          label="Personal"      active={activeTab==='team'}      onClick={()=>{setActiveTab('team');setSidebarOpen(false)}} color={NAV.team}/>
+        <NavItem icon={LayoutDashboard} label="Dashboard"    active={activeTab==='dashboard'} onClick={()=>{navigate('dashboard');setSidebarOpen(false)}} color={NAV.dashboard}/>
+        <NavItem icon={CalendarIcon}   label="Horario"       active={activeTab==='calendar'}  onClick={()=>{navigate('calendar');setSidebarOpen(false)}} color={NAV.calendar}/>
+        <NavItem icon={ClipboardCheck} label="Horas"         active={activeTab==='approvals'} onClick={()=>{navigate('approvals');setSidebarOpen(false)}} color={NAV.approvals}/>
+        <NavItem icon={Users}          label="Personal"      active={activeTab==='team'}      onClick={()=>{navigate('team');setSidebarOpen(false)}} color={NAV.team}/>
         <div className="pt-3 pb-1 px-2"><p className="text-[9px] font-semibold uppercase tracking-widest" style={{color:`rgba(255,255,255,0.25)`}}>Gestión</p></div>
-        <NavItem icon={DollarSign}     label="Nómina"        active={activeTab==='payroll'}   onClick={()=>{setActiveTab('payroll');setSidebarOpen(false)}} color={NAV.payroll}/>
-        <NavItem icon={BarChart3}      label="Reportes"      active={activeTab==='reports'}   onClick={()=>{setActiveTab('reports');setSidebarOpen(false)}} color={NAV.reports}/>
-        <NavItem icon={Settings}       label="Configuración" active={activeTab==='settings'}  onClick={()=>{setActiveTab('settings');setSidebarOpen(false)}} color={NAV.settings}/>
+        <NavItem icon={DollarSign}     label="Nómina"        active={activeTab==='payroll'}   onClick={()=>{navigate('payroll');setSidebarOpen(false)}} color={NAV.payroll}/>
+        <NavItem icon={BarChart3}      label="Reportes"      active={activeTab==='reports'}   onClick={()=>{navigate('reports');setSidebarOpen(false)}} color={NAV.reports}/>
+        <NavItem icon={Settings}       label="Configuración" active={activeTab==='settings'}  onClick={()=>{navigate('settings');setSidebarOpen(false)}} color={NAV.settings}/>
       </div>
       <div className="p-3" style={{borderTop:`1px solid rgba(255,255,255,0.08)`}}>
         <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl mb-1" style={{background:`rgba(255,255,255,0.06)`}}>
