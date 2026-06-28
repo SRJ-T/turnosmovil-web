@@ -851,8 +851,7 @@ function TurnosView({bizId}:{bizId:string}) {
                 {employees.map((emp,ei)=>{
                   const empShifts=dayShifts(emp.id);
                   const color=empColor(emp,ei);
-                  const weekShifts=shifts.filter(s=>s.employee_id===emp.id);
-                  const totalHrs=weekShifts.reduce((s,sh)=>s+Math.max(0,(toMinsEnd(sh.start_time,sh.end_time)-toMins(sh.start_time))/60),0);
+                  const totalHrs=empShifts.reduce((s,sh)=>s+Math.max(0,(toMinsEnd(sh.start_time,sh.end_time)-toMins(sh.start_time))/60),0);
                   const cost=totalHrs*(emp.hourly_rate??0);
                   return(
                     <div key={emp.id} className="flex" style={{borderBottom:`1px solid ${T.border}`,minHeight:68}}>
