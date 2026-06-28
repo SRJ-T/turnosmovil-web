@@ -81,13 +81,13 @@ function StatusChip({status}:{status:string}) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 export default function Dashboard({session}:{session:Session}) {
-  const TAB_SLUG:Record<string,string>={dashboard:'dashboard',calendar:'horario',approvals:'horas',team:'personal',payroll:'nomina',reports:'reportes',settings:'configuracion'};
-  const SLUG_TAB:Record<string,string>={dashboard:'dashboard',horario:'calendar',horas:'approvals',personal:'team',nomina:'payroll',reportes:'reports',configuracion:'settings'};
+  const TAB_SLUG:Record<string,string>={dashboard:'',calendar:'horario',approvals:'horas',team:'personal',payroll:'nomina',reports:'reportes',settings:'configuracion'};
+  const SLUG_TAB:Record<string,string>={'':'dashboard',horario:'calendar',horas:'approvals',personal:'team',nomina:'payroll',reportes:'reports',configuracion:'settings'};
   const TAB_LABEL:Record<string,string>={dashboard:'Dashboard',calendar:'Horario',approvals:'Horas',team:'Personal',payroll:'Nómina',reports:'Reportes',settings:'Configuración'};
-  const initTab=(()=>{const slug=window.location.pathname.split('/').pop()??'';return SLUG_TAB[slug]??'dashboard';})();
+  const initTab=(()=>{const parts=window.location.pathname.split('/');const slug=parts[2]??'';return SLUG_TAB[slug]??'dashboard';})();
   const [activeTab,setActiveTab] = useState(initTab);
   const [sidebarOpen,setSidebarOpen] = useState(false);
-  const navigate=(tab:string)=>{setActiveTab(tab);window.history.pushState(null,'',`/${TAB_SLUG[tab]??'dashboard'}`);document.title=`${TAB_LABEL[tab]??'Turnos Móvil'} · Turnos Móvil`;};
+  const navigate=(tab:string)=>{const slug=TAB_SLUG[tab]??'';setActiveTab(tab);window.history.pushState(null,'',`/panel${slug?'/'+slug:''}`);document.title=`${TAB_LABEL[tab]??'Turnos Móvil'} · Turnos Móvil`;};
   useEffect(()=>{document.title=`${TAB_LABEL[activeTab]??'Turnos Móvil'} · Turnos Móvil`;},[activeTab]);
   const [bizId,setBizId] = useState<string|null>(null);
   const [ownerName,setOwnerName] = useState('');
