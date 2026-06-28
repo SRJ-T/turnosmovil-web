@@ -83,6 +83,8 @@ function StatusChip({status}:{status:string}) {
 export default function Dashboard({session}:{session:Session}) {
   const [activeTab,setActiveTab] = useState('dashboard');
   const [sidebarOpen,setSidebarOpen] = useState(false);
+  const TAB_TITLES:Record<string,string>={dashboard:'Dashboard',calendar:'Horario',approvals:'Horas',team:'Personal',payroll:'Nómina',reports:'Reportes',settings:'Configuración'};
+  useEffect(()=>{document.title=`${TAB_TITLES[activeTab]??'Turnos Móvil'} · Turnos Móvil`;},[activeTab]);
   const [bizId,setBizId] = useState<string|null>(null);
   const [ownerName,setOwnerName] = useState('');
   const uid = session.user.id;
