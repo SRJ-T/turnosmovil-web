@@ -716,7 +716,7 @@ function TurnosView({bizId}:{bizId:string}) {
   const toMinsEnd=(startDt:string,endDt:string)=>{const sm=toMins(startDt);let em=toMins(endDt);if(em<sm)em+=24*60;return em;};
   const pct=(mins:number)=>Math.max(0,Math.min(100,(mins-H_START*60)/RANGE*100));
   const nowMins=(()=>{let m=nowTick.getHours()*60+nowTick.getMinutes();if(m<H_START*60)m+=24*60;return m;})();
-  const nowPct=pct(nowMins);
+
   const isViewingToday=selectedDate===isoDate(new Date());
   const hourTicks=Array.from({length:H_END-H_START+1},(_,i)=>H_START+i);
   const fmtHour=(h:number)=>{const hh=h%24;const ampm=hh<12?'am':'pm';const h12=hh===0?12:hh>12?hh-12:hh;return`${h12}${ampm}`;};
