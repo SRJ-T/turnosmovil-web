@@ -845,7 +845,8 @@ function TurnosView({bizId}:{bizId:string}) {
                 {employees.map((emp,ei)=>{
                   const empShifts=dayShifts(emp.id);
                   const color=empColor(emp,ei);
-                  const totalHrs=empShifts.reduce((s,sh)=>s+Math.max(0,(toMinsEnd(sh.start_time,sh.end_time)-toMins(sh.start_time))/60),0);
+                  const weekShifts=shifts.filter(s=>s.employee_id===emp.id);
+                  const totalHrs=weekShifts.reduce((s,sh)=>s+Math.max(0,(toMinsEnd(sh.start_time,sh.end_time)-toMins(sh.start_time))/60),0);
                   const cost=totalHrs*(emp.hourly_rate??0);
                   return(
                     <div key={emp.id} className="flex" style={{borderBottom:`1px solid ${T.border}`,minHeight:68}}>
@@ -855,7 +856,7 @@ function TurnosView({bizId}:{bizId:string}) {
                         <div className="min-w-0">
                           <p className="text-[14px] font-bold truncate" style={{color:T.black}}>{emp.name}</p>
                           {emp.job_title&&<p className="text-[11px] truncate" style={{color:T.grayMid}}>{emp.job_title}</p>}
-                          {empShifts.length>0&&(
+                          {totalHrs>0&&(
                             <p className="text-[12px] font-semibold" style={{color:T.green}}>
                               {fmtHours(totalHrs)}{cost>0?` / $${cost.toFixed(2)}`:''}
                             </p>
