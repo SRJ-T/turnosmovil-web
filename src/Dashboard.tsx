@@ -877,6 +877,87 @@ function TurnosView({bizId}:{bizId:string}) {
         );
       })()}
 
+      {/* Timeline diario por empleado */}
+      {(()=>{
+        const dayShifts=shifts.filter(s=>s.date===selectedDate);
+        if(dayShifts.length===0) return null;
+        // Compute hour range: min startH to max endH, at least 8am-10pm
+        const parseH=(dt:string)=>{const d=new Date(dt.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));return d.getHours()+d.getMinutes()/60;};
+        let minH=8,maxH=22;
+        dayShifts.forEach(s=>{
+          if(s.start_time) minH=Math.min(minH,Math.floor(parseH(s.start_time)));
+          if(s.end_time){const h=parseH(s.end_time);maxH=Math.max(maxH,h<=4?h+24:h);}
+        });
+        minH=Math.max(0,minH-1); maxH=Math.min(32,maxH+1);
+        const span=maxH-minH;
+        const pct=(h:number)=>`${((h-minH)/span)*100}%`;
+        const fmtH=(h:number)=>{const hh=h%24;const ap=hh<12?'am':'pm';const d=hh===0?12:hh>12?hh-12:hh;return`${d}${ap}`;};
+        const hours=Array.from({length:Math.ceil(maxH)-Math.floor(minH)+1},(_,i)=>Math.floor(minH)+i).filter(h=>h<=Math.ceil(maxH));
+        // Group by employee
+        const byEmp:Record<string,typeof dayShifts>={};
+        dayShifts.forEach(s=>{(byEmp[s.employee_id]||(byEmp[s.employee_id]=[])).push(s);});
+        return(
+          <div className="rounded-2xl overflow-hidden" style={CARD}>
+            <div className="px-5 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
+              <p className="text-[14px] font-bold" style={{color:T.black}}>Vista de Turno — {new Date(selectedDate+'T12:00:00').toLocaleDateString('es-PR',{weekday:'long',day:'numeric',month:'long'})}</p>
+            </div>
+            {/* Header: hours */}
+            <div className="flex" style={{borderBottom:`1px solid ${T.border}`,background:T.bg}}>
+              <div style={{width:180,minWidth:180,borderRight:`1px solid ${T.border}`}}/>
+              <div className="relative flex-1" style={{height:32}}>
+                {hours.map(h=>(
+                  <span key={h} className="absolute text-[10px] font-semibold" style={{left:pct(h),transform:'translateX(-50%)',top:8,color:T.grayMid}}>{fmtH(h)}</span>
+                ))}
+              </div>
+            </div>
+            {/* Rows */}
+            {Object.entries(byEmp).map(([empId,empShifts])=>{
+              const emp=employees.find(e=>e.id===empId);
+              const color=emp?empColor(emp,0):'#6B7280';
+              let totalM=0;
+              empShifts.forEach(s=>{
+                if(s.start_time&&s.end_time){
+                  const sh=parseH(s.start_time),eh=parseH(s.end_time);
+                  const diff=((eh<=sh?eh+24:eh)-sh)*60-(s.break_minutes??0);
+                  if(diff>0) totalM+=diff;
+                }
+              });
+              const hrs=(totalM/60).toFixed(2).replace('.00','').replace(/\.(\d)$/,'.$10');
+              return(
+                <div key={empId} className="flex" style={{borderBottom:`1px solid ${T.border}`,minHeight:56}}>
+                  {/* Employee info */}
+                  <div className="flex items-center gap-2.5 px-4" style={{width:180,minWidth:180,borderRight:`1px solid ${T.border}`}}>
+                    <div className="size-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
+                    <div className="min-w-0">
+                      <p className="text-[12px] font-bold truncate" style={{color:T.black}}>{empName(emp)}</p>
+                      <p className="text-[10px]" style={{color:T.grayMid}}>{hrs} hrs</p>
+                    </div>
+                  </div>
+                  {/* Shift bars */}
+                  <div className="relative flex-1 my-2">
+                    {empShifts.map(s=>{
+                      if(!s.start_time||!s.end_time) return null;
+                      const sh=parseH(s.start_time);
+                      let eh=parseH(s.end_time); if(eh<=sh) eh+=24;
+                      const left=pct(sh); const width=`${((eh-sh)/span)*100}%`;
+                      const st=shiftStatus(s);
+                      return(
+                        <div key={s.id} onClick={()=>openEdit(s)} className="absolute inset-y-0 rounded-xl flex items-center px-3 cursor-pointer overflow-hidden"
+                          style={{left,width,background:st.dot,opacity:0.92}}>
+                          <span className="text-[11px] font-bold text-white truncate">
+                            {fmtH(sh)}–{fmtH(eh%24)} {s.profiles?.job_title??''}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
+
       {/* Cola de Aprobaciones */}
       <div className="rounded-2xl overflow-hidden" style={CARD}>
         <div className="flex items-center justify-between px-5 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
