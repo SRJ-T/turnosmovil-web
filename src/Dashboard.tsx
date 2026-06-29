@@ -684,15 +684,15 @@ function TurnosView({bizId}:{bizId:string}) {
     <div className="space-y-5 max-w-screen-xl">
 
       {/* Sticky sub-header */}
-      <div className="sticky top-14 z-10 px-5 lg:px-6 py-3" style={{background:T.bg,borderBottom:`1px solid ${T.border}`}}>
+      <div className="sticky top-14 z-10 px-5 lg:px-6 pt-1 pb-2" style={{background:T.bg,borderBottom:`1px solid ${T.border}`}}>
         {/* Row 1: tabs + crear turno */}
         <div className="flex items-center gap-4">
           <div className="flex-1 flex justify-center">
-            <div className="flex rounded-2xl overflow-hidden" style={{border:`1px solid ${T.border}`,background:T.bg}}>
-              <button onClick={()=>setCalTab('turnos')} className="h-9 px-8 text-[13px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='turnos'?'#2563EB':'transparent',color:calTab==='turnos'?'#fff':T.gray}}>
+            <div className="flex rounded-2xl overflow-hidden" style={{border:`1px solid ${T.border}`,background:T.white}}>
+              <button onClick={()=>setCalTab('turnos')} className="h-9 px-12 text-[13px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='turnos'?'#2563EB':T.white,color:calTab==='turnos'?'#fff':T.gray}}>
                 <CalendarIcon size={14}/> Turnos
               </button>
-              <button onClick={()=>setCalTab('envivo')} className="h-9 px-8 text-[13px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='envivo'?'#DC2626':'transparent',color:calTab==='envivo'?'#fff':T.gray}}>
+              <button onClick={()=>setCalTab('envivo')} className="h-9 px-12 text-[13px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='envivo'?'#DC2626':T.white,color:calTab==='envivo'?'#fff':T.gray}}>
                 {liveEntries.length>0&&<span className="relative flex size-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"/><span className="relative inline-flex rounded-full size-2 bg-red-500"/></span>}
                 En Vivo{liveEntries.length>0?` (${liveEntries.length})`:''}
               </button>
