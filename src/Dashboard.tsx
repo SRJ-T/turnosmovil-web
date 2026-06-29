@@ -740,11 +740,11 @@ function TurnosView({bizId}:{bizId:string}) {
 
       {/* Period + week nav */}
       <div className="flex items-center gap-3">
-        <div className="px-4 py-2 rounded-xl text-[12px] font-semibold" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.gray}}>
+        <div className="px-5 py-2.5 rounded-xl text-[15px] font-bold" style={{background:'#fff',border:`1px solid ${T.border}`,color:T.black,boxShadow:'0 1px 4px rgba(0,0,0,0.06)'}}>
           {days[0].toLocaleDateString('es-PR',{day:'numeric',month:'short'})} – {days[6].toLocaleDateString('es-PR',{day:'numeric',month:'short',year:'numeric'})}
         </div>
-        <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()-7);return n;})} className="size-9 rounded-xl flex items-center justify-center" style={{background:T.bg,border:`1px solid ${T.border}`}}><ChevronLeft size={15} color={T.gray}/></button>
-        <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()+7);return n;})} className="size-9 rounded-xl flex items-center justify-center" style={{background:T.bg,border:`1px solid ${T.border}`}}><ChevronRight size={15} color={T.gray}/></button>
+        <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()-7);return n;})} className="size-10 rounded-xl flex items-center justify-center" style={{background:SB2,border:`1px solid ${SB2}`}}><ChevronLeft size={16} color="#fff"/></button>
+        <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()+7);return n;})} className="size-10 rounded-xl flex items-center justify-center" style={{background:SB2,border:`1px solid ${SB2}`}}><ChevronRight size={16} color="#fff"/></button>
       </div>
 
       {/* En Vivo strip */}
