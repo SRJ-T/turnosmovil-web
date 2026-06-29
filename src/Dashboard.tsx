@@ -1020,8 +1020,9 @@ function ApprovalsView({bizId}:{bizId:string}) {
   const [search,setSearch]   = useState('');
   const [editEntry,setEditEntry] = useState<ClockEntry|null>(null);
   const [editForm,setEditForm]   = useState({clock_in:'',clock_out:'',status:'pending',rejection_note:''});
-  const [showEdit,setShowEdit]   = useState(false);
-  const [nowTick2,setNowTick2]   = useState(new Date());
+  const [showEdit,setShowEdit]           = useState(false);
+  const [showApproveAll,setShowApproveAll] = useState(false);
+  const [nowTick2,setNowTick2]           = useState(new Date());
   useEffect(()=>{const t=setInterval(()=>setNowTick2(new Date()),30000);return()=>clearInterval(t);},[]);
 
   const load=useCallback(async()=>{
@@ -1155,7 +1156,7 @@ function ApprovalsView({bizId}:{bizId:string}) {
             <div className="flex items-center gap-3 mx-4 my-3 px-4 py-2.5 rounded-xl" style={{background:T.amberLt,border:`1px solid ${T.amber}33`}}>
               <AlertTriangle size={14} color={T.amber}/>
               <p className="text-[12px] font-semibold flex-1" style={{color:T.amber}}>{pending.length} marcación{pending.length!==1?'es':''} por aprobar</p>
-              <button onClick={()=>handleApproveAll(pending.map(e=>e.id))} className="px-3 py-1 rounded-lg text-[11px] font-bold text-white" style={{background:T.green}}>Aprobar todo</button>
+              <button onClick={()=>setShowApproveAll(true)} className="px-3 py-1 rounded-lg text-[11px] font-bold text-white" style={{background:T.green}}>Aprobar todo</button>
             </div>
           )}
 
@@ -1217,7 +1218,7 @@ function ApprovalsView({bizId}:{bizId:string}) {
             <p className="text-[13px] font-bold text-white mb-4">Acciones Rápidas</p>
             <div className="space-y-2">
               {pending.length>0&&(
-                <button onClick={()=>handleApproveAll(pending.map(e=>e.id))}
+                <button onClick={()=>setShowApproveAll(true)}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:opacity-80"
                   style={{background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.12)'}}>
                   <div className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:T.green}}><CheckCircle2 size={15} color="white"/></div>
@@ -1260,6 +1261,25 @@ function ApprovalsView({bizId}:{bizId:string}) {
           </div>
         </div>
       </div>
+
+      {/* Approve-all confirm modal */}
+      <AnimatePresence>
+        {showApproveAll&&(
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:'rgba(0,0,0,0.5)'}}>
+            <motion.div initial={{scale:0.92,opacity:0}} animate={{scale:1,opacity:1}} exit={{scale:0.92,opacity:0}} className="w-full max-w-sm rounded-3xl p-6 text-center" style={{background:'#fff'}}>
+              <div className="size-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{background:T.greenLt}}>
+                <CheckCircle2 size={28} color={T.green}/>
+              </div>
+              <p className="text-base font-bold mb-2" style={{color:'#0f1f5c'}}>Aprobar todas las marcaciones</p>
+              <p className="text-[13px] mb-6" style={{color:T.gray}}>Se aprobarán <strong>{pending.length}</strong> marcación{pending.length!==1?'es':''} pendiente{pending.length!==1?'s':''}. Esta acción no se puede deshacer.</p>
+              <div className="flex gap-3">
+                <button onClick={()=>setShowApproveAll(false)} className="flex-1 h-11 rounded-2xl text-sm font-semibold" style={{background:T.bg,color:T.gray}}>Cancelar</button>
+                <button onClick={async()=>{setShowApproveAll(false);await handleApproveAll(pending.map(e=>e.id));}} className="flex-1 h-11 rounded-2xl text-sm font-bold text-white" style={{background:T.green}}>Aprobar todo</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Edit modal */}
       <AnimatePresence>
