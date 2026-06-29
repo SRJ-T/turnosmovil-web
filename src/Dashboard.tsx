@@ -680,13 +680,6 @@ function TurnosView({bizId}:{bizId:string}) {
   const draftsCount=shifts.filter(s=>s.status==='draft').length;
 
   const SB2='#0f1f5c';
-  const shiftStatus=(s:Shift)=>{
-    const live=liveEntries.some(e=>e.shift_id===s.id);
-    if(live) return{label:'En Curso',bg:'#FFF3E0',fg:'#E65100',dot:'#FF6D00'};
-    if(s.status==='draft') return{label:'Pendiente',bg:T.amberLt,fg:T.amber,dot:T.amber};
-    return{label:'Publicado',bg:T.greenLt,fg:T.green,dot:T.green};
-  };
-
   return (
     <div className="space-y-5 max-w-screen-xl">
 
