@@ -790,37 +790,6 @@ function TurnosView({bizId}:{bizId:string}) {
       {/* Turnos tab content */}
       {calTab==='turnos'&&<>
 
-      {/* Resumen horas asignadas */}
-      {(()=>{
-        const dayShifts=shifts.filter(s=>s.date===selectedDate);
-        if(dayShifts.length===0) return null;
-        let totalMins=0,totalBreak=0;
-        dayShifts.forEach(s=>{
-          if(s.start_time&&s.end_time){
-            const st=new Date(s.start_time.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));
-            const et=new Date(s.end_time.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));
-            let diff=et.getTime()-st.getTime();
-            if(diff<0) diff+=24*3600*1000;
-            totalMins+=Math.round(diff/60000);
-            totalBreak+=(s.break_minutes??0);
-          }
-        });
-        const netMins=totalMins-totalBreak;
-        const fmt=(m:number)=>`${Math.floor(m/60)}h${m%60>0?' '+m%60+'m':''}`;
-        return(
-          <div className="flex items-center gap-4 px-4 py-3 rounded-2xl" style={{background:T.greenLt,border:`1px solid ${T.green}30`}}>
-            <div className="flex items-center gap-1.5">
-              <Clock size={14} color={T.green}/>
-              <span className="text-[12px] font-bold" style={{color:T.green}}>Total asignado: {fmt(netMins)}</span>
-            </div>
-            {totalBreak>0&&(
-              <span className="text-[12px]" style={{color:T.green}}>· Break: {fmt(totalBreak)}</span>
-            )}
-            <span className="text-[12px]" style={{color:T.green}}>· {dayShifts.length} turno{dayShifts.length!==1?'s':''}</span>
-          </div>
-        );
-      })()}
-
       {/* Timeline diario por empleado */}
       {(()=>{
         const dayShifts=shifts.filter(s=>s.date===selectedDate);
@@ -845,8 +814,32 @@ function TurnosView({bizId}:{bizId:string}) {
         return(
           <div className="rounded-2xl overflow-hidden" style={CARD}>
             {/* Title */}
-            <div className="px-5 py-4 flex items-center justify-between" style={{borderBottom:`1px solid ${T.border}`}}>
-              <p className="text-[14px] font-bold" style={{color:T.black}}>Vista de Turnos</p>
+            <div className="px-5 py-3 flex items-center justify-between" style={{borderBottom:`1px solid ${T.border}`}}>
+              <div className="flex items-center gap-4">
+                <p className="text-[14px] font-bold" style={{color:T.black}}>Vista de Turnos</p>
+                {(()=>{
+                  if(dayShifts.length===0) return null;
+                  let totalMins=0,totalBreak=0;
+                  dayShifts.forEach(s=>{
+                    if(s.start_time&&s.end_time){
+                      const st=new Date(s.start_time.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));
+                      const et=new Date(s.end_time.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));
+                      let diff=et.getTime()-st.getTime(); if(diff<0) diff+=24*3600*1000;
+                      totalMins+=Math.round(diff/60000); totalBreak+=(s.break_minutes??0);
+                    }
+                  });
+                  const netMins=totalMins-totalBreak;
+                  const fmt=(m:number)=>`${Math.floor(m/60)}h${m%60>0?' '+m%60+'m':''}`;
+                  return(
+                    <div className="flex items-center gap-3 px-3 py-1 rounded-xl" style={{background:T.greenLt}}>
+                      <Clock size={12} color={T.green}/>
+                      <span className="text-[11px] font-bold" style={{color:T.green}}>{fmt(netMins)}</span>
+                      {totalBreak>0&&<span className="text-[11px]" style={{color:T.green}}>· Break {fmt(totalBreak)}</span>}
+                      <span className="text-[11px]" style={{color:T.green}}>· {dayShifts.length} turno{dayShifts.length!==1?'s':''}</span>
+                    </div>
+                  );
+                })()}
+              </div>
               <span className="text-[12px]" style={{color:T.grayMid}}>Miembros del equipo ({allEmps.length})</span>
             </div>
             {/* Scrollable area */}
