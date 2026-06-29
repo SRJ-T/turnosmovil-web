@@ -777,18 +777,21 @@ function TurnosView({bizId}:{bizId:string}) {
       {/* Weekly columns grid */}
       <div className="rounded-2xl overflow-hidden" style={{...CARD,padding:0}}>
         {/* Day headers */}
-        <div className="grid" style={{gridTemplateColumns:`repeat(7,1fr)`,borderBottom:`1px solid ${T.border}`,background:T.bg}}>
+        <div className="grid" style={{gridTemplateColumns:`repeat(7,1fr)`,borderBottom:`1px solid ${T.border}`}}>
           {days.map(d=>{
             const iso=isoDate(d);
+            const isSel=iso===selectedDate;
             const isToday=iso===isoDate(new Date());
             const count=shifts.filter(s=>s.date===iso).length;
             return(
-              <div key={iso} className="flex flex-col items-center py-3 gap-0.5 cursor-pointer" style={{borderRight:`1px solid ${T.border}`}} onClick={()=>setSelectedDate(iso)}>
-                <span className="text-[10px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>{DAY_ES[d.getDay()]}</span>
-                <div className={`size-8 rounded-full flex items-center justify-center`} style={{background:isToday?SB2:'transparent'}}>
-                  <span className="text-[15px] font-black" style={{color:isToday?'#fff':T.black}}>{d.getDate()}</span>
+              <div key={iso} className="flex flex-col items-center py-3 gap-0.5 cursor-pointer transition-colors"
+                style={{borderRight:`1px solid ${T.border}`,background:isSel?T.black:'transparent'}}
+                onClick={()=>setSelectedDate(iso)}>
+                <span className="text-[10px] font-bold uppercase tracking-wider" style={{color:isSel?'rgba(255,255,255,0.55)':T.grayMid}}>{DAY_ES[d.getDay()]}</span>
+                <div className="size-8 rounded-full flex items-center justify-center" style={{background:isSel?'rgba(255,255,255,0.15)':isToday?SB2:'transparent'}}>
+                  <span className="text-[15px] font-black" style={{color:isSel?'#fff':isToday?'#fff':T.black}}>{d.getDate()}</span>
                 </div>
-                {count>0&&<span className="text-[10px] font-semibold" style={{color:T.green}}>{count} turno{count!==1?'s':''}</span>}
+                {count>0&&<span className="text-[10px] font-semibold" style={{color:isSel?'rgba(255,255,255,0.7)':T.green}}>{count} turno{count!==1?'s':''}</span>}
               </div>
             );
           })}
@@ -801,11 +804,11 @@ function TurnosView({bizId}:{bizId:string}) {
           <div className="grid" style={{gridTemplateColumns:`repeat(7,1fr)`,minHeight:300,alignItems:'start'}}>
             {days.map((d,di)=>{
               const iso=isoDate(d);
-              const isToday=iso===isoDate(new Date());
+              const isSel=iso===selectedDate;
               const dayShiftList=shifts.filter(s=>s.date===iso);
               return(
                 <div key={iso} className="p-2 space-y-2 min-h-[180px]"
-                  style={{borderRight:di<6?`1px solid ${T.border}`:'none',background:isToday?'#F8F9FF':'transparent'}}>
+                  style={{borderRight:di<6?`1px solid ${T.border}`:'none',background:isSel?'#F8F8F8':'transparent'}}>
                   {dayShiftList.map(s=>{
                     const emp=employees.find(e=>e.id===s.employee_id);
                     const color=emp?empColor(emp,0):'#6B7280';
@@ -858,11 +861,12 @@ function TurnosView({bizId}:{bizId:string}) {
             ))}
           </div>
           {(()=>{
+            const forDay=(e:any)=>e.clock_in.slice(0,10)===selectedDate;
             const activeList=[
-              ...liveEntries.map(e=>({...e,_live:true})),
-              ...queueEntries.filter(e=>e.status==='pending'||e.status==='approved'||e.status==='paid'),
+              ...liveEntries.filter(forDay).map((e:any)=>({...e,_live:true})),
+              ...queueEntries.filter(e=>forDay(e)&&(e.status==='pending'||e.status==='approved'||e.status==='paid')),
             ];
-            const rejectedList=queueEntries.filter(e=>e.status==='rejected');
+            const rejectedList=queueEntries.filter(e=>forDay(e)&&e.status==='rejected');
             const list=queueTab==='active'?activeList:rejectedList;
             if(list.length===0) return(
               <div className="py-12 flex flex-col items-center gap-2">
