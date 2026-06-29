@@ -733,14 +733,17 @@ function TurnosView({bizId}:{bizId:string}) {
             const iso=isoDate(d); const isSel=iso===selectedDate; const isToday=iso===isoDate(new Date());
             const count=shifts.filter(s=>s.date===iso).length;
             return(
-              <div key={iso} className="flex items-center justify-center gap-2 py-1 cursor-pointer transition-all"
-                style={{borderRight:`1px solid ${T.border}`,background:isSel?T.black:'transparent',borderRadius:isSel?'8px':'0'}}
+              <div key={iso} className="flex flex-col items-center justify-center py-1.5 cursor-pointer transition-all"
+                style={{borderRight:`1px solid ${T.border}`,background:isSel?T.black:'transparent',borderRadius:isSel?'8px':'0',minWidth:isSel?100:undefined}}
                 onClick={()=>setSelectedDate(iso)}>
-                <span className="text-[10px] font-bold uppercase tracking-wider" style={{color:isSel?'rgba(255,255,255,0.55)':T.grayMid}}>{DAY_ES[d.getDay()]}</span>
-                <div className="size-6 rounded-full flex items-center justify-center" style={{background:isSel?'rgba(255,255,255,0.18)':isToday?SB2:'transparent'}}>
-                  <span className="text-[13px] font-black" style={{color:isSel?'#fff':isToday?'#fff':T.black}}>{d.getDate()}</span>
+                <span className="text-[9px] font-bold uppercase tracking-wider" style={{color:isSel?'rgba(255,255,255,0.5)':T.grayMid}}>{DAY_ES[d.getDay()]}</span>
+                <div className="flex items-center gap-1">
+                  <div className="size-6 rounded-full flex items-center justify-center" style={{background:isSel?'rgba(255,255,255,0.18)':isToday?SB2:'transparent'}}>
+                    <span className="text-[13px] font-black" style={{color:isSel?'#fff':isToday?'#fff':T.black}}>{d.getDate()}</span>
+                  </div>
+                  {isSel&&<span className="text-[10px] font-semibold" style={{color:'rgba(255,255,255,0.7)'}}>{d.toLocaleDateString('es-PR',{month:'short'})}</span>}
                 </div>
-                {count>0&&<span className="text-[9px] font-semibold" style={{color:isSel?'rgba(255,255,255,0.7)':T.green}}>{count}t</span>}
+                {count>0&&<span className="text-[9px] font-semibold" style={{color:isSel?'rgba(255,255,255,0.65)':T.green}}>{count} turno{count!==1?'s':''}</span>}
               </div>
             );
           })}
@@ -851,7 +854,7 @@ function TurnosView({bizId}:{bizId:string}) {
               <div style={{minWidth:EMP_COL+totalW}}>
                 {/* Hour header */}
                 <div className="flex sticky top-0 z-10" style={{background:T.bg,borderBottom:`1px solid ${T.border}`}}>
-                  <div style={{width:EMP_COL,minWidth:EMP_COL,borderRight:`1px solid ${T.border}`,height:36}}/>
+                  <div style={{width:EMP_COL,minWidth:EMP_COL,borderRight:`1px solid ${T.border}`,height:36,position:'sticky',left:0,background:T.bg,zIndex:2}}/>
                   <div className="relative" style={{width:totalW,height:36}}>
                     {hours.map(h=>(
                       <div key={h} className="absolute top-0 bottom-0 flex items-center justify-center" style={{left:((h-minH)*HOUR_W),width:HOUR_W,borderRight:`1px solid ${T.border}`}}>
@@ -875,8 +878,8 @@ function TurnosView({bizId}:{bizId:string}) {
                   const hrsStr=totalM>0?`${Math.floor(totalM/60)}h${totalM%60>0?' '+totalM%60+'m':''}  hrs`:'0 hrs';
                   return(
                     <div key={emp.id} className="flex" style={{borderBottom:`1px solid ${T.border}`,minHeight:64}}>
-                      {/* Employee info */}
-                      <div className="flex items-center gap-2.5 px-4 shrink-0" style={{width:EMP_COL,minWidth:EMP_COL,borderRight:`1px solid ${T.border}`}}>
+                      {/* Employee info — sticky left */}
+                      <div className="flex items-center gap-2.5 px-4 shrink-0" style={{width:EMP_COL,minWidth:EMP_COL,borderRight:`1px solid ${T.border}`,position:'sticky',left:0,background:T.white,zIndex:1}}>
                         <div className="size-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
                         <div className="min-w-0">
                           <p className="text-[12px] font-bold truncate" style={{color:T.black}}>{empName(emp)}</p>
