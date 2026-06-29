@@ -848,7 +848,7 @@ function TurnosView({bizId}:{bizId:string}) {
                       <div className="flex items-center gap-2.5 px-4 shrink-0" style={{width:EMP_COL,minWidth:EMP_COL,borderRight:`1px solid ${T.border}`,position:'sticky',left:0,background:T.white,zIndex:1}}>
                         <div className="size-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
                         <div className="min-w-0">
-                          <p className="text-[12px] font-bold truncate" style={{color:T.black}}>{empName(emp)}</p>
+                          <p className="text-[12px] font-bold truncate" style={{color:color}}>{empName(emp)}</p>
                           <p className="text-[10px]" style={{color:T.grayMid}}>{hrsStr}</p>
                         </div>
                       </div>
