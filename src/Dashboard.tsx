@@ -784,11 +784,11 @@ function TurnosView({bizId}:{bizId:string}) {
             const isToday=iso===isoDate(new Date());
             const count=shifts.filter(s=>s.date===iso).length;
             return(
-              <div key={iso} className="flex flex-col items-center py-3 gap-0.5 cursor-pointer transition-colors"
-                style={{borderRight:`1px solid ${T.border}`,background:isSel?T.black:'transparent'}}
+              <div key={iso} className="flex flex-col items-center py-3 gap-0.5 cursor-pointer transition-all"
+                style={{borderRight:`1px solid ${T.border}`,background:isSel?T.black:'transparent',borderRadius:isSel?'12px':'0'}}
                 onClick={()=>setSelectedDate(iso)}>
                 <span className="text-[10px] font-bold uppercase tracking-wider" style={{color:isSel?'rgba(255,255,255,0.55)':T.grayMid}}>{DAY_ES[d.getDay()]}</span>
-                <div className="size-8 rounded-full flex items-center justify-center" style={{background:isSel?'rgba(255,255,255,0.15)':isToday?SB2:'transparent'}}>
+                <div className="size-8 rounded-full flex items-center justify-center" style={{background:isSel?'rgba(255,255,255,0.18)':isToday?SB2:'transparent'}}>
                   <span className="text-[15px] font-black" style={{color:isSel?'#fff':isToday?'#fff':T.black}}>{d.getDate()}</span>
                 </div>
                 {count>0&&<span className="text-[10px] font-semibold" style={{color:isSel?'rgba(255,255,255,0.7)':T.green}}>{count} turno{count!==1?'s':''}</span>}
@@ -805,6 +805,7 @@ function TurnosView({bizId}:{bizId:string}) {
             {days.map((d,di)=>{
               const iso=isoDate(d);
               const isSel=iso===selectedDate;
+              const isPast=iso<isoDate(new Date());
               const dayShiftList=shifts.filter(s=>s.date===iso);
               return(
                 <div key={iso} className="p-2 space-y-2 min-h-[180px]"
@@ -815,7 +816,7 @@ function TurnosView({bizId}:{bizId:string}) {
                     const st=shiftStatus(s);
                     return(
                       <div key={s.id} onClick={()=>openEdit(s)}
-                        className="rounded-xl p-2.5 cursor-pointer hover:shadow-sm transition-all"
+                        className="rounded-2xl p-2.5 cursor-pointer hover:shadow-sm transition-all"
                         style={{background:'#fff',border:`1px solid ${T.border}`,borderLeft:`3px solid ${st.dot}`}}>
                         <div className="flex items-center justify-between mb-1.5">
                           <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{background:st.bg,color:st.fg}}>{st.label}</span>
@@ -829,11 +830,15 @@ function TurnosView({bizId}:{bizId:string}) {
                       </div>
                     );
                   })}
-                  <button onClick={()=>openAdd(iso)}
-                    className="w-full py-2 rounded-xl flex items-center justify-center gap-1 text-[11px] font-semibold opacity-0 hover:opacity-100 transition-opacity"
-                    style={{border:`1.5px dashed ${T.border}`,color:T.grayMid}}>
-                    <Plus size={12}/> Agregar
-                  </button>
+                  {!isPast&&(
+                    <button onClick={()=>openAdd(iso)}
+                      className="w-full py-2 rounded-2xl flex items-center justify-center gap-1 text-[11px] font-semibold transition-opacity"
+                      style={{border:`1.5px dashed ${T.border}`,color:T.grayMid,opacity:dayShiftList.length>0?1:0,cursor:'pointer'}}
+                      onMouseEnter={e=>(e.currentTarget.style.opacity='1')}
+                      onMouseLeave={e=>(e.currentTarget.style.opacity=dayShiftList.length>0?'1':'0')}>
+                      <Plus size={12}/> Agregar
+                    </button>
+                  )}
                 </div>
               );
             })}
