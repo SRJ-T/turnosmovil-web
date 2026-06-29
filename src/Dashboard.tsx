@@ -715,34 +715,26 @@ function TurnosView({bizId}:{bizId:string}) {
           <p className="text-[12px] mt-0.5" style={{color:T.grayMid}}>Gestión semanal de turnos y solicitudes de aprobación</p>
         </div>
         <div className="flex items-center gap-3">
-          {/* Main tabs */}
-          <div className="flex rounded-2xl overflow-hidden" style={{border:`1px solid ${T.border}`,background:'#fff'}}>
-            <button onClick={()=>setCalTab('turnos')} className="h-10 px-6 text-[13px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='turnos'?SB2:'transparent',color:calTab==='turnos'?'#fff':T.gray}}>
-              <CalendarIcon size={14}/> Turnos
+          {draftsCount>0&&(
+            <button onClick={handlePublishAll} className="h-10 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white" style={{background:T.amber}}>
+              <CheckCircle2 size={13}/> Publicar {draftsCount}
             </button>
-            <button onClick={()=>setCalTab('envivo')} className="h-10 px-6 text-[13px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='envivo'?'#DC2626':'transparent',color:calTab==='envivo'?'#fff':T.gray}}>
-              {liveEntries.length>0&&<span className="relative flex size-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"/><span className="relative inline-flex rounded-full size-2 bg-red-500"/></span>}
-              En Vivo{liveEntries.length>0?` (${liveEntries.length})`:''}
-            </button>
-          </div>
-          {/* Action buttons — only in Turnos tab */}
-          {calTab==='turnos'&&<>
-            <button onClick={handleCopyWeek} disabled={copying} className="h-10 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold" style={{background:T.indigoLt,color:T.indigo}}>
-              {copying?<span className="size-3.5 border-2 rounded-full animate-spin" style={{borderColor:`${T.indigo}30`,borderTopColor:T.indigo}}/>:<RefreshCw size={13}/>} Copiar semana
-            </button>
-            <button onClick={()=>{setBulkEmps([]);setBulkDays([0,1,2,3,4]);setShowBulkModal(true);}} className="h-10 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold" style={{background:T.greenLt,color:T.green}}>
-              <Users size={13}/> Masivo
-            </button>
-            {draftsCount>0&&(
-              <button onClick={handlePublishAll} className="h-10 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white" style={{background:T.amber}}>
-                <CheckCircle2 size={13}/> Publicar {draftsCount}
-              </button>
-            )}
-            <button onClick={()=>openAdd(selectedDate)} className="h-10 px-4 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white" style={{background:SB2}}>
-              <Plus size={13}/> Crear turno
-            </button>
-          </>}
+          )}
+          <button onClick={()=>openAdd(selectedDate)} className="h-10 px-4 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white" style={{background:SB2}}>
+            <Plus size={13}/> Crear turno
+          </button>
         </div>
+      </div>
+
+      {/* Tabs Turnos / En Vivo */}
+      <div className="flex rounded-2xl overflow-hidden w-fit" style={{border:`1px solid ${T.border}`,background:'#fff'}}>
+        <button onClick={()=>setCalTab('turnos')} className="h-10 px-6 text-[13px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='turnos'?SB2:'transparent',color:calTab==='turnos'?'#fff':T.gray}}>
+          <CalendarIcon size={14}/> Turnos
+        </button>
+        <button onClick={()=>setCalTab('envivo')} className="h-10 px-6 text-[13px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='envivo'?'#DC2626':'transparent',color:calTab==='envivo'?'#fff':T.gray}}>
+          {liveEntries.length>0&&<span className="relative flex size-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"/><span className="relative inline-flex rounded-full size-2 bg-red-500"/></span>}
+          En Vivo{liveEntries.length>0?` (${liveEntries.length})`:''}
+        </button>
       </div>
 
       {/* Period + week nav */}
