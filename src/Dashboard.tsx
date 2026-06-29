@@ -626,21 +626,25 @@ function TurnosView({bizId}:{bizId:string}) {
   const [copying,setCopying] = useState(false);
   const [nowTick,setNowTick] = useState(new Date());
   const [liveEntries,setLiveEntries] = useState<any[]>([]);
+  const [queueEntries,setQueueEntries] = useState<any[]>([]);
   const [showLive,setShowLive] = useState(false);
+  const [queueTab,setQueueTab] = useState<'active'|'rejected'>('active');
   useEffect(()=>{const t=setInterval(()=>setNowTick(new Date()),60000);return()=>clearInterval(t);},[]);
 
   const days=weekDays(weekAnchor);
 
   const load=useCallback(async()=>{
     setLoading(true);
-    const[empRes,shiftRes,liveRes]=await Promise.all([
+    const[empRes,shiftRes,liveRes,queueRes]=await Promise.all([
       supabase.from('profiles').select('*').eq('business_id',bizId).eq('role','employee').eq('status','active'),
       supabase.from('shifts').select('*,profiles(*)').eq('business_id',bizId).gte('date',isoDate(days[0])).lte('date',isoDate(days[6])).order('start_time'),
       supabase.from('clock_entries').select('*,profiles(*)').eq('business_id',bizId).is('clock_out',null),
+      supabase.from('clock_entries').select('*,profiles(*)').eq('business_id',bizId).not('clock_out','is',null).order('clock_in',{ascending:false}).limit(50),
     ]);
     setEmployees((empRes.data??[]) as Employee[]);
     setShifts(((shiftRes.data??[]) as any[]).map(s=>({...s,employee:s.profiles})));
     setLiveEntries(((liveRes.data??[]) as any[]).map(e=>({...e,employee:e.profiles})));
+    setQueueEntries(((queueRes.data??[]) as any[]).map(e=>({...e,employee:e.profiles})));
     setLoading(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[bizId,isoDate(days[0])]);
@@ -835,23 +839,52 @@ function TurnosView({bizId}:{bizId:string}) {
       </div>
 
       {/* Approvals Queue */}
-      {liveEntries.length>0&&(
-        <div className="rounded-2xl overflow-hidden" style={CARD}>
-          <div className="px-5 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
-            <p className="text-[14px] font-bold" style={{color:T.black}}>Approvals Queue</p>
+      <div className="rounded-2xl overflow-hidden" style={CARD}>
+        <div className="flex items-center justify-between px-5 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
+          <p className="text-[14px] font-bold" style={{color:T.black}}>Approvals Queue</p>
+          <div className="flex gap-1 p-1 rounded-xl" style={{background:T.bg,border:`1px solid ${T.border}`}}>
+            <button onClick={()=>setQueueTab('active')} className="px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-all" style={{background:queueTab==='active'?SB2:'transparent',color:queueTab==='active'?'#fff':T.gray}}>
+              Active/Pending
+            </button>
+            <button onClick={()=>setQueueTab('rejected')} className="px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-all" style={{background:queueTab==='rejected'?T.red:'transparent',color:queueTab==='rejected'?'#fff':T.gray}}>
+              Rejected
+            </button>
           </div>
-          <div>
-            <div className="grid px-5 py-2.5" style={{gridTemplateColumns:'2fr 2fr 1.5fr 1fr 1fr',borderBottom:`1px solid ${T.border}`,background:T.bg}}>
-              {['Empleado','Fecha y Hora','Posición','Estado','Acciones'].map(h=>(
-                <span key={h} className="text-[11px] font-bold uppercase tracking-wide" style={{color:T.grayMid}}>{h}</span>
-              ))}
-            </div>
-            {liveEntries.map((e,i)=>{
+        </div>
+        <div>
+          <div className="grid px-5 py-2.5" style={{gridTemplateColumns:'2fr 2fr 1.5fr 1.2fr 1fr',borderBottom:`1px solid ${T.border}`,background:T.bg}}>
+            {['Empleado','Fecha y Hora','Posición','Estado','Acciones'].map(h=>(
+              <span key={h} className="text-[11px] font-bold uppercase tracking-wide" style={{color:T.grayMid}}>{h}</span>
+            ))}
+          </div>
+          {(()=>{
+            const activeList=[
+              ...liveEntries.map(e=>({...e,_live:true})),
+              ...queueEntries.filter(e=>e.status==='pending'||e.status==='approved'||e.status==='paid'),
+            ];
+            const rejectedList=queueEntries.filter(e=>e.status==='rejected');
+            const list=queueTab==='active'?activeList:rejectedList;
+            if(list.length===0) return(
+              <div className="py-12 flex flex-col items-center gap-2">
+                <CheckCircle2 size={32} color={T.green}/>
+                <p className="text-[13px] font-semibold" style={{color:T.gray}}>{queueTab==='active'?'Sin marcaciones activas o pendientes':'Sin marcaciones rechazadas'}</p>
+              </div>
+            );
+            return list.map((e,i)=>{
+              const isLive=(e as any)._live===true;
               const emp=e.employee;
               const color=emp?empColor(emp,i):'#6B7280';
               const ci=new Date(e.clock_in.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));
+              const co=e.clock_out?new Date(e.clock_out.replace(/\+00(:\d{2})?$/,'').replace(' ','T')):null;
+              const statusInfo=isLive
+                ?{bg:'#FEF3C7',fg:'#D97706',label:'ACTIVO'}
+                :e.status==='approved'||e.status==='paid'
+                  ?{bg:T.greenLt,fg:T.green,label:'PUBLICADO'}
+                  :e.status==='rejected'
+                    ?{bg:T.redLt,fg:T.red,label:'RECHAZADO'}
+                    :{bg:'#FFF3E0',fg:'#E65100',label:'APROBACIÓN REQ.'};
               return(
-                <div key={e.id} className="grid items-center px-5 py-3" style={{gridTemplateColumns:'2fr 2fr 1.5fr 1fr 1fr',borderBottom:`1px solid ${T.bg}`}}>
+                <div key={e.id} className="grid items-center px-5 py-3" style={{gridTemplateColumns:'2fr 2fr 1.5fr 1.2fr 1fr',borderBottom:`1px solid ${T.bg}`}}>
                   <div className="flex items-center gap-2.5">
                     <div className="size-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
                     <div>
@@ -861,20 +894,30 @@ function TurnosView({bizId}:{bizId:string}) {
                   </div>
                   <div>
                     <p className="text-[12px] font-medium" style={{color:T.black}}>{ci.toLocaleDateString('es-PR',{day:'numeric',month:'short',year:'numeric'})}</p>
-                    <p className="text-[10px]" style={{color:T.grayMid}}>{ci.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true})}</p>
+                    <p className="text-[10px]" style={{color:T.grayMid}}>
+                      {ci.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true})}
+                      {co&&` – ${co.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true})}`}
+                    </p>
                   </div>
                   <span className="text-[12px]" style={{color:T.gray}}>{emp?.job_title??'—'}</span>
-                  <span className="inline-flex text-[10px] font-bold px-2 py-1 rounded-full w-fit" style={{background:'#FEF3C7',color:'#D97706'}}>ACTIVO</span>
+                  <span className="inline-flex text-[10px] font-bold px-2 py-1 rounded-full w-fit" style={{background:statusInfo.bg,color:statusInfo.fg}}>{statusInfo.label}</span>
                   <div className="flex items-center gap-1.5">
-                    <div className="size-7 rounded-full flex items-center justify-center" style={{background:T.greenLt}}><CheckCircle2 size={14} color={T.green}/></div>
-                    <div className="size-7 rounded-full flex items-center justify-center" style={{background:T.redLt}}><XCircle size={14} color={T.red}/></div>
+                    {(isLive||e.status==='pending')&&(
+                      <>
+                        <div className="size-7 rounded-full flex items-center justify-center" style={{background:T.greenLt}}><CheckCircle2 size={14} color={T.green}/></div>
+                        <div className="size-7 rounded-full flex items-center justify-center" style={{background:T.redLt}}><XCircle size={14} color={T.red}/></div>
+                      </>
+                    )}
+                    {(e.status==='approved'||e.status==='paid')&&(
+                      <div className="size-7 rounded-full flex items-center justify-center" style={{background:T.grayLt}}><Pencil size={13} color={T.gray}/></div>
+                    )}
                   </div>
                 </div>
               );
-            })}
-          </div>
+            });
+          })()}
         </div>
-      )}
+      </div>
 
       <AnimatePresence>
         {showModal&&(
