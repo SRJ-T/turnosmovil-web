@@ -6,7 +6,7 @@ import {
   CheckCircle2, XCircle, ChevronLeft, ChevronRight, Clock,
   UserPlus, AlertTriangle, Trash2, Search, BarChart3,
   MinusCircle, LogOut, RefreshCw,
-  RadioTower, Send, Pencil, Undo2
+  Send, Pencil, Undo2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase, diffHours } from './lib/supabase';
@@ -220,15 +220,14 @@ function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string
         const t=new Date(e.clock_in);
         const timeStr=t.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
         const hasShift=todayShifts.find(s=>s.shift_id===e.id||s.employee_id===e.employee_id);
-        let status='Pendiente'; let statusBg=T.amberLt; let statusFg=T.amber;
-        if(e.status==='approved'){status='Aprobado';statusBg=T.greenLt;statusFg=T.green;}
-        else if(e.status==='paid'){status='Procesado';statusBg=T.blueLt;statusFg=T.blue;}
+        let status='Pendiente';
+        if(e.status==='approved'){status='Aprobado';}
+        else if(e.status==='paid'){status='Procesado';}
         else if(!e.clock_out){
           const shiftStart=hasShift?new Date(hasShift.start_time):null;
           const diff=shiftStart?Math.round((t.getTime()-shiftStart.getTime())/60000):0;
-          if(Math.abs(diff)<=10){status='A tiempo';statusBg=T.greenLt;statusFg=T.green;}
-          else if(diff>10){status=`Tarde ${diff}m`;statusBg=T.redLt;statusFg=T.red;}
-          else{status='A tiempo';statusBg=T.greenLt;statusFg=T.green;}
+          if(diff>10){status=`Tarde ${diff}m`;}
+          else{status='A tiempo';}
         }
         const idx=employees.findIndex(x=>x.id===emp?.id);
         activityRows.push({
