@@ -1060,7 +1060,6 @@ function ApprovalsView({bizId}:{bizId:string}) {
   const rejected = entries.filter(e=>e.status==='rejected');
   const history  = entries.filter(e=>e.status==='approved'||e.status==='paid');
   const approvedHrs=history.reduce((s,e)=>s+diffHours(e.clock_in,e.clock_out??''),0);
-  const totalPendingHrs=pending.reduce((s,e)=>s+diffHours(e.clock_in,e.clock_out??new Date().toISOString()),0);
 
   const fmtDt=(dt:string)=>{const d=new Date(dt.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));return d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true});};
   const fmtDate=(dt:string)=>{const d=new Date(dt.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));return d.toLocaleDateString('es-PR',{weekday:'short',day:'numeric',month:'short'});};
@@ -1088,40 +1087,40 @@ function ApprovalsView({bizId}:{bizId:string}) {
     <div className="p-5 lg:p-6 space-y-5 max-w-screen-xl">
 
       {/* Stat cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="rounded-2xl p-5" style={{...CARD,border:`1px solid ${T.amber}40`}}>
-          <div className="flex items-start justify-between mb-3">
-            <p className="text-[11px] font-bold tracking-widest uppercase" style={{color:T.gray}}>Pendientes de Aprobar</p>
-            <div className="size-8 rounded-lg flex items-center justify-center" style={{background:T.amberLt}}><AlertTriangle size={15} color={T.amber}/></div>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-xl px-4 py-3 flex items-center gap-3" style={{...CARD,border:`1px solid ${T.amber}40`}}>
+          <div className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:T.amberLt}}><AlertTriangle size={14} color={T.amber}/></div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold tracking-widest uppercase truncate" style={{color:T.grayMid}}>Pendientes</p>
+            {loading?<div className="h-5 w-8 rounded animate-pulse mt-0.5" style={{background:T.grayLt}}/>:(
+              <p className="text-xl font-black leading-tight" style={{color:T.black}}>{pending.length}</p>
+            )}
+            <p className="text-[10px] truncate" style={{color:pending.length>0?T.amber:T.grayMid}}>{pending.length>0?'Requiere acción':'Al día'}</p>
           </div>
-          {loading?<div className="h-8 rounded-lg animate-pulse mb-2" style={{background:T.grayLt}}/>:(
-            <p className="text-3xl font-black mb-1" style={{color:T.black}}>{pending.length}</p>
-          )}
-          <p className="text-[11px]" style={{color:T.grayMid}}>{fmtHours(totalPendingHrs)} en espera · {pending.length>0?<span style={{color:T.amber}}>Requiere acción</span>:'Al día'}</p>
         </div>
 
-        <div className="rounded-2xl p-5" style={{...CARD,border:`1px solid ${T.red}30`}}>
-          <div className="flex items-start justify-between mb-3">
-            <p className="text-[11px] font-bold tracking-widest uppercase" style={{color:T.gray}}>Activos Ahora</p>
-            <div className="size-8 rounded-lg flex items-center justify-center" style={{background:T.redLt}}>
-              <span className="size-2.5 rounded-full animate-pulse" style={{background:T.red}}/>
-            </div>
+        <div className="rounded-xl px-4 py-3 flex items-center gap-3" style={{...CARD,border:`1px solid ${T.red}30`}}>
+          <div className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:T.redLt}}>
+            <span className="size-2.5 rounded-full animate-pulse" style={{background:T.red}}/>
           </div>
-          {loading?<div className="h-8 rounded-lg animate-pulse mb-2" style={{background:T.grayLt}}/>:(
-            <p className="text-3xl font-black mb-1" style={{color:T.black}}>{active.length}</p>
-          )}
-          <p className="text-[11px]" style={{color:T.grayMid}}>{active.length>0?'Empleados trabajando ahora':'Nadie en turno ahora'}</p>
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold tracking-widest uppercase" style={{color:T.grayMid}}>Activos ahora</p>
+            {loading?<div className="h-5 w-8 rounded animate-pulse mt-0.5" style={{background:T.grayLt}}/>:(
+              <p className="text-xl font-black leading-tight" style={{color:T.black}}>{active.length}</p>
+            )}
+            <p className="text-[10px]" style={{color:T.grayMid}}>{active.length>0?'En turno':'Nadie activo'}</p>
+          </div>
         </div>
 
-        <div className="rounded-2xl p-5" style={CARD}>
-          <div className="flex items-start justify-between mb-3">
-            <p className="text-[11px] font-bold tracking-widest uppercase" style={{color:T.gray}}>Horas Aprobadas</p>
-            <div className="size-8 rounded-lg flex items-center justify-center" style={{background:T.greenLt}}><CheckCircle2 size={15} color={T.green}/></div>
+        <div className="rounded-xl px-4 py-3 flex items-center gap-3" style={CARD}>
+          <div className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:T.greenLt}}><CheckCircle2 size={14} color={T.green}/></div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold tracking-widest uppercase" style={{color:T.grayMid}}>Aprobadas</p>
+            {loading?<div className="h-5 w-16 rounded animate-pulse mt-0.5" style={{background:T.grayLt}}/>:(
+              <p className="text-xl font-black leading-tight" style={{color:T.black}}>{fmtHours(approvedHrs)}</p>
+            )}
+            <p className="text-[10px]" style={{color:T.grayMid}}>{history.length} marcaciones</p>
           </div>
-          {loading?<div className="h-8 rounded-lg animate-pulse mb-2" style={{background:T.grayLt}}/>:(
-            <p className="text-3xl font-black mb-1" style={{color:T.black}}>{fmtHours(approvedHrs)}</p>
-          )}
-          <p className="text-[11px]" style={{color:T.grayMid}}>{history.length} marcaciones aprobadas</p>
         </div>
       </div>
 
