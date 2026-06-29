@@ -848,7 +848,7 @@ function TurnosView({bizId}:{bizId:string}) {
                       <div className="flex items-center gap-2.5 px-4 shrink-0" style={{width:EMP_COL,minWidth:EMP_COL,borderRight:`1px solid ${T.border}`,position:'sticky',left:0,background:T.white,zIndex:1}}>
                         <div className="size-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
                         <div className="min-w-0">
-                          <p className="text-[12px] font-bold truncate" style={{color:color}}>{empName(emp)}</p>
+                          <p className="text-[12px] font-bold truncate" style={{color:T.black}}>{empName(emp)}</p>
                           <p className="text-[10px]" style={{color:T.grayMid}}>{hrsStr}</p>
                         </div>
                       </div>
@@ -867,7 +867,7 @@ function TurnosView({bizId}:{bizId:string}) {
                           const role=emp.job_title??'';
                           return(
                             <div key={s.id} onClick={()=>openEdit(s)} className="absolute rounded-xl cursor-pointer overflow-hidden flex flex-col justify-center px-3"
-                              style={{left,width:width-4,top:8,bottom:8,background:color}}>
+                              style={{left,width:width-4,top:8,bottom:8,background:T.green}}>
                               <p className="text-[11px] font-bold text-white truncate">{fmtTime(s.start_time)}–{fmtTime(s.end_time)}</p>
                               <p className="text-[10px] text-white truncate" style={{opacity:0.85}}>{role||'Sin puesto'}</p>
                             </div>
