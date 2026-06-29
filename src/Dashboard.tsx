@@ -929,8 +929,8 @@ function TurnosView({bizId}:{bizId:string}) {
               const isLive=(e as any)._live===true;
               const emp=e.employee;
               const color=emp?empColor(emp,i):'#6B7280';
-              const ci=new Date(e.clock_in.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));
-              const co=e.clock_out?new Date(e.clock_out.replace(/\+00(:\d{2})?$/,'').replace(' ','T')):null;
+              const ci=new Date(e.clock_in.replace(/\+00(:\d{2})?$/,'+00:00').replace(' ','T'));
+              const co=e.clock_out?new Date(e.clock_out.replace(/\+00(:\d{2})?$/,'+00:00').replace(' ','T')):null;
               const statusInfo=isLive
                 ?{bg:'#FEF3C7',fg:'#D97706',label:'ACTIVO'}
                 :e.status==='approved'||e.status==='paid'
