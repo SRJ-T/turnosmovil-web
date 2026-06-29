@@ -83,7 +83,7 @@ function StatusChip({status}:{status:string}) {
 export default function Dashboard({session}:{session:Session}) {
   const TAB_SLUG:Record<string,string>={dashboard:'',calendar:'horario',approvals:'horas',team:'personal',payroll:'nomina',reports:'reportes',settings:'configuracion'};
   const SLUG_TAB:Record<string,string>={'':'dashboard',horario:'calendar',horas:'approvals',personal:'team',nomina:'payroll',reportes:'reports',configuracion:'settings'};
-  const TAB_LABEL:Record<string,string>={dashboard:'Dashboard',calendar:'Horario',approvals:'Horas',team:'Personal',payroll:'Nómina',reports:'Reportes',settings:'Configuración'};
+  const TAB_LABEL:Record<string,string>={dashboard:'Dashboard',calendar:'Turnos',approvals:'Horas',team:'Personal',payroll:'Nómina',reports:'Reportes',settings:'Configuración'};
   const initTab=(()=>{const parts=window.location.pathname.split('/');const slug=parts[2]??'';return SLUG_TAB[slug]??'dashboard';})();
   const [activeTab,setActiveTab] = useState(initTab);
   const [sidebarOpen,setSidebarOpen] = useState(false);
@@ -110,7 +110,7 @@ export default function Dashboard({session}:{session:Session}) {
       </div>
       <div className="flex-1 overflow-y-auto px-2.5 py-3 space-y-0.5">
         <NavItem icon={LayoutDashboard} label="Dashboard"    active={activeTab==='dashboard'} onClick={()=>{navigate('dashboard');setSidebarOpen(false)}} color={NAV.dashboard}/>
-        <NavItem icon={CalendarIcon}   label="Horario"       active={activeTab==='calendar'}  onClick={()=>{navigate('calendar');setSidebarOpen(false)}} color={NAV.calendar}/>
+        <NavItem icon={CalendarIcon}   label="Turnos"        active={activeTab==='calendar'}  onClick={()=>{navigate('calendar');setSidebarOpen(false)}} color={NAV.calendar}/>
         <NavItem icon={ClipboardCheck} label="Horas"         active={activeTab==='approvals'} onClick={()=>{navigate('approvals');setSidebarOpen(false)}} color={NAV.approvals}/>
         <NavItem icon={Users}          label="Personal"      active={activeTab==='team'}      onClick={()=>{navigate('team');setSidebarOpen(false)}} color={NAV.team}/>
         <div className="pt-3 pb-1 px-2"><p className="text-[9px] font-semibold uppercase tracking-widest" style={{color:`rgba(255,255,255,0.25)`}}>Gestión</p></div>
@@ -711,7 +711,7 @@ function TurnosView({bizId}:{bizId:string}) {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-black" style={{color:T.black}}>Shift Schedule</h1>
+          <h1 className="text-2xl font-black" style={{color:T.black}}>Turnos</h1>
           <p className="text-[12px] mt-0.5" style={{color:T.grayMid}}>Gestión semanal de turnos y solicitudes de aprobación</p>
         </div>
         <div className="flex items-center gap-2">
@@ -846,16 +846,47 @@ function TurnosView({bizId}:{bizId:string}) {
         )}
       </div>
 
-      {/* Approvals Queue */}
+      {/* Resumen horas asignadas */}
+      {(()=>{
+        const dayShifts=shifts.filter(s=>s.date===selectedDate);
+        if(dayShifts.length===0) return null;
+        let totalMins=0,totalBreak=0;
+        dayShifts.forEach(s=>{
+          if(s.start_time&&s.end_time){
+            const st=new Date(s.start_time.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));
+            const et=new Date(s.end_time.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));
+            let diff=et.getTime()-st.getTime();
+            if(diff<0) diff+=24*3600*1000;
+            totalMins+=Math.round(diff/60000);
+            totalBreak+=(s.break_minutes??0);
+          }
+        });
+        const netMins=totalMins-totalBreak;
+        const fmt=(m:number)=>`${Math.floor(m/60)}h${m%60>0?' '+m%60+'m':''}`;
+        return(
+          <div className="flex items-center gap-4 px-4 py-3 rounded-2xl" style={{background:T.greenLt,border:`1px solid ${T.green}30`}}>
+            <div className="flex items-center gap-1.5">
+              <Clock size={14} color={T.green}/>
+              <span className="text-[12px] font-bold" style={{color:T.green}}>Total asignado: {fmt(netMins)}</span>
+            </div>
+            {totalBreak>0&&(
+              <span className="text-[12px]" style={{color:T.green}}>· Break: {fmt(totalBreak)}</span>
+            )}
+            <span className="text-[12px]" style={{color:T.green}}>· {dayShifts.length} turno{dayShifts.length!==1?'s':''}</span>
+          </div>
+        );
+      })()}
+
+      {/* Cola de Aprobaciones */}
       <div className="rounded-2xl overflow-hidden" style={CARD}>
         <div className="flex items-center justify-between px-5 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
-          <p className="text-[14px] font-bold" style={{color:T.black}}>Approvals Queue</p>
+          <p className="text-[14px] font-bold" style={{color:T.black}}>Cola de Aprobaciones</p>
           <div className="flex gap-1 p-1 rounded-xl" style={{background:T.bg,border:`1px solid ${T.border}`}}>
-            <button onClick={()=>setQueueTab('active')} className="px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-all" style={{background:queueTab==='active'?SB2:'transparent',color:queueTab==='active'?'#fff':T.gray}}>
-              Active/Pending
+            <button onClick={()=>setQueueTab('active')} className="px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-all" style={{background:queueTab==='active'?T.green:'transparent',color:queueTab==='active'?'#fff':T.gray}}>
+              Activos/Pendientes
             </button>
             <button onClick={()=>setQueueTab('rejected')} className="px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-all" style={{background:queueTab==='rejected'?T.red:'transparent',color:queueTab==='rejected'?'#fff':T.gray}}>
-              Rejected
+              Rechazados
             </button>
           </div>
         </div>
