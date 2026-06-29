@@ -1215,51 +1215,43 @@ function ApprovalsView({bizId}:{bizId:string}) {
         <div className="space-y-4">
           <div className="rounded-2xl p-4" style={{...CARD,background:SB}}>
             <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{color:'rgba(255,255,255,0.45)'}}>Acciones Rápidas</p>
-            <div className="space-y-2">
-              {pending.length>0&&(
-                <button onClick={()=>setShowApproveAll(true)}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left active:scale-95 transition-transform"
-                  style={{background:T.green,border:'none',boxShadow:'0 2px 8px rgba(34,197,94,0.4)'}}>
-                  <CheckCircle2 size={17} color="white" className="shrink-0"/>
-                  <div className="flex-1"><p className="text-[13px] font-bold text-white leading-tight">Aprobar todo</p><p className="text-[10px]" style={{color:'rgba(255,255,255,0.75)'}}>Aprobar {pending.length} pendiente{pending.length!==1?'s':''}</p></div>
-                  <ChevronRight size={14} color="rgba(255,255,255,0.6)"/>
-                </button>
-              )}
-              <button onClick={()=>setTab('history')}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left active:scale-95 transition-transform"
-                style={{background:'rgba(255,255,255,0.12)',border:'1px solid rgba(255,255,255,0.18)'}}>
-                <Clock size={17} color="white" className="shrink-0"/>
-                <div className="flex-1"><p className="text-[13px] font-bold text-white leading-tight">Ver historial</p><p className="text-[10px]" style={{color:'rgba(255,255,255,0.5)'}}>Todas las marcaciones</p></div>
-                <ChevronRight size={14} color="rgba(255,255,255,0.4)"/>
-              </button>
-              <button onClick={load}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left active:scale-95 transition-transform"
-                style={{background:'rgba(255,255,255,0.12)',border:'1px solid rgba(255,255,255,0.18)'}}>
-                <RefreshCw size={17} color="white" className="shrink-0"/>
-                <div className="flex-1"><p className="text-[13px] font-bold text-white leading-tight">Actualizar</p><p className="text-[10px]" style={{color:'rgba(255,255,255,0.5)'}}>Recargar datos</p></div>
-                <ChevronRight size={14} color="rgba(255,255,255,0.4)"/>
-              </button>
-            </div>
+            <button onClick={load}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left active:scale-95 transition-transform"
+              style={{background:'rgba(255,255,255,0.12)',border:'1px solid rgba(255,255,255,0.18)'}}>
+              <RefreshCw size={17} color="white" className="shrink-0"/>
+              <div className="flex-1"><p className="text-[13px] font-bold text-white leading-tight">Actualizar</p><p className="text-[10px]" style={{color:'rgba(255,255,255,0.5)'}}>Recargar datos</p></div>
+              <ChevronRight size={14} color="rgba(255,255,255,0.4)"/>
+            </button>
           </div>
 
+          {/* Bar chart — marcaciones por estado */}
           <div className="rounded-2xl p-5" style={CARD}>
-            <p className="text-[13px] font-bold mb-4" style={{color:T.black}}>Resumen</p>
-            <div className="space-y-3">
-              {[
-                {label:'Pendientes', value:pending.length, color:T.amber, bg:T.amberLt},
-                {label:'Rechazados', value:rejected.length, color:T.red, bg:T.redLt},
-                {label:'Aprobadas',  value:history.length, color:T.green, bg:T.greenLt},
-                {label:'Activos ahora', value:active.length, color:T.red, bg:T.redLt},
-              ].map(({label,value,color,bg})=>(
-                <div key={label} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="size-2 rounded-full shrink-0" style={{background:color}}/>
-                    <span className="text-[12px]" style={{color:T.gray}}>{label}</span>
-                  </div>
-                  <span className="text-[12px] font-bold px-2.5 py-0.5 rounded-full" style={{background:bg,color}}>{value}</span>
+            <p className="text-[13px] font-bold mb-1" style={{color:T.black}}>Marcaciones por Estado</p>
+            <p className="text-[10px] mb-4" style={{color:T.grayMid}}>Total: {entries.length + active.length} registros</p>
+            {(()=>{
+              const bars=[
+                {label:'Aprobadas',  value:history.length,  color:T.green},
+                {label:'Pendientes', value:pending.length,  color:T.amber},
+                {label:'Rechazados', value:rejected.length, color:T.red},
+                {label:'Activos',    value:active.length,   color:'#DC2626'},
+              ];
+              const max=Math.max(...bars.map(b=>b.value),1);
+              return(
+                <div className="space-y-3">
+                  {bars.map(({label,value,color})=>(
+                    <div key={label}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] font-semibold" style={{color:T.gray}}>{label}</span>
+                        <span className="text-[11px] font-bold" style={{color}}>{value}</span>
+                      </div>
+                      <div className="h-2 rounded-full overflow-hidden" style={{background:T.grayLt}}>
+                        <div className="h-full rounded-full transition-all duration-700" style={{width:`${(value/max)*100}%`,background:color}}/>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              );
+            })()}
           </div>
         </div>
       </div>
