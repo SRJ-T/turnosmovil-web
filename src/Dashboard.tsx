@@ -861,7 +861,9 @@ function TurnosView({bizId}:{bizId:string}) {
             ))}
           </div>
           {(()=>{
-            const forDay=(e:any)=>e.clock_in.slice(0,10)===selectedDate;
+            const forDay=(e:any)=>{
+              try{const d=new Date(e.clock_in.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));return isoDate(d)===selectedDate;}catch{return false;}
+            };
             const activeList=[
               ...liveEntries.filter(forDay).map((e:any)=>({...e,_live:true})),
               ...queueEntries.filter(e=>forDay(e)&&(e.status==='pending'||e.status==='approved'||e.status==='paid')),
