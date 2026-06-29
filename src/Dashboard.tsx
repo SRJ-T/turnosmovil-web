@@ -627,7 +627,7 @@ function TurnosView({bizId}:{bizId:string}) {
   const [nowTick,setNowTick] = useState(new Date());
   const [liveEntries,setLiveEntries] = useState<any[]>([]);
   const [queueEntries,setQueueEntries] = useState<any[]>([]);
-  const [showLive,setShowLive] = useState(false);
+  const [calTab,setCalTab] = useState<'turnos'|'envivo'>('turnos');
   const [queueTab,setQueueTab] = useState<'active'|'rejected'>('active');
   useEffect(()=>{const t=setInterval(()=>setNowTick(new Date()),60000);return()=>clearInterval(t);},[]);
 
@@ -714,27 +714,34 @@ function TurnosView({bizId}:{bizId:string}) {
           <h1 className="text-2xl font-black" style={{color:T.black}}>Turnos</h1>
           <p className="text-[12px] mt-0.5" style={{color:T.grayMid}}>Gestión semanal de turnos y solicitudes de aprobación</p>
         </div>
-        <div className="flex items-center gap-2">
-          {liveEntries.length>0&&(
-            <button onClick={()=>setShowLive(v=>!v)} className="h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold" style={{background:showLive?'#DC2626':'#FEE2E2',color:'#DC2626',border:'1px solid #FECACA'}}>
-              <span className="relative flex size-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"/><span className="relative inline-flex rounded-full size-2 bg-red-500"/></span>
-              En Vivo ({liveEntries.length})
+        <div className="flex items-center gap-3">
+          {/* Main tabs */}
+          <div className="flex rounded-2xl overflow-hidden" style={{border:`1px solid ${T.border}`,background:'#fff'}}>
+            <button onClick={()=>setCalTab('turnos')} className="h-10 px-6 text-[13px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='turnos'?SB2:'transparent',color:calTab==='turnos'?'#fff':T.gray}}>
+              <CalendarIcon size={14}/> Turnos
             </button>
-          )}
-          <button onClick={handleCopyWeek} disabled={copying} className="h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold" style={{background:T.indigoLt,color:T.indigo}}>
-            {copying?<span className="size-3.5 border-2 rounded-full animate-spin" style={{borderColor:`${T.indigo}30`,borderTopColor:T.indigo}}/>:<RefreshCw size={13}/>} Copiar semana
-          </button>
-          <button onClick={()=>{setBulkEmps([]);setBulkDays([0,1,2,3,4]);setShowBulkModal(true);}} className="h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold" style={{background:T.greenLt,color:T.green}}>
-            <Users size={13}/> Masivo
-          </button>
-          {draftsCount>0&&(
-            <button onClick={handlePublishAll} className="h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white" style={{background:T.amber}}>
-              <CheckCircle2 size={13}/> Publicar {draftsCount}
+            <button onClick={()=>setCalTab('envivo')} className="h-10 px-6 text-[13px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='envivo'?'#DC2626':'transparent',color:calTab==='envivo'?'#fff':T.gray}}>
+              {liveEntries.length>0&&<span className="relative flex size-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"/><span className="relative inline-flex rounded-full size-2 bg-red-500"/></span>}
+              En Vivo{liveEntries.length>0?` (${liveEntries.length})`:''}
             </button>
-          )}
-          <button onClick={()=>openAdd(selectedDate)} className="h-9 px-4 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white" style={{background:SB2}}>
-            <Plus size={13}/> Crear turno
-          </button>
+          </div>
+          {/* Action buttons — only in Turnos tab */}
+          {calTab==='turnos'&&<>
+            <button onClick={handleCopyWeek} disabled={copying} className="h-10 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold" style={{background:T.indigoLt,color:T.indigo}}>
+              {copying?<span className="size-3.5 border-2 rounded-full animate-spin" style={{borderColor:`${T.indigo}30`,borderTopColor:T.indigo}}/>:<RefreshCw size={13}/>} Copiar semana
+            </button>
+            <button onClick={()=>{setBulkEmps([]);setBulkDays([0,1,2,3,4]);setShowBulkModal(true);}} className="h-10 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold" style={{background:T.greenLt,color:T.green}}>
+              <Users size={13}/> Masivo
+            </button>
+            {draftsCount>0&&(
+              <button onClick={handlePublishAll} className="h-10 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white" style={{background:T.amber}}>
+                <CheckCircle2 size={13}/> Publicar {draftsCount}
+              </button>
+            )}
+            <button onClick={()=>openAdd(selectedDate)} className="h-10 px-4 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white" style={{background:SB2}}>
+              <Plus size={13}/> Crear turno
+            </button>
+          </>}
         </div>
       </div>
 
@@ -747,32 +754,43 @@ function TurnosView({bizId}:{bizId:string}) {
         <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()+7);return n;})} className="size-10 rounded-xl flex items-center justify-center" style={{background:SB2,border:`1px solid ${SB2}`}}><ChevronRight size={16} color="#fff"/></button>
       </div>
 
-      {/* En Vivo strip */}
-      {showLive&&liveEntries.length>0&&(
-        <div className="rounded-2xl p-4" style={{background:'#FFF5F5',border:'1px solid #FECACA'}}>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="relative flex size-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"/><span className="relative inline-flex rounded-full size-2.5 bg-red-500"/></span>
-            <span className="text-[13px] font-bold" style={{color:'#DC2626'}}>Trabajando Ahora — {liveEntries.length} activo{liveEntries.length!==1?'s':''}</span>
+      {/* En Vivo tab content */}
+      {calTab==='envivo'&&(
+        <div className="rounded-2xl p-5" style={{background:'#FFF5F5',border:'1px solid #FECACA',minHeight:200}}>
+          <div className="flex items-center gap-2 mb-4">
+            <span className="relative flex size-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"/><span className="relative inline-flex rounded-full size-3 bg-red-500"/></span>
+            <span className="text-[15px] font-bold" style={{color:'#DC2626'}}>Trabajando Ahora — {liveEntries.length} activo{liveEntries.length!==1?'s':''}</span>
           </div>
-          <div className="flex flex-wrap gap-3">
-            {liveEntries.map(e=>{
-              const ci=new Date(e.clock_in.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));
-              const elMin=Math.floor((nowTick.getTime()-ci.getTime())/60000);
-              const emp=e.employee; const color=emp?empColor(emp,0):'#6B7280';
-              return(
-                <div key={e.id} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl" style={{background:'#fff',border:'1px solid #FECACA',minWidth:180}}>
-                  <div className="size-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
-                  <div>
-                    <p className="text-[12px] font-semibold" style={{color:'#111'}}>{empName(emp)}</p>
-                    <p className="text-[10px] font-bold" style={{color:'#16A34A'}}>{Math.floor(elMin/60)>0?`${Math.floor(elMin/60)}h `:''}${elMin%60}m · entró {ci.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true})}</p>
+          {liveEntries.length===0?(
+            <div className="flex flex-col items-center justify-center py-12 gap-2">
+              <CheckCircle2 size={36} color="#FCA5A5"/>
+              <p className="text-[13px] font-semibold" style={{color:'#EF4444'}}>Ningún empleado está trabajando ahora</p>
+            </div>
+          ):(
+            <div className="grid gap-3" style={{gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))'}}>
+              {liveEntries.map(e=>{
+                const ci=new Date(e.clock_in.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));
+                const elMin=Math.floor((nowTick.getTime()-ci.getTime())/60000);
+                const emp=e.employee; const color=emp?empColor(emp,0):'#6B7280';
+                return(
+                  <div key={e.id} className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{background:'#fff',border:'1px solid #FECACA'}}>
+                    <div className="size-10 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-bold truncate" style={{color:'#111'}}>{empName(emp)}</p>
+                      <p className="text-[11px]" style={{color:T.grayMid}}>Entró {ci.toLocaleTimeString('es-PR',{hour:'numeric',minute:'2-digit',hour12:true})}</p>
+                      <p className="text-[11px] font-bold" style={{color:'#16A34A'}}>{Math.floor(elMin/60)>0?`${Math.floor(elMin/60)}h `:''}${elMin%60}m trabajando</p>
+                    </div>
+                    <span className="text-[9px] font-bold px-2 py-1 rounded-full ml-auto shrink-0" style={{background:'#DC2626',color:'#fff'}}>LIVE</span>
                   </div>
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-auto" style={{background:'#DC2626',color:'#fff'}}>LIVE</span>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
+
+      {/* Turnos tab content */}
+      {calTab==='turnos'&&<>
 
       {/* Weekly columns grid */}
       <div className="rounded-2xl overflow-hidden" style={{...CARD,padding:0}}>
@@ -966,6 +984,8 @@ function TurnosView({bizId}:{bizId:string}) {
           })()}
         </div>
       </div>
+
+      </>}
 
       <AnimatePresence>
         {showModal&&(
