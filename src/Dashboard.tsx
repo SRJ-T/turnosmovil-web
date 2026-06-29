@@ -868,9 +868,11 @@ function TurnosView({bizId}:{bizId:string}) {
           {(()=>{
             const forDay=(e:any)=>{
               try{
-                // clock_in from Supabase: "2026-06-21 10:00:00+00" — compare date prefix directly
-                const raw:string=e.clock_in??'';
-                return raw.replace(' ','T').startsWith(selectedDate);
+                // Parse clock_in as UTC, then get local calendar date
+                const raw=(e.clock_in??'').replace(/\+00(:\d{2})?$/,'+00:00').replace(' ','T');
+                const d=new Date(raw);
+                const localDate=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                return localDate===selectedDate;
               }catch{return false;}
             };
             const activeList=[
