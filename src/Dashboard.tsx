@@ -688,49 +688,48 @@ function TurnosView({bizId}:{bizId:string}) {
   };
 
   return (
-    <div className="p-5 lg:p-6 space-y-5 max-w-screen-xl">
+    <div className="space-y-5 max-w-screen-xl">
 
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-black" style={{color:T.black}}>Turnos</h1>
-          <p className="text-[12px] mt-0.5" style={{color:T.grayMid}}>Gestión semanal de turnos y solicitudes de aprobación</p>
-        </div>
-        <div className="flex items-center gap-3">
-          {draftsCount>0&&(
-            <button onClick={handlePublishAll} className="h-10 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white" style={{background:T.amber}}>
-              <CheckCircle2 size={13}/> Publicar {draftsCount}
+      {/* Sticky sub-header */}
+      <div className="sticky top-14 z-10 px-5 lg:px-6 py-3" style={{background:T.white,borderBottom:`1px solid ${T.border}`}}>
+        {/* Row 1: title + tabs + crear turno */}
+        <div className="flex items-center gap-4">
+          <div className="shrink-0">
+            <h1 className="text-[17px] font-black leading-tight" style={{color:T.black}}>Turnos</h1>
+          </div>
+          <div className="flex-1 flex justify-center">
+            <div className="flex rounded-2xl overflow-hidden" style={{border:`1px solid ${T.border}`,background:T.bg}}>
+              <button onClick={()=>setCalTab('turnos')} className="h-9 px-8 text-[13px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='turnos'?'#2563EB':'transparent',color:calTab==='turnos'?'#fff':T.gray}}>
+                <CalendarIcon size={14}/> Turnos
+              </button>
+              <button onClick={()=>setCalTab('envivo')} className="h-9 px-8 text-[13px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='envivo'?'#DC2626':'transparent',color:calTab==='envivo'?'#fff':T.gray}}>
+                {liveEntries.length>0&&<span className="relative flex size-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"/><span className="relative inline-flex rounded-full size-2 bg-red-500"/></span>}
+                En Vivo{liveEntries.length>0?` (${liveEntries.length})`:''}
+              </button>
+            </div>
+          </div>
+          <div className="shrink-0 flex items-center gap-2">
+            {draftsCount>0&&(
+              <button onClick={handlePublishAll} className="h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white" style={{background:T.amber}}>
+                <CheckCircle2 size={13}/> Publicar {draftsCount}
+              </button>
+            )}
+            <button onClick={()=>openAdd(selectedDate)} className="h-9 px-4 rounded-xl flex items-center gap-1.5 text-sm font-semibold text-white" style={{background:SB2}}>
+              <Plus size={14}/> Crear turno
             </button>
-          )}
+          </div>
         </div>
-      </div>
-
-      {/* Tabs Turnos / En Vivo */}
-      <div className="flex justify-center">
-        <div className="flex rounded-2xl overflow-hidden" style={{border:`1px solid ${T.border}`,background:'#fff'}}>
-          <button onClick={()=>setCalTab('turnos')} className="h-11 px-10 text-[14px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='turnos'?'#2563EB':'transparent',color:calTab==='turnos'?'#fff':T.gray}}>
-            <CalendarIcon size={15}/> Turnos
-          </button>
-          <button onClick={()=>setCalTab('envivo')} className="h-11 px-10 text-[14px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='envivo'?'#DC2626':'transparent',color:calTab==='envivo'?'#fff':T.gray}}>
-            {liveEntries.length>0&&<span className="relative flex size-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"/><span className="relative inline-flex rounded-full size-2 bg-red-500"/></span>}
-            En Vivo{liveEntries.length>0?` (${liveEntries.length})`:''}
-          </button>
-        </div>
-      </div>
-
-      {/* Period + week nav */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="px-5 py-2.5 rounded-xl text-[15px] font-bold" style={{background:'#fff',border:`1px solid ${T.border}`,color:T.black,boxShadow:'0 1px 4px rgba(0,0,0,0.06)'}}>
+        {/* Row 2: date nav */}
+        <div className="flex items-center gap-2 mt-2.5">
+          <div className="px-4 py-1.5 rounded-xl text-[14px] font-bold" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black}}>
             {days[0].toLocaleDateString('es-PR',{day:'numeric',month:'short'})} – {days[6].toLocaleDateString('es-PR',{day:'numeric',month:'short',year:'numeric'})}
           </div>
-          <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()-7);return n;})} className="size-10 rounded-xl flex items-center justify-center" style={{background:SB2,border:`1px solid ${SB2}`}}><ChevronLeft size={16} color="#fff"/></button>
-          <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()+7);return n;})} className="size-10 rounded-xl flex items-center justify-center" style={{background:SB2,border:`1px solid ${SB2}`}}><ChevronRight size={16} color="#fff"/></button>
+          <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()-7);return n;})} className="size-8 rounded-xl flex items-center justify-center" style={{background:SB2}}><ChevronLeft size={14} color="#fff"/></button>
+          <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()+7);return n;})} className="size-8 rounded-xl flex items-center justify-center" style={{background:SB2}}><ChevronRight size={14} color="#fff"/></button>
         </div>
-        <button onClick={()=>openAdd(selectedDate)} className="h-10 px-5 rounded-xl flex items-center gap-1.5 text-sm font-semibold text-white" style={{background:SB2}}>
-          <Plus size={14}/> Crear turno
-        </button>
       </div>
+
+      <div className="px-5 lg:px-6 space-y-5">
 
       {/* En Vivo tab content */}
       {calTab==='envivo'&&(
@@ -1111,6 +1110,7 @@ function TurnosView({bizId}:{bizId:string}) {
           </div>
         )}
       </AnimatePresence>
+      </div>{/* end px-5 space-y-5 */}
     </div>
   );
 }
