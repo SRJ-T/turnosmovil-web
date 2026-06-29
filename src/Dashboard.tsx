@@ -616,7 +616,6 @@ function TurnosView({bizId}:{bizId:string}) {
   const [selectedDate,setSelectedDate] = useState(isoDate(new Date()));
   const [showModal,setShowModal] = useState(false);
   const [editShift,setEditShift] = useState<Shift|null>(null);
-  const [loading,setLoading] = useState(true);
   const [form,setForm] = useState({employee_id:'',date:isoDate(new Date()),start_time:'09:00',end_time:'17:00',status:'draft',break_minutes:0});
   const [showBulkModal,setShowBulkModal] = useState(false);
   const [bulkEmps,setBulkEmps] = useState<string[]>([]);
@@ -633,7 +632,6 @@ function TurnosView({bizId}:{bizId:string}) {
   const days=weekDays(weekAnchor);
 
   const load=useCallback(async()=>{
-    setLoading(true);
     const[empRes,shiftRes,liveRes,queueRes]=await Promise.all([
       supabase.from('profiles').select('*').eq('business_id',bizId).eq('role','employee').eq('status','active'),
       supabase.from('shifts').select('*,profiles(*)').eq('business_id',bizId).gte('date',isoDate(days[0])).lte('date',isoDate(days[6])).order('start_time'),
@@ -644,7 +642,6 @@ function TurnosView({bizId}:{bizId:string}) {
     setShifts(((shiftRes.data??[]) as any[]).map(s=>({...s,employee:s.profiles})));
     setLiveEntries(((liveRes.data??[]) as any[]).map(e=>({...e,employee:e.profiles})));
     setQueueEntries(((queueRes.data??[]) as any[]).map(e=>({...e,employee:e.profiles})));
-    setLoading(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[bizId,isoDate(days[0])]);
   useEffect(()=>{load();},[load]);
@@ -683,7 +680,6 @@ function TurnosView({bizId}:{bizId:string}) {
   const draftsCount=shifts.filter(s=>s.status==='draft').length;
 
   const SB2='#0f1f5c';
-  const shortTime=(dt:string)=>{const d=new Date(dt.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));const h=d.getHours();const m=d.getMinutes();const hh=h===0?12:h>12?h-12:h;const ap=h<12?'am':'pm';return m>0?`${hh}:${String(m).padStart(2,'0')}${ap}`:`${hh}${ap}`;};
   const shiftStatus=(s:Shift)=>{
     const live=liveEntries.some(e=>e.shift_id===s.id);
     if(live) return{label:'En Curso',bg:'#FFF3E0',fg:'#E65100',dot:'#FF6D00'};
