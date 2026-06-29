@@ -143,7 +143,7 @@ export default function Dashboard({session}:{session:Session}) {
       <main className="flex-1 lg:ml-60 flex flex-col min-h-screen">
         <header className="h-14 flex items-center justify-between px-5 sticky top-0 z-20" style={{background:T.white,borderBottom:`1px solid ${T.border}`}}>
           <button onClick={()=>setSidebarOpen(true)} className="lg:hidden p-2 rounded-xl" style={{color:T.gray}}><Menu size={22}/></button>
-          <div className="flex-1"/>
+          <h1 className="text-[18px] font-black" style={{color:T.black}}>{TAB_LABEL[activeTab]??'Turnos Móvil'}</h1>
           <button className="p-2 rounded-xl" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.gray}}><Bell size={18}/></button>
         </header>
         <div className="flex-1 overflow-y-auto" style={{background:T.bg}}>
@@ -692,11 +692,8 @@ function TurnosView({bizId}:{bizId:string}) {
 
       {/* Sticky sub-header */}
       <div className="sticky top-14 z-10 px-5 lg:px-6 py-3" style={{background:T.bg,borderBottom:`1px solid ${T.border}`}}>
-        {/* Row 1: title + tabs + crear turno */}
+        {/* Row 1: tabs + crear turno */}
         <div className="flex items-center gap-4">
-          <div className="shrink-0">
-            <h1 className="text-[17px] font-black leading-tight" style={{color:T.black}}>Turnos</h1>
-          </div>
           <div className="flex-1 flex justify-center">
             <div className="flex rounded-2xl overflow-hidden" style={{border:`1px solid ${T.border}`,background:T.bg}}>
               <button onClick={()=>setCalTab('turnos')} className="h-9 px-8 text-[13px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='turnos'?'#2563EB':'transparent',color:calTab==='turnos'?'#fff':T.gray}}>
