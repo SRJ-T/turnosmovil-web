@@ -727,6 +727,24 @@ function TurnosView({bizId}:{bizId:string}) {
           <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()-7);return n;})} className="size-8 rounded-xl flex items-center justify-center" style={{background:SB2}}><ChevronLeft size={14} color="#fff"/></button>
           <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()+7);return n;})} className="size-8 rounded-xl flex items-center justify-center" style={{background:SB2}}><ChevronRight size={14} color="#fff"/></button>
         </div>
+        {/* Row 3: day selector */}
+        <div className="grid mt-2" style={{gridTemplateColumns:`repeat(7,1fr)`,borderTop:`1px solid ${T.border}`}}>
+          {days.map(d=>{
+            const iso=isoDate(d); const isSel=iso===selectedDate; const isToday=iso===isoDate(new Date());
+            const count=shifts.filter(s=>s.date===iso).length;
+            return(
+              <div key={iso} className="flex flex-col items-center py-2 gap-0.5 cursor-pointer transition-all"
+                style={{borderRight:`1px solid ${T.border}`,background:isSel?T.black:'transparent',borderRadius:isSel?'10px':'0'}}
+                onClick={()=>setSelectedDate(iso)}>
+                <span className="text-[10px] font-bold uppercase tracking-wider" style={{color:isSel?'rgba(255,255,255,0.55)':T.grayMid}}>{DAY_ES[d.getDay()]}</span>
+                <div className="size-7 rounded-full flex items-center justify-center" style={{background:isSel?'rgba(255,255,255,0.18)':isToday?SB2:'transparent'}}>
+                  <span className="text-[14px] font-black" style={{color:isSel?'#fff':isToday?'#fff':T.black}}>{d.getDate()}</span>
+                </div>
+                {count>0&&<span className="text-[10px] font-semibold" style={{color:isSel?'rgba(255,255,255,0.7)':T.green}}>{count} turno{count!==1?'s':''}</span>}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div className="px-5 lg:px-6 space-y-5">
@@ -768,31 +786,6 @@ function TurnosView({bizId}:{bizId:string}) {
 
       {/* Turnos tab content */}
       {calTab==='turnos'&&<>
-
-      {/* Weekly columns grid */}
-      <div className="rounded-2xl overflow-hidden" style={{...CARD,padding:0}}>
-        {/* Day headers */}
-        <div className="grid" style={{gridTemplateColumns:`repeat(7,1fr)`,borderBottom:`1px solid ${T.border}`}}>
-          {days.map(d=>{
-            const iso=isoDate(d);
-            const isSel=iso===selectedDate;
-            const isToday=iso===isoDate(new Date());
-            const count=shifts.filter(s=>s.date===iso).length;
-            return(
-              <div key={iso} className="flex flex-col items-center py-3 gap-0.5 cursor-pointer transition-all"
-                style={{borderRight:`1px solid ${T.border}`,background:isSel?T.black:'transparent',borderRadius:isSel?'12px':'0'}}
-                onClick={()=>setSelectedDate(iso)}>
-                <span className="text-[10px] font-bold uppercase tracking-wider" style={{color:isSel?'rgba(255,255,255,0.55)':T.grayMid}}>{DAY_ES[d.getDay()]}</span>
-                <div className="size-8 rounded-full flex items-center justify-center" style={{background:isSel?'rgba(255,255,255,0.18)':isToday?SB2:'transparent'}}>
-                  <span className="text-[15px] font-black" style={{color:isSel?'#fff':isToday?'#fff':T.black}}>{d.getDate()}</span>
-                </div>
-                {count>0&&<span className="text-[10px] font-semibold" style={{color:isSel?'rgba(255,255,255,0.7)':T.green}}>{count} turno{count!==1?'s':''}</span>}
-              </div>
-            );
-          })}
-        </div>
-
-      </div>
 
       {/* Resumen horas asignadas */}
       {(()=>{
