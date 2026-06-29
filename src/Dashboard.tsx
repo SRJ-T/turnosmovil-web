@@ -740,7 +740,7 @@ function TurnosView({bizId}:{bizId:string}) {
         </div>
       </div>
 
-      <div className="px-5 lg:px-6 pt-10 space-y-5">
+      <div className="px-5 lg:px-6 pt-3 space-y-5">
 
       {/* En Vivo tab content */}
       {calTab==='envivo'&&(
