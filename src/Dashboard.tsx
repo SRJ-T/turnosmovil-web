@@ -864,11 +864,10 @@ function TurnosView({bizId}:{bizId:string}) {
                           const sh=parseH(s.start_time);
                           let eh=parseH(s.end_time); if(eh<=sh) eh+=24;
                           const left=(sh-minH)*HOUR_W; const width=(eh-sh)*HOUR_W;
-                          const st=shiftStatus(s);
                           const role=emp.job_title??'';
                           return(
                             <div key={s.id} onClick={()=>openEdit(s)} className="absolute rounded-xl cursor-pointer overflow-hidden flex flex-col justify-center px-3"
-                              style={{left,width:width-4,top:8,bottom:8,background:st.dot}}>
+                              style={{left,width:width-4,top:8,bottom:8,background:color}}>
                               <p className="text-[11px] font-bold text-white truncate">{fmtTime(s.start_time)}–{fmtTime(s.end_time)}</p>
                               <p className="text-[10px] text-white truncate" style={{opacity:0.85}}>{role||'Sin puesto'}</p>
                             </div>
