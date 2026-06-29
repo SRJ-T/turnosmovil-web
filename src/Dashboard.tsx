@@ -6,7 +6,7 @@ import {
   CheckCircle2, XCircle, ChevronLeft, ChevronRight, Clock,
   UserPlus, AlertTriangle, Trash2, Search, BarChart3,
   MinusCircle, LogOut, RefreshCw,
-  Send, Pencil, Undo2
+  Send, Pencil
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase, diffHours } from './lib/supabase';
