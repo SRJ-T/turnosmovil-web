@@ -904,20 +904,11 @@ function TurnosView({bizId}:{bizId:string}) {
             ))}
           </div>
           {(()=>{
-            const forDay=(e:any)=>{
-              try{
-                // Parse clock_in as UTC, then get local calendar date
-                const raw=(e.clock_in??'').replace(/\+00(:\d{2})?$/,'+00:00').replace(' ','T');
-                const d=new Date(raw);
-                const localDate=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-                return localDate===selectedDate;
-              }catch{return false;}
-            };
             const activeList=[
-              ...liveEntries.filter(forDay).map((e:any)=>({...e,_live:true})),
-              ...queueEntries.filter(e=>forDay(e)&&(e.status==='pending'||e.status==='approved'||e.status==='paid')),
+              ...liveEntries.map((e:any)=>({...e,_live:true})),
+              ...queueEntries.filter(e=>e.status==='pending'||e.status==='approved'||e.status==='paid'),
             ];
-            const rejectedList=queueEntries.filter(e=>forDay(e)&&e.status==='rejected');
+            const rejectedList=queueEntries.filter(e=>e.status==='rejected');
             const list=queueTab==='active'?activeList:rejectedList;
             if(list.length===0) return(
               <div className="py-12 flex flex-col items-center gap-2">
