@@ -37,11 +37,11 @@ interface Shift { id:string; employee_id:string; business_id:string; date:string
 interface ClockEntry { id:string; employee_id:string; business_id:string; shift_id:string|null; clock_in:string; clock_out:string|null; status:string; break_minutes:number; rejection_note:string|null; approved_hours?:number|null; employee?:Employee; }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-function isoDate(d:Date) { return d.toISOString().split('T')[0]; }
+function isoDate(d:Date) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function weekDays(anchor:Date) {
-  const mon = new Date(anchor); const dow = mon.getDay();
-  mon.setDate(mon.getDate()-dow);
-  return Array.from({length:7},(_,i)=>{ const d=new Date(mon); d.setDate(mon.getDate()+i); return d; });
+  const base=new Date(anchor.getFullYear(),anchor.getMonth(),anchor.getDate()); const dow=base.getDay();
+  base.setDate(base.getDate()-dow);
+  return Array.from({length:7},(_,i)=>new Date(base.getFullYear(),base.getMonth(),base.getDate()+i));
 }
 function empName(e?:Employee|null) { if(!e)return'Empleado'; return `${e.name}${e.last_name?' '+e.last_name:''}`; }
 function empInitials(e?:Employee|null) { if(!e)return'?'; return `${e.name?.[0]??''}${e.last_name?.[0]??''}`.toUpperCase()||e.name[0].toUpperCase(); }
