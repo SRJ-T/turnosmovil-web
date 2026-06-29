@@ -945,7 +945,7 @@ function TurnosView({bizId}:{bizId:string}) {
                         <div key={s.id} onClick={()=>openEdit(s)} className="absolute inset-y-0 rounded-xl flex items-center px-3 cursor-pointer overflow-hidden"
                           style={{left,width,background:st.dot,opacity:0.92}}>
                           <span className="text-[11px] font-bold text-white truncate">
-                            {fmtH(sh)}–{fmtH(eh%24)} {s.profiles?.job_title??''}
+                            {fmtH(sh)}–{fmtH(eh%24)} {(s as any).profiles?.job_title??emp?.job_title??''}
                           </span>
                         </div>
                       );
