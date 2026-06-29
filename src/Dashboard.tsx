@@ -713,14 +713,16 @@ function TurnosView({bizId}:{bizId:string}) {
       </div>
 
       {/* Tabs Turnos / En Vivo */}
-      <div className="flex rounded-2xl overflow-hidden w-fit" style={{border:`1px solid ${T.border}`,background:'#fff'}}>
-        <button onClick={()=>setCalTab('turnos')} className="h-10 px-6 text-[13px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='turnos'?SB2:'transparent',color:calTab==='turnos'?'#fff':T.gray}}>
-          <CalendarIcon size={14}/> Turnos
-        </button>
-        <button onClick={()=>setCalTab('envivo')} className="h-10 px-6 text-[13px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='envivo'?'#DC2626':'transparent',color:calTab==='envivo'?'#fff':T.gray}}>
-          {liveEntries.length>0&&<span className="relative flex size-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"/><span className="relative inline-flex rounded-full size-2 bg-red-500"/></span>}
-          En Vivo{liveEntries.length>0?` (${liveEntries.length})`:''}
-        </button>
+      <div className="flex justify-center">
+        <div className="flex rounded-2xl overflow-hidden" style={{border:`1px solid ${T.border}`,background:'#fff'}}>
+          <button onClick={()=>setCalTab('turnos')} className="h-11 px-10 text-[14px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='turnos'?'#2563EB':'transparent',color:calTab==='turnos'?'#fff':T.gray}}>
+            <CalendarIcon size={15}/> Turnos
+          </button>
+          <button onClick={()=>setCalTab('envivo')} className="h-11 px-10 text-[14px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='envivo'?'#DC2626':'transparent',color:calTab==='envivo'?'#fff':T.gray}}>
+            {liveEntries.length>0&&<span className="relative flex size-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"/><span className="relative inline-flex rounded-full size-2 bg-red-500"/></span>}
+            En Vivo{liveEntries.length>0?` (${liveEntries.length})`:''}
+          </button>
+        </div>
       </div>
 
       {/* Period + week nav */}
