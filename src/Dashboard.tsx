@@ -797,53 +797,6 @@ function TurnosView({bizId}:{bizId:string}) {
           })}
         </div>
 
-        {/* Day columns body */}
-        {loading?(
-          <div className="p-5"><div className="h-48 rounded-xl animate-pulse" style={{background:T.grayLt}}/></div>
-        ):(
-          <div className="grid" style={{gridTemplateColumns:`repeat(7,1fr)`,minHeight:300,alignItems:'start'}}>
-            {days.map((d,di)=>{
-              const iso=isoDate(d);
-              const isSel=iso===selectedDate;
-              const isPast=iso<isoDate(new Date());
-              const dayShiftList=shifts.filter(s=>s.date===iso);
-              return(
-                <div key={iso} className="p-2 space-y-2 min-h-[180px]"
-                  style={{borderRight:di<6?`1px solid ${T.border}`:'none',background:isSel?'#F8F8F8':'transparent'}}>
-                  {dayShiftList.map(s=>{
-                    const emp=employees.find(e=>e.id===s.employee_id);
-                    const color=emp?empColor(emp,0):'#6B7280';
-                    const st=shiftStatus(s);
-                    return(
-                      <div key={s.id} onClick={()=>openEdit(s)}
-                        className="rounded-2xl p-2.5 cursor-pointer hover:shadow-sm transition-all"
-                        style={{background:'#fff',border:`1px solid ${T.border}`,borderLeft:`3px solid ${st.dot}`}}>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{background:st.bg,color:st.fg}}>{st.label}</span>
-                        </div>
-                        <p className="text-[12px] font-bold leading-tight mb-0.5" style={{color:T.black}}>{empName(emp)}</p>
-                        <p className="text-[10px]" style={{color:T.grayMid}}>{shortTime(s.start_time)} – {shortTime(s.end_time)}</p>
-                        {emp&&<div className="flex items-center gap-1 mt-1.5">
-                          <div className="size-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
-                          <span className="text-[10px] truncate" style={{color:T.gray}}>{emp.job_title??''}</span>
-                        </div>}
-                      </div>
-                    );
-                  })}
-                  {!isPast&&(
-                    <button onClick={()=>openAdd(iso)}
-                      className="w-full py-2 rounded-2xl flex items-center justify-center gap-1 text-[11px] font-semibold transition-opacity"
-                      style={{border:`1.5px dashed ${T.border}`,color:T.grayMid,opacity:dayShiftList.length>0?1:0,cursor:'pointer'}}
-                      onMouseEnter={e=>(e.currentTarget.style.opacity='1')}
-                      onMouseLeave={e=>(e.currentTarget.style.opacity=dayShiftList.length>0?'1':'0')}>
-                      <Plus size={12}/> Agregar
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
 
       {/* Resumen horas asignadas */}
