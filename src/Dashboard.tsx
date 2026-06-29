@@ -880,80 +880,96 @@ function TurnosView({bizId}:{bizId:string}) {
       {/* Timeline diario por empleado */}
       {(()=>{
         const dayShifts=shifts.filter(s=>s.date===selectedDate);
-        if(dayShifts.length===0) return null;
-        // Compute hour range: min startH to max endH, at least 8am-10pm
+        const EMP_COL=200; const HOUR_W=80; // px per hour
         const parseH=(dt:string)=>{const d=new Date(dt.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));return d.getHours()+d.getMinutes()/60;};
-        let minH=8,maxH=22;
+        const fmtTime=(dt:string)=>{const d=new Date(dt.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));const h=d.getHours();const m=d.getMinutes();const hh=h===0?12:h>12?h-12:h;const ap=h<12?'am':'pm';return m>0?`${hh}:${String(m).padStart(2,'0')}${ap}`:`${hh}${ap}`;};
+        const fmtHLabel=(h:number)=>{const hh=h%24;const ap=hh<12?'am':'pm';const d=hh===0?12:hh>12?hh-12:hh;return`${d}${ap}`;};
+        // Fixed range: 8am–midnight (or expand if needed)
+        let minH=8,maxH=24;
         dayShifts.forEach(s=>{
-          if(s.start_time) minH=Math.min(minH,Math.floor(parseH(s.start_time)));
+          if(s.start_time){const h=Math.floor(parseH(s.start_time));minH=Math.min(minH,h);}
           if(s.end_time){const h=parseH(s.end_time);maxH=Math.max(maxH,h<=4?h+24:h);}
         });
-        minH=Math.max(0,minH-1); maxH=Math.min(32,maxH+1);
-        const span=maxH-minH;
-        const pct=(h:number)=>`${((h-minH)/span)*100}%`;
-        const fmtH=(h:number)=>{const hh=h%24;const ap=hh<12?'am':'pm';const d=hh===0?12:hh>12?hh-12:hh;return`${d}${ap}`;};
-        const hours=Array.from({length:Math.ceil(maxH)-Math.floor(minH)+1},(_,i)=>Math.floor(minH)+i).filter(h=>h<=Math.ceil(maxH));
+        minH=Math.max(0,minH-1); maxH=Math.min(32,Math.ceil(maxH)+1);
+        const hours=Array.from({length:maxH-minH},(_,i)=>minH+i);
+        const totalW=hours.length*HOUR_W;
         // Group by employee
         const byEmp:Record<string,typeof dayShifts>={};
         dayShifts.forEach(s=>{(byEmp[s.employee_id]||(byEmp[s.employee_id]=[])).push(s);});
+        // All employees (including those with no shift today)
+        const allEmps=employees;
         return(
           <div className="rounded-2xl overflow-hidden" style={CARD}>
-            <div className="px-5 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
-              <p className="text-[14px] font-bold" style={{color:T.black}}>Vista de Turno — {new Date(selectedDate+'T12:00:00').toLocaleDateString('es-PR',{weekday:'long',day:'numeric',month:'long'})}</p>
+            {/* Title */}
+            <div className="px-5 py-4 flex items-center justify-between" style={{borderBottom:`1px solid ${T.border}`}}>
+              <p className="text-[14px] font-bold" style={{color:T.black}}>Vista de Turnos</p>
+              <span className="text-[12px]" style={{color:T.grayMid}}>Miembros del equipo ({allEmps.length})</span>
             </div>
-            {/* Header: hours */}
-            <div className="flex" style={{borderBottom:`1px solid ${T.border}`,background:T.bg}}>
-              <div style={{width:180,minWidth:180,borderRight:`1px solid ${T.border}`}}/>
-              <div className="relative flex-1" style={{height:32}}>
-                {hours.map(h=>(
-                  <span key={h} className="absolute text-[10px] font-semibold" style={{left:pct(h),transform:'translateX(-50%)',top:8,color:T.grayMid}}>{fmtH(h)}</span>
-                ))}
-              </div>
-            </div>
-            {/* Rows */}
-            {Object.entries(byEmp).map(([empId,empShifts])=>{
-              const emp=employees.find(e=>e.id===empId);
-              const color=emp?empColor(emp,0):'#6B7280';
-              let totalM=0;
-              empShifts.forEach(s=>{
-                if(s.start_time&&s.end_time){
-                  const sh=parseH(s.start_time),eh=parseH(s.end_time);
-                  const diff=((eh<=sh?eh+24:eh)-sh)*60-(s.break_minutes??0);
-                  if(diff>0) totalM+=diff;
-                }
-              });
-              const hrs=(totalM/60).toFixed(2).replace('.00','').replace(/\.(\d)$/,'.$10');
-              return(
-                <div key={empId} className="flex" style={{borderBottom:`1px solid ${T.border}`,minHeight:56}}>
-                  {/* Employee info */}
-                  <div className="flex items-center gap-2.5 px-4" style={{width:180,minWidth:180,borderRight:`1px solid ${T.border}`}}>
-                    <div className="size-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
-                    <div className="min-w-0">
-                      <p className="text-[12px] font-bold truncate" style={{color:T.black}}>{empName(emp)}</p>
-                      <p className="text-[10px]" style={{color:T.grayMid}}>{hrs} hrs</p>
-                    </div>
-                  </div>
-                  {/* Shift bars */}
-                  <div className="relative flex-1 my-2">
-                    {empShifts.map(s=>{
-                      if(!s.start_time||!s.end_time) return null;
-                      const sh=parseH(s.start_time);
-                      let eh=parseH(s.end_time); if(eh<=sh) eh+=24;
-                      const left=pct(sh); const width=`${((eh-sh)/span)*100}%`;
-                      const st=shiftStatus(s);
-                      return(
-                        <div key={s.id} onClick={()=>openEdit(s)} className="absolute inset-y-0 rounded-xl flex items-center px-3 cursor-pointer overflow-hidden"
-                          style={{left,width,background:st.dot,opacity:0.92}}>
-                          <span className="text-[11px] font-bold text-white truncate">
-                            {fmtH(sh)}–{fmtH(eh%24)} {(s as any).profiles?.job_title??emp?.job_title??''}
-                          </span>
-                        </div>
-                      );
-                    })}
+            {/* Scrollable area */}
+            <div style={{overflowX:'auto'}}>
+              <div style={{minWidth:EMP_COL+totalW}}>
+                {/* Hour header */}
+                <div className="flex sticky top-0 z-10" style={{background:T.bg,borderBottom:`1px solid ${T.border}`}}>
+                  <div style={{width:EMP_COL,minWidth:EMP_COL,borderRight:`1px solid ${T.border}`,height:36}}/>
+                  <div className="relative" style={{width:totalW,height:36}}>
+                    {hours.map(h=>(
+                      <div key={h} className="absolute top-0 bottom-0 flex items-center justify-center" style={{left:((h-minH)*HOUR_W),width:HOUR_W,borderRight:`1px solid ${T.border}`}}>
+                        <span className="text-[11px] font-semibold" style={{color:T.grayMid}}>{fmtHLabel(h)}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              );
-            })}
+                {/* Employee rows */}
+                {allEmps.map((emp,ei)=>{
+                  const empShifts=byEmp[emp.id]??[];
+                  const color=empColor(emp,ei);
+                  let totalM=0;
+                  empShifts.forEach(s=>{
+                    if(s.start_time&&s.end_time){
+                      const sh=parseH(s.start_time),eh=parseH(s.end_time);
+                      const diff=((eh<=sh?eh+24:eh)-sh)*60-(s.break_minutes??0);
+                      if(diff>0) totalM+=diff;
+                    }
+                  });
+                  const hrsStr=totalM>0?`${Math.floor(totalM/60)}h${totalM%60>0?' '+totalM%60+'m':''}  hrs`:'0 hrs';
+                  return(
+                    <div key={emp.id} className="flex" style={{borderBottom:`1px solid ${T.border}`,minHeight:64}}>
+                      {/* Employee info */}
+                      <div className="flex items-center gap-2.5 px-4 shrink-0" style={{width:EMP_COL,minWidth:EMP_COL,borderRight:`1px solid ${T.border}`}}>
+                        <div className="size-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
+                        <div className="min-w-0">
+                          <p className="text-[12px] font-bold truncate" style={{color:T.black}}>{empName(emp)}</p>
+                          <p className="text-[10px]" style={{color:T.grayMid}}>{hrsStr}</p>
+                        </div>
+                      </div>
+                      {/* Grid + shift bars */}
+                      <div className="relative" style={{width:totalW,minHeight:64}}>
+                        {/* Hour grid lines */}
+                        {hours.map(h=>(
+                          <div key={h} className="absolute top-0 bottom-0" style={{left:(h-minH)*HOUR_W,width:HOUR_W,borderRight:`1px solid ${T.border}`,background:h%2===0?'transparent':'rgba(0,0,0,0.01)'}}/>
+                        ))}
+                        {/* Shift bars */}
+                        {empShifts.map(s=>{
+                          if(!s.start_time||!s.end_time) return null;
+                          const sh=parseH(s.start_time);
+                          let eh=parseH(s.end_time); if(eh<=sh) eh+=24;
+                          const left=(sh-minH)*HOUR_W; const width=(eh-sh)*HOUR_W;
+                          const st=shiftStatus(s);
+                          const role=emp.job_title??'';
+                          return(
+                            <div key={s.id} onClick={()=>openEdit(s)} className="absolute rounded-xl cursor-pointer overflow-hidden flex flex-col justify-center px-3"
+                              style={{left,width:width-4,top:8,bottom:8,background:st.dot}}>
+                              <p className="text-[11px] font-bold text-white truncate">{fmtTime(s.start_time)}–{fmtTime(s.end_time)}</p>
+                              <p className="text-[10px] text-white truncate" style={{opacity:0.85}}>{role||'Sin puesto'}</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         );
       })()}
