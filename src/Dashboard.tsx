@@ -1214,28 +1214,31 @@ function ApprovalsView({bizId}:{bizId:string}) {
 
         {/* Right panel */}
         <div className="space-y-4">
-          <div className="rounded-2xl p-5" style={{...CARD,background:SB}}>
-            <p className="text-[13px] font-bold text-white mb-4">Acciones Rápidas</p>
+          <div className="rounded-2xl p-4" style={{...CARD,background:SB}}>
+            <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{color:'rgba(255,255,255,0.45)'}}>Acciones Rápidas</p>
             <div className="space-y-2">
               {pending.length>0&&(
                 <button onClick={()=>setShowApproveAll(true)}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:opacity-80"
-                  style={{background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.12)'}}>
-                  <div className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:T.green}}><CheckCircle2 size={15} color="white"/></div>
-                  <div><p className="text-[12px] font-bold text-white">Aprobar todo</p><p className="text-[10px]" style={{color:'rgba(255,255,255,0.5)'}}>Aprobar {pending.length} pendiente{pending.length!==1?'s':''}</p></div>
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left active:scale-95 transition-transform"
+                  style={{background:T.green,border:'none',boxShadow:'0 2px 8px rgba(34,197,94,0.4)'}}>
+                  <CheckCircle2 size={17} color="white" className="shrink-0"/>
+                  <div className="flex-1"><p className="text-[13px] font-bold text-white leading-tight">Aprobar todo</p><p className="text-[10px]" style={{color:'rgba(255,255,255,0.75)'}}>Aprobar {pending.length} pendiente{pending.length!==1?'s':''}</p></div>
+                  <ChevronRight size={14} color="rgba(255,255,255,0.6)"/>
                 </button>
               )}
               <button onClick={()=>setTab('history')}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:opacity-80"
-                style={{background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.12)'}}>
-                <div className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(255,255,255,0.15)'}}><Clock size={15} color="white"/></div>
-                <div><p className="text-[12px] font-bold text-white">Ver historial</p><p className="text-[10px]" style={{color:'rgba(255,255,255,0.5)'}}>Todas las marcaciones</p></div>
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left active:scale-95 transition-transform"
+                style={{background:'rgba(255,255,255,0.12)',border:'1px solid rgba(255,255,255,0.18)'}}>
+                <Clock size={17} color="white" className="shrink-0"/>
+                <div className="flex-1"><p className="text-[13px] font-bold text-white leading-tight">Ver historial</p><p className="text-[10px]" style={{color:'rgba(255,255,255,0.5)'}}>Todas las marcaciones</p></div>
+                <ChevronRight size={14} color="rgba(255,255,255,0.4)"/>
               </button>
               <button onClick={load}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:opacity-80"
-                style={{background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.12)'}}>
-                <div className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(255,255,255,0.15)'}}><RefreshCw size={15} color="white"/></div>
-                <div><p className="text-[12px] font-bold text-white">Actualizar</p><p className="text-[10px]" style={{color:'rgba(255,255,255,0.5)'}}>Recargar datos</p></div>
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left active:scale-95 transition-transform"
+                style={{background:'rgba(255,255,255,0.12)',border:'1px solid rgba(255,255,255,0.18)'}}>
+                <RefreshCw size={17} color="white" className="shrink-0"/>
+                <div className="flex-1"><p className="text-[13px] font-bold text-white leading-tight">Actualizar</p><p className="text-[10px]" style={{color:'rgba(255,255,255,0.5)'}}>Recargar datos</p></div>
+                <ChevronRight size={14} color="rgba(255,255,255,0.4)"/>
               </button>
             </div>
           </div>
