@@ -691,7 +691,7 @@ function TurnosView({bizId}:{bizId:string}) {
     <div className="space-y-5 max-w-screen-xl">
 
       {/* Sticky sub-header */}
-      <div className="sticky top-14 z-10 px-5 lg:px-6 py-3" style={{background:T.white,borderBottom:`1px solid ${T.border}`}}>
+      <div className="sticky top-14 z-10 px-5 lg:px-6 py-3" style={{background:T.bg,borderBottom:`1px solid ${T.border}`}}>
         {/* Row 1: title + tabs + crear turno */}
         <div className="flex items-center gap-4">
           <div className="shrink-0">
