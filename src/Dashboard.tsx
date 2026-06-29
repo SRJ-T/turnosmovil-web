@@ -1013,15 +1013,15 @@ function TurnosView({bizId}:{bizId:string}) {
 
 // ─── APROBACIONES ─────────────────────────────────────────────────────────────
 function ApprovalsView({bizId}:{bizId:string}) {
-  const [entries,setEntries]   = useState<ClockEntry[]>([]);
-  const [active,setActive]     = useState<ClockEntry[]>([]);
-  const [loading,setLoading]   = useState(true);
-  const [tab,setTab]           = useState<'pending'|'rejected'|'history'>('pending');
-  const [search,setSearch]     = useState('');
-  const [editEntry,setEditEntry]   = useState<ClockEntry|null>(null);
-  const [editForm,setEditForm]     = useState({clock_in:'',clock_out:'',status:'pending',rejection_note:''});
-  const [showEdit,setShowEdit]     = useState(false);
-  const [nowTick2,setNowTick2]     = useState(new Date());
+  const [entries,setEntries] = useState<ClockEntry[]>([]);
+  const [active,setActive]   = useState<ClockEntry[]>([]);
+  const [loading,setLoading] = useState(true);
+  const [tab,setTab]         = useState<'pending'|'rejected'|'history'>('pending');
+  const [search,setSearch]   = useState('');
+  const [editEntry,setEditEntry] = useState<ClockEntry|null>(null);
+  const [editForm,setEditForm]   = useState({clock_in:'',clock_out:'',status:'pending',rejection_note:''});
+  const [showEdit,setShowEdit]   = useState(false);
+  const [nowTick2,setNowTick2]   = useState(new Date());
   useEffect(()=>{const t=setInterval(()=>setNowTick2(new Date()),30000);return()=>clearInterval(t);},[]);
 
   const load=useCallback(async()=>{
@@ -1037,7 +1037,7 @@ function ApprovalsView({bizId}:{bizId:string}) {
   useEffect(()=>{load();},[load]);
 
   const handleApprove=async(id:string)=>{await supabase.from('clock_entries').update({status:'approved'}).eq('id',id);setEntries(p=>p.map(e=>e.id===id?{...e,status:'approved'}:e));};
-  const handleReject=async(id:string,note='')=>{await supabase.from('clock_entries').update({status:'rejected',rejection_note:note||null}).eq('id',id);setEntries(p=>p.map(e=>e.id===id?{...e,status:'rejected',rejection_note:note||null}:e));};
+  const handleReject=async(id:string)=>{await supabase.from('clock_entries').update({status:'rejected'}).eq('id',id);setEntries(p=>p.map(e=>e.id===id?{...e,status:'rejected'}:e));};
   const handleDelete=async(id:string)=>{if(!confirm('¿Eliminar esta marcación?'))return;await supabase.from('clock_entries').delete().eq('id',id);setEntries(p=>p.filter(e=>e.id!==id));setActive(p=>p.filter(e=>e.id!==id));};
   const handleApproveAll=async(ids:string[])=>{await supabase.from('clock_entries').update({status:'approved'}).in('id',ids);setEntries(p=>p.map(e=>ids.includes(e.id)?{...e,status:'approved'}:e));};
 
@@ -1058,141 +1058,207 @@ function ApprovalsView({bizId}:{bizId:string}) {
   const pending  = entries.filter(e=>e.status==='pending');
   const rejected = entries.filter(e=>e.status==='rejected');
   const history  = entries.filter(e=>e.status==='approved'||e.status==='paid');
+  const approvedHrs=history.reduce((s,e)=>s+diffHours(e.clock_in,e.clock_out??''),0);
   const totalPendingHrs=pending.reduce((s,e)=>s+diffHours(e.clock_in,e.clock_out??new Date().toISOString()),0);
 
   const fmtDt=(dt:string)=>{const d=new Date(dt.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));return d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true});};
   const fmtDate=(dt:string)=>{const d=new Date(dt.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));return d.toLocaleDateString('es-PR',{weekday:'short',day:'numeric',month:'short'});};
-
   const filtered=(list:ClockEntry[])=>search?list.filter(e=>empName(e.employee).toLowerCase().includes(search.toLowerCase())):list;
 
-  const EntryCard=({entry,showActions=false,showDelete=true,isActive=false}:{entry:ClockEntry;showActions?:boolean;showDelete?:boolean;isActive?:boolean})=>{
-    const hrs=isActive
-      ?(nowTick2.getTime()-new Date(entry.clock_in.replace(/\+00(:\d{2})?$/,'').replace(' ','T')).getTime())/3600000
-      :diffHours(entry.clock_in,entry.clock_out??new Date().toISOString());
-    const rate=entry.employee?.hourly_rate??0;
-    const cost=hrs*rate;
-    const color=empColor(entry.employee,0);
-    const statusStyle:{bg:string;fg:string;label:string}=
-      isActive?{bg:'#FEE2E2',fg:'#DC2626',label:'Activo'}:
-      entry.status==='approved'?{bg:T.greenLt,fg:T.green,label:'Aprobado'}:
-      entry.status==='paid'?{bg:T.blueLt,fg:T.blue,label:'Procesado'}:
-      entry.status==='rejected'?{bg:T.redLt,fg:T.red,label:'Rechazado'}:
-      {bg:T.amberLt,fg:T.amber,label:'Pendiente'};
-    return(
-      <div className="rounded-2xl overflow-hidden" style={{...CARD,borderLeft:`3px solid ${statusStyle.fg}`}}>
-        <div className="flex items-center gap-3 px-4 py-3">
-          <div className="size-10 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{background:color}}>{empInitials(entry.employee)}</div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-semibold" style={{color:T.black}}>{empName(entry.employee)}</p>
-            <p className="text-xs" style={{color:T.gray}}>{fmtDate(entry.clock_in)} · {fmtDt(entry.clock_in)}{entry.clock_out&&` – ${fmtDt(entry.clock_out)}`}{isActive&&' · EN VIVO'}</p>
-          </div>
-          <div className="text-right shrink-0">
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full block mb-1" style={{background:statusStyle.bg,color:statusStyle.fg}}>{statusStyle.label}</span>
-            <p className="text-[13px] font-bold" style={{color:T.black}}>{fmtHours(hrs)}</p>
-            {rate>0&&<p className="text-[11px] font-semibold" style={{color:T.green}}>${cost.toFixed(2)}</p>}
-          </div>
-        </div>
-        <div className="mx-3 mb-3 px-3 py-2 rounded-xl flex items-center gap-2 flex-wrap" style={{background:T.bg}}>
-          <span className="text-[10px] font-bold px-2 py-1 rounded-md" style={{background:`${T.green}15`,color:T.green}}>Reg {fmtHours(Math.min(hrs,8))}</span>
-          {hrs>8&&<span className="text-[10px] font-bold px-2 py-1 rounded-md" style={{background:`${T.amber}15`,color:T.amber}}>OT {fmtHours(hrs-8)}</span>}
-          {entry.break_minutes>0&&<span className="text-[10px] font-bold px-2 py-1 rounded-md" style={{background:`${T.gray}15`,color:T.gray}}>Break {entry.break_minutes}m</span>}
-          {entry.rejection_note&&<span className="text-[10px] flex-1 truncate" style={{color:T.red}}>✗ {entry.rejection_note}</span>}
-          <div className="flex-1"/>
-          <button onClick={()=>openEdit(entry)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.gray,background:T.white}}><Pencil size={11}/> Editar</button>
-          {showDelete&&<button onClick={()=>handleDelete(entry.id)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold" style={{border:`1px solid ${T.red}55`,color:T.red,background:T.white}}><Trash2 size={11}/> Eliminar</button>}
-        </div>
-        {showActions&&(
-          <div className="flex gap-2 mx-3 mb-3">
-            <button onClick={()=>handleReject(entry.id)} className="flex-1 h-9 rounded-xl flex items-center justify-center gap-1.5 text-xs font-bold" style={{background:T.white,border:`1px solid ${T.red}66`,color:T.red}}><XCircle size={13}/> Rechazar</button>
-            <button onClick={()=>handleApprove(entry.id)} className="flex-1 h-9 rounded-xl flex items-center justify-center gap-1.5 text-xs font-bold text-white" style={{background:T.green}}><CheckCircle2 size={13}/> Aprobar</button>
-          </div>
-        )}
-        {!showActions&&entry.status!=='pending'&&(
-          <div className="flex gap-2 mx-3 mb-3">
-            {(entry.status==='approved'||entry.status==='rejected')&&<button onClick={async()=>{await supabase.from('clock_entries').update({status:'pending',rejection_note:null}).eq('id',entry.id);await load();}} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.gray,background:T.bg}}><Undo2 size={11}/> Reabrir</button>}
-          </div>
-        )}
-      </div>
-    );
-  };
-
+  const SB='#0f1f5c';
   const tabs=[
-    {key:'pending' as const, label:`Pendientes (${pending.length})`, color:T.amber},
-    {key:'rejected' as const, label:`Rechazados (${rejected.length})`, color:T.red},
-    {key:'history' as const, label:`Historial (${history.length})`, color:T.green},
+    {key:'pending' as const,  label:'Pendientes', count:pending.length,  color:T.amber},
+    {key:'rejected' as const, label:'Rechazados',  count:rejected.length, color:T.red},
+    {key:'history' as const,  label:'Historial',   count:history.length,  color:T.green},
   ];
 
+  const statusInfo=(e:ClockEntry,isActive=false)=>
+    isActive?{bg:'#FEE2E2',fg:T.red,label:'Activo'}:
+    e.status==='approved'?{bg:T.greenLt,fg:T.green,label:'Aprobado'}:
+    e.status==='paid'?{bg:T.blueLt,fg:T.blue,label:'Procesado'}:
+    e.status==='rejected'?{bg:T.redLt,fg:T.red,label:'Rechazado'}:
+    {bg:T.amberLt,fg:T.amber,label:'Pendiente'};
+
+  const curList=tab==='pending'?[...active.map(e=>({...e,_live:true})),...pending]:
+                tab==='rejected'?rejected:history;
+  const visibleList=filtered(curList as ClockEntry[]);
+
   return (
-    <div>
-      {/* Header */}
-      <div className="px-5 pt-6 pb-4" style={{background:T.white,borderBottom:`1px solid ${T.border}`}}>
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold" style={{color:T.black}}>Horas</h1>
-          <button onClick={load} className="size-10 rounded-xl flex items-center justify-center" style={{background:T.bg,border:`1px solid ${T.border}`}}><RefreshCw size={16} color={T.gray}/></button>
+    <div className="p-5 lg:p-6 space-y-5 max-w-screen-xl">
+
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="rounded-2xl p-5" style={{...CARD,border:`1px solid ${T.amber}40`}}>
+          <div className="flex items-start justify-between mb-3">
+            <p className="text-[11px] font-bold tracking-widest uppercase" style={{color:T.gray}}>Pendientes de Aprobar</p>
+            <div className="size-8 rounded-lg flex items-center justify-center" style={{background:T.amberLt}}><AlertTriangle size={15} color={T.amber}/></div>
+          </div>
+          {loading?<div className="h-8 rounded-lg animate-pulse mb-2" style={{background:T.grayLt}}/>:(
+            <p className="text-3xl font-black mb-1" style={{color:T.black}}>{pending.length}</p>
+          )}
+          <p className="text-[11px]" style={{color:T.grayMid}}>{fmtHours(totalPendingHrs)} en espera · {pending.length>0?<span style={{color:T.amber}}>Requiere acción</span>:'Al día'}</p>
         </div>
 
-        {/* Active now strip */}
-        {active.length>0&&(
-          <div className="flex items-center gap-3 p-3 rounded-2xl mb-3" style={{background:'#FEF2F2',border:'1px solid #FECACA'}}>
-            <span className="relative flex size-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"/><span className="relative inline-flex rounded-full size-2.5 bg-red-500"/></span>
-            <p className="text-sm font-bold flex-1" style={{color:'#DC2626'}}>{active.length} empleado{active.length!==1?'s':''} trabajando ahora</p>
+        <div className="rounded-2xl p-5" style={{...CARD,border:`1px solid ${T.red}30`}}>
+          <div className="flex items-start justify-between mb-3">
+            <p className="text-[11px] font-bold tracking-widest uppercase" style={{color:T.gray}}>Activos Ahora</p>
+            <div className="size-8 rounded-lg flex items-center justify-center" style={{background:T.redLt}}>
+              <span className="size-2.5 rounded-full animate-pulse" style={{background:T.red}}/>
+            </div>
           </div>
-        )}
+          {loading?<div className="h-8 rounded-lg animate-pulse mb-2" style={{background:T.grayLt}}/>:(
+            <p className="text-3xl font-black mb-1" style={{color:T.black}}>{active.length}</p>
+          )}
+          <p className="text-[11px]" style={{color:T.grayMid}}>{active.length>0?'Empleados trabajando ahora':'Nadie en turno ahora'}</p>
+        </div>
 
-        {/* Pending alert */}
-        {pending.length>0&&(
-          <div className="flex items-center gap-3 p-3 rounded-2xl mb-3" style={{background:T.amberLt,border:`1px solid ${T.amber}33`}}>
-            <AlertTriangle size={16} color={T.amber}/>
-            <div className="flex-1"><p className="text-sm font-bold" style={{color:T.amber}}>{pending.length} marcación{pending.length!==1?'es':''} por aprobar · {fmtHours(totalPendingHrs)}</p></div>
-            <button onClick={()=>handleApproveAll(pending.map(e=>e.id))} className="px-3 py-1.5 rounded-xl text-xs font-bold text-white" style={{background:T.green}}>Aprobar todo</button>
+        <div className="rounded-2xl p-5" style={CARD}>
+          <div className="flex items-start justify-between mb-3">
+            <p className="text-[11px] font-bold tracking-widest uppercase" style={{color:T.gray}}>Horas Aprobadas</p>
+            <div className="size-8 rounded-lg flex items-center justify-center" style={{background:T.greenLt}}><CheckCircle2 size={15} color={T.green}/></div>
           </div>
-        )}
-
-        {/* Tabs */}
-        <div className="flex gap-1 p-1 rounded-xl" style={{background:T.bg,border:`1px solid ${T.border}`}}>
-          {tabs.map(({key,label,color})=>{
-            const sel=tab===key;
-            return(<button key={key} onClick={()=>setTab(key)} className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all" style={{background:sel?color:'transparent',color:sel?T.white:T.gray}}>{label}</button>);
-          })}
+          {loading?<div className="h-8 rounded-lg animate-pulse mb-2" style={{background:T.grayLt}}/>:(
+            <p className="text-3xl font-black mb-1" style={{color:T.black}}>{fmtHours(approvedHrs)}</p>
+          )}
+          <p className="text-[11px]" style={{color:T.grayMid}}>{history.length} marcaciones aprobadas</p>
         </div>
       </div>
 
-      <div className="p-5 space-y-3">
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={14} color={T.gray}/>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar empleado…" className="w-full h-10 pl-9 pr-3 rounded-xl text-xs" style={{background:T.white,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+      {/* Main row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+        {/* Table */}
+        <div className="lg:col-span-2 rounded-2xl overflow-hidden" style={CARD}>
+          <div className="flex items-center justify-between px-5 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
+            {/* Tabs */}
+            <div className="flex gap-1 p-1 rounded-xl" style={{background:T.bg,border:`1px solid ${T.border}`}}>
+              {tabs.map(({key,label,count,color})=>{
+                const sel=tab===key;
+                return(
+                  <button key={key} onClick={()=>setTab(key)} className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5"
+                    style={{background:sel?color:'transparent',color:sel?T.white:T.gray}}>
+                    {label}
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{background:sel?'rgba(255,255,255,0.25)':T.border,color:sel?T.white:T.gray}}>{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {/* Search */}
+            <div className="relative hidden sm:block">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={13} color={T.gray}/>
+              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar…" className="h-9 pl-8 pr-3 rounded-xl text-xs w-40" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+            </div>
+          </div>
+
+          {/* Approve all banner */}
+          {tab==='pending'&&pending.length>0&&(
+            <div className="flex items-center gap-3 mx-4 my-3 px-4 py-2.5 rounded-xl" style={{background:T.amberLt,border:`1px solid ${T.amber}33`}}>
+              <AlertTriangle size={14} color={T.amber}/>
+              <p className="text-[12px] font-semibold flex-1" style={{color:T.amber}}>{pending.length} marcación{pending.length!==1?'es':''} por aprobar</p>
+              <button onClick={()=>handleApproveAll(pending.map(e=>e.id))} className="px-3 py-1 rounded-lg text-[11px] font-bold text-white" style={{background:T.green}}>Aprobar todo</button>
+            </div>
+          )}
+
+          {loading?(
+            <div className="p-5 space-y-3">{[0,1,2,3].map(i=><div key={i} className="h-14 rounded-xl animate-pulse" style={{background:T.grayLt}}/>)}</div>
+          ):visibleList.length===0?(
+            <div className="flex flex-col items-center justify-center py-16 gap-2">
+              <CheckCircle2 size={40} color={T.green}/>
+              <p className="text-[14px] font-bold" style={{color:T.black}}>
+                {tab==='pending'?'¡Todo al día!':tab==='rejected'?'Sin rechazados':'Sin historial'}
+              </p>
+            </div>
+          ):(
+            <div>
+              <div className="grid px-5 py-2.5" style={{gridTemplateColumns:'2fr 1.5fr 1fr 1fr 1fr',borderBottom:`1px solid ${T.border}`}}>
+                {['Empleado','Fecha','Horas','Estado','Acciones'].map(h=>(
+                  <span key={h} className="text-[11px] font-bold uppercase tracking-wide" style={{color:T.grayMid}}>{h}</span>
+                ))}
+              </div>
+              {visibleList.map((entry,i)=>{
+                const isLive=(entry as any)._live===true;
+                const hrs=isLive
+                  ?(nowTick2.getTime()-new Date(entry.clock_in.replace(/\+00(:\d{2})?$/,'').replace(' ','T')).getTime())/3600000
+                  :diffHours(entry.clock_in,entry.clock_out??new Date().toISOString());
+                const si=statusInfo(entry,isLive);
+                const color=empColor(entry.employee,i);
+                return(
+                  <div key={entry.id} className="grid items-center px-5 py-3" style={{gridTemplateColumns:'2fr 1.5fr 1fr 1fr 1fr',borderBottom:i<visibleList.length-1?`1px solid ${T.bg}`:'none'}}>
+                    <div className="flex items-center gap-2.5">
+                      <div className="size-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{background:color}}>{empInitials(entry.employee)}</div>
+                      <span className="text-[13px] font-semibold truncate" style={{color:T.black}}>{empName(entry.employee)}</span>
+                    </div>
+                    <div>
+                      <p className="text-[12px] font-medium" style={{color:T.black}}>{fmtDate(entry.clock_in)}</p>
+                      <p className="text-[10px]" style={{color:T.gray}}>{fmtDt(entry.clock_in)}{entry.clock_out&&` – ${fmtDt(entry.clock_out)}`}</p>
+                    </div>
+                    <span className="text-[13px] font-bold" style={{color:T.black}}>{fmtHours(hrs)}</span>
+                    <span className="inline-flex text-[11px] font-semibold px-2 py-1 rounded-full w-fit" style={{background:si.bg,color:si.fg}}>{si.label}</span>
+                    <div className="flex items-center gap-1.5">
+                      {tab==='pending'&&!isLive&&(
+                        <>
+                          <button onClick={()=>handleApprove(entry.id)} className="size-7 rounded-lg flex items-center justify-center" style={{background:T.greenLt}} title="Aprobar"><CheckCircle2 size={14} color={T.green}/></button>
+                          <button onClick={()=>handleReject(entry.id)} className="size-7 rounded-lg flex items-center justify-center" style={{background:T.redLt}} title="Rechazar"><XCircle size={14} color={T.red}/></button>
+                        </>
+                      )}
+                      <button onClick={()=>openEdit(entry)} className="size-7 rounded-lg flex items-center justify-center" style={{background:T.grayLt}} title="Editar"><Pencil size={13} color={T.gray}/></button>
+                      <button onClick={()=>handleDelete(entry.id)} className="size-7 rounded-lg flex items-center justify-center" style={{background:T.redLt}} title="Eliminar"><Trash2 size={13} color={T.red}/></button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        {loading?Array.from({length:3}).map((_,i)=><div key={i} className="h-28 rounded-2xl animate-pulse" style={{background:T.white}}/>):
+        {/* Right panel */}
+        <div className="space-y-4">
+          <div className="rounded-2xl p-5" style={{...CARD,background:SB}}>
+            <p className="text-[13px] font-bold text-white mb-4">Acciones Rápidas</p>
+            <div className="space-y-2">
+              {pending.length>0&&(
+                <button onClick={()=>handleApproveAll(pending.map(e=>e.id))}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:opacity-80"
+                  style={{background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.12)'}}>
+                  <div className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:T.green}}><CheckCircle2 size={15} color="white"/></div>
+                  <div><p className="text-[12px] font-bold text-white">Aprobar todo</p><p className="text-[10px]" style={{color:'rgba(255,255,255,0.5)'}}>Aprobar {pending.length} pendiente{pending.length!==1?'s':''}</p></div>
+                </button>
+              )}
+              <button onClick={()=>setTab('history')}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:opacity-80"
+                style={{background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.12)'}}>
+                <div className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(255,255,255,0.15)'}}><Clock size={15} color="white"/></div>
+                <div><p className="text-[12px] font-bold text-white">Ver historial</p><p className="text-[10px]" style={{color:'rgba(255,255,255,0.5)'}}>Todas las marcaciones</p></div>
+              </button>
+              <button onClick={load}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:opacity-80"
+                style={{background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.12)'}}>
+                <div className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(255,255,255,0.15)'}}><RefreshCw size={15} color="white"/></div>
+                <div><p className="text-[12px] font-bold text-white">Actualizar</p><p className="text-[10px]" style={{color:'rgba(255,255,255,0.5)'}}>Recargar datos</p></div>
+              </button>
+            </div>
+          </div>
 
-        tab==='pending'?(
-          <>
-            {/* Activos primero */}
-            {active.length>0&&(
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{color:'#DC2626'}}>Activos ahora</p>
-                {filtered(active).map(e=><EntryCard key={e.id} entry={e} isActive showDelete={false}/>)}
-              </div>
-            )}
-            {filtered(pending).length===0&&active.length===0?(
-              <div className="rounded-2xl py-16 flex flex-col items-center" style={CARD}><CheckCircle2 size={48} color={T.green}/><p className="text-[15px] font-bold mt-3" style={{color:T.black}}>¡Todo al día!</p></div>
-            ):(
-              <>
-                {filtered(pending).length>0&&<p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{color:T.amber}}>Esperando aprobación</p>}
-                {filtered(pending).map(e=><EntryCard key={e.id} entry={e} showActions/>)}
-              </>
-            )}
-          </>
-        ):tab==='rejected'?(
-          filtered(rejected).length===0?
-            <div className="rounded-2xl py-14 flex flex-col items-center" style={CARD}><p className="text-sm" style={{color:T.gray}}>No hay marcaciones rechazadas</p></div>:
-            filtered(rejected).map(e=><EntryCard key={e.id} entry={e}/>)
-        ):(
-          filtered(history).length===0?
-            <div className="rounded-2xl py-14 flex flex-col items-center" style={CARD}><p className="text-sm" style={{color:T.gray}}>Sin historial</p></div>:
-            filtered(history).map(e=><EntryCard key={e.id} entry={e}/>)
-        )}
+          <div className="rounded-2xl p-5" style={CARD}>
+            <p className="text-[13px] font-bold mb-4" style={{color:T.black}}>Resumen</p>
+            <div className="space-y-3">
+              {[
+                {label:'Pendientes', value:pending.length, color:T.amber, bg:T.amberLt},
+                {label:'Rechazados', value:rejected.length, color:T.red, bg:T.redLt},
+                {label:'Aprobadas',  value:history.length, color:T.green, bg:T.greenLt},
+                {label:'Activos ahora', value:active.length, color:T.red, bg:T.redLt},
+              ].map(({label,value,color,bg})=>(
+                <div key={label} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="size-2 rounded-full shrink-0" style={{background:color}}/>
+                    <span className="text-[12px]" style={{color:T.gray}}>{label}</span>
+                  </div>
+                  <span className="text-[12px] font-bold px-2.5 py-0.5 rounded-full" style={{background:bg,color}}>{value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Edit modal */}
@@ -1220,7 +1286,7 @@ function ApprovalsView({bizId}:{bizId:string}) {
               </div>
               <div className="flex gap-3 mt-5">
                 <button onClick={()=>setShowEdit(false)} className="flex-1 h-11 rounded-2xl text-sm font-semibold" style={{background:T.bg,color:T.gray}}>Cancelar</button>
-                <button onClick={handleSaveEdit} className="flex-1 h-11 rounded-2xl text-sm font-bold text-white" style={{background:'#0f1f5c'}}>Guardar</button>
+                <button onClick={handleSaveEdit} className="flex-1 h-11 rounded-2xl text-sm font-bold text-white" style={{background:SB}}>Guardar</button>
               </div>
             </motion.div>
           </motion.div>
