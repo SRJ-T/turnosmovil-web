@@ -721,7 +721,7 @@ function TurnosView({bizId}:{bizId:string}) {
         </div>
         {/* Row 2: date nav */}
         <div className="flex items-center gap-2 mt-2.5">
-          <div className="px-4 py-1.5 rounded-xl text-[14px] font-bold" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black}}>
+          <div className="px-4 py-1.5 rounded-xl text-[14px] font-bold" style={{background:T.white,border:`1px solid ${T.border}`,color:T.black}}>
             {days[0].toLocaleDateString('es-PR',{day:'numeric',month:'short'})} – {days[6].toLocaleDateString('es-PR',{day:'numeric',month:'short',year:'numeric'})}
           </div>
           <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()-7);return n;})} className="size-8 rounded-xl flex items-center justify-center" style={{background:SB2}}><ChevronLeft size={14} color="#fff"/></button>
@@ -734,7 +734,7 @@ function TurnosView({bizId}:{bizId:string}) {
             const count=shifts.filter(s=>s.date===iso).length;
             return(
               <div key={iso} className="flex flex-col items-center justify-center py-1.5 cursor-pointer transition-all"
-                style={{borderRight:`1px solid ${T.border}`,background:isSel?T.black:'transparent',borderRadius:isSel?'8px':'0',minWidth:isSel?100:undefined}}
+                style={{borderRight:`1px solid ${T.border}`,background:isSel?T.black:T.white,borderRadius:isSel?'8px':'0',minWidth:isSel?100:undefined}}
                 onClick={()=>setSelectedDate(iso)}>
                 <span className="text-[9px] font-bold uppercase tracking-wider" style={{color:isSel?'rgba(255,255,255,0.5)':T.grayMid}}>{DAY_ES[d.getDay()]}</span>
                 <div className="flex items-center gap-1">
@@ -813,35 +813,8 @@ function TurnosView({bizId}:{bizId:string}) {
         const allEmps=employees;
         return(
           <div className="rounded-2xl overflow-hidden" style={CARD}>
-            {/* Title */}
-            <div className="px-5 py-3 flex items-center justify-between" style={{borderBottom:`1px solid ${T.border}`}}>
-              <div className="flex items-center gap-4">
-                <p className="text-[14px] font-bold" style={{color:T.black}}>Vista de Turnos</p>
-                {(()=>{
-                  if(dayShifts.length===0) return null;
-                  let totalMins=0,totalBreak=0;
-                  dayShifts.forEach(s=>{
-                    if(s.start_time&&s.end_time){
-                      const st=new Date(s.start_time.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));
-                      const et=new Date(s.end_time.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));
-                      let diff=et.getTime()-st.getTime(); if(diff<0) diff+=24*3600*1000;
-                      totalMins+=Math.round(diff/60000); totalBreak+=(s.break_minutes??0);
-                    }
-                  });
-                  const netMins=totalMins-totalBreak;
-                  const fmt=(m:number)=>`${Math.floor(m/60)}h${m%60>0?' '+m%60+'m':''}`;
-                  return(
-                    <div className="flex items-center gap-3 px-3 py-1 rounded-xl" style={{background:T.greenLt}}>
-                      <Clock size={12} color={T.green}/>
-                      <span className="text-[11px] font-bold" style={{color:T.green}}>{fmt(netMins)}</span>
-                      {totalBreak>0&&<span className="text-[11px]" style={{color:T.green}}>· Break {fmt(totalBreak)}</span>}
-                      <span className="text-[11px]" style={{color:T.green}}>· {dayShifts.length} turno{dayShifts.length!==1?'s':''}</span>
-                    </div>
-                  );
-                })()}
-              </div>
-              <span className="text-[12px]" style={{color:T.grayMid}}>Miembros del equipo ({allEmps.length})</span>
-            </div>
+            {/* Space where title was */}
+            <div style={{height:8}}/>
             {/* Scrollable area */}
             <div style={{overflowX:'auto'}}>
               <div style={{minWidth:EMP_COL+totalW}}>
