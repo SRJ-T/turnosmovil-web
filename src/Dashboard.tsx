@@ -691,225 +691,190 @@ function TurnosView({bizId}:{bizId:string}) {
   };
 
   const draftsCount=shifts.filter(s=>s.status==='draft').length;
-  const dayShifts=(empId:string)=>shifts.filter(s=>s.employee_id===empId&&s.date===selectedDate);
 
-  // Timeline helpers — 6am to 4am next day (covers overnight shifts)
-  const H_START=6, H_END=28, RANGE=(H_END-H_START)*60;
-  const toMins=(dt:string)=>{const d=new Date(dt.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));let m=d.getHours()*60+d.getMinutes();return m;};
-  const toMinsEnd=(startDt:string,endDt:string)=>{const sm=toMins(startDt);let em=toMins(endDt);if(em<sm)em+=24*60;return em;};
-  const pct=(mins:number)=>Math.max(0,Math.min(100,(mins-H_START*60)/RANGE*100));
-  const nowMins=(()=>{let m=nowTick.getHours()*60+nowTick.getMinutes();if(m<H_START*60)m+=24*60;return m;})();
-
-  const isViewingToday=selectedDate===isoDate(new Date());
-  const hourTicks=Array.from({length:H_END-H_START+1},(_,i)=>H_START+i);
-  const fmtHour=(h:number)=>{const hh=h%24;const ampm=hh<12?'am':'pm';const h12=hh===0?12:hh>12?hh-12:hh;return`${h12}${ampm}`;};
-  const selectedDayShifts=shifts.filter(s=>s.date===selectedDate);
+  const SB2='#0f1f5c';
+  const shortTime=(dt:string)=>{const d=new Date(dt.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));const h=d.getHours();const m=d.getMinutes();const hh=h===0?12:h>12?h-12:h;const ap=h<12?'am':'pm';return m>0?`${hh}:${String(m).padStart(2,'0')}${ap}`:`${hh}${ap}`;};
+  const shiftStatus=(s:Shift)=>{
+    const live=liveEntries.some(e=>e.shift_id===s.id);
+    if(live) return{label:'En Curso',bg:'#FFF3E0',fg:'#E65100',dot:'#FF6D00'};
+    if(s.status==='draft') return{label:'Pendiente',bg:T.amberLt,fg:T.amber,dot:T.amber};
+    return{label:'Publicado',bg:T.greenLt,fg:T.green,dot:T.green};
+  };
 
   return (
-    <div>
-      {/* ── Header ── */}
-      <div className="px-5 pt-5 pb-4" style={{background:T.white,borderBottom:`1px solid ${T.border}`}}>
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold" style={{color:T.black}}>Horario</h1>
-          <div className="flex items-center gap-2">
-            <button onClick={()=>setShowLive(v=>!v)} className="h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold transition-all" style={{background:showLive?'#DC2626':liveEntries.length>0?'#FEE2E2':'#F5F5F7',color:showLive?'#fff':'#DC2626',border:`1px solid ${liveEntries.length>0?'#FECACA':'#E8E8E8'}`}}>
-              <span className="relative flex size-2"><span className={`${liveEntries.length>0?'animate-ping':''}  absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75`}/><span className="relative inline-flex rounded-full size-2 bg-red-500"/></span>
-              En Vivo {liveEntries.length>0&&`(${liveEntries.length})`}
-            </button>
-            <button onClick={handleCopyWeek} disabled={copying} className="h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold transition-all" style={{background:T.indigoLt,color:T.indigo}}>
-              {copying?<span className="size-3.5 border-2 rounded-full animate-spin" style={{borderColor:`${T.indigo}30`,borderTopColor:T.indigo}}/>:<RefreshCw size={13}/>} Copiar semana
-            </button>
-            <button onClick={()=>{setBulkEmps([]);setBulkDays([0,1,2,3,4]);setShowBulkModal(true);}} className="h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold" style={{background:T.greenLt,color:T.green}}>
-              <Users size={13}/> Masivo
-            </button>
-            <button onClick={handlePublishAll} disabled={draftsCount===0} className="h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white transition-all" style={{background:draftsCount>0?T.amber:T.green,opacity:draftsCount===0?0.6:1}}>
-              <CheckCircle2 size={13}/>{draftsCount>0?`Publicar ${draftsCount}`:'Publicado'}
-            </button>
-            <button onClick={()=>openAdd(selectedDate)} className="h-9 px-4 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white" style={{background:'#0f1f5c'}}>
-              <Plus size={13}/> Crear turno
-            </button>
-          </div>
-        </div>
+    <div className="p-5 lg:p-6 space-y-5 max-w-screen-xl">
 
-        {/* Week day selector */}
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-black" style={{color:T.black}}>Shift Schedule</h1>
+          <p className="text-[12px] mt-0.5" style={{color:T.grayMid}}>Gestión semanal de turnos y solicitudes de aprobación</p>
+        </div>
         <div className="flex items-center gap-2">
-          <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()-7);return n;})} className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:T.bg,border:`1px solid ${T.border}`}}><ChevronLeft size={15} color={T.gray}/></button>
-          <div className="flex flex-1 gap-1.5">
-            {days.map(d=>{
-              const iso=isoDate(d);
-              const sel=iso===selectedDate;
-              const isToday=iso===isoDate(new Date());
-              const hasShift=shifts.some(s=>s.date===iso);
+          {liveEntries.length>0&&(
+            <button onClick={()=>setShowLive(v=>!v)} className="h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold" style={{background:showLive?'#DC2626':'#FEE2E2',color:'#DC2626',border:'1px solid #FECACA'}}>
+              <span className="relative flex size-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"/><span className="relative inline-flex rounded-full size-2 bg-red-500"/></span>
+              En Vivo ({liveEntries.length})
+            </button>
+          )}
+          <button onClick={handleCopyWeek} disabled={copying} className="h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold" style={{background:T.indigoLt,color:T.indigo}}>
+            {copying?<span className="size-3.5 border-2 rounded-full animate-spin" style={{borderColor:`${T.indigo}30`,borderTopColor:T.indigo}}/>:<RefreshCw size={13}/>} Copiar semana
+          </button>
+          <button onClick={()=>{setBulkEmps([]);setBulkDays([0,1,2,3,4]);setShowBulkModal(true);}} className="h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold" style={{background:T.greenLt,color:T.green}}>
+            <Users size={13}/> Masivo
+          </button>
+          {draftsCount>0&&(
+            <button onClick={handlePublishAll} className="h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white" style={{background:T.amber}}>
+              <CheckCircle2 size={13}/> Publicar {draftsCount}
+            </button>
+          )}
+          <button onClick={()=>openAdd(selectedDate)} className="h-9 px-4 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white" style={{background:SB2}}>
+            <Plus size={13}/> Crear turno
+          </button>
+        </div>
+      </div>
+
+      {/* Period + week nav */}
+      <div className="flex items-center gap-3">
+        <div className="px-4 py-2 rounded-xl text-[12px] font-semibold" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.gray}}>
+          {days[0].toLocaleDateString('es-PR',{day:'numeric',month:'short'})} – {days[6].toLocaleDateString('es-PR',{day:'numeric',month:'short',year:'numeric'})}
+        </div>
+        <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()-7);return n;})} className="size-9 rounded-xl flex items-center justify-center" style={{background:T.bg,border:`1px solid ${T.border}`}}><ChevronLeft size={15} color={T.gray}/></button>
+        <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()+7);return n;})} className="size-9 rounded-xl flex items-center justify-center" style={{background:T.bg,border:`1px solid ${T.border}`}}><ChevronRight size={15} color={T.gray}/></button>
+      </div>
+
+      {/* En Vivo strip */}
+      {showLive&&liveEntries.length>0&&(
+        <div className="rounded-2xl p-4" style={{background:'#FFF5F5',border:'1px solid #FECACA'}}>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="relative flex size-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"/><span className="relative inline-flex rounded-full size-2.5 bg-red-500"/></span>
+            <span className="text-[13px] font-bold" style={{color:'#DC2626'}}>Trabajando Ahora — {liveEntries.length} activo{liveEntries.length!==1?'s':''}</span>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {liveEntries.map(e=>{
+              const ci=new Date(e.clock_in.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));
+              const elMin=Math.floor((nowTick.getTime()-ci.getTime())/60000);
+              const emp=e.employee; const color=emp?empColor(emp,0):'#6B7280';
               return(
-                <button key={iso} onClick={()=>setSelectedDate(iso)} className="flex-1 flex flex-col items-center py-2 rounded-xl transition-all" style={{background:sel?'#0f1f5c':isToday?'#EEF2FF':T.bg,border:`1px solid ${sel?'#0f1f5c':T.border}`}}>
-                  <span className="text-[9px] font-semibold uppercase" style={{color:sel?'rgba(255,255,255,0.6)':T.grayMid}}>{DAY_ES[d.getDay()]}</span>
-                  <span className="text-[15px] font-bold leading-tight mt-0.5" style={{color:sel?'#fff':T.black}}>{d.getDate()}</span>
-                  <div className="w-1.5 h-1.5 rounded-full mt-1" style={{background:hasShift?(sel?'rgba(255,255,255,0.5)':'#16A34A'):'transparent'}}/>
-                </button>
+                <div key={e.id} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl" style={{background:'#fff',border:'1px solid #FECACA',minWidth:180}}>
+                  <div className="size-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
+                  <div>
+                    <p className="text-[12px] font-semibold" style={{color:'#111'}}>{empName(emp)}</p>
+                    <p className="text-[10px] font-bold" style={{color:'#16A34A'}}>{Math.floor(elMin/60)>0?`${Math.floor(elMin/60)}h `:''}${elMin%60}m · entró {ci.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true})}</p>
+                  </div>
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-auto" style={{background:'#DC2626',color:'#fff'}}>LIVE</span>
+                </div>
               );
             })}
           </div>
-          <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()+7);return n;})} className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:T.bg,border:`1px solid ${T.border}`}}><ChevronRight size={15} color={T.gray}/></button>
-        </div>
-      </div>
-
-      {/* ── En Vivo panel ── */}
-      {showLive&&(
-        <div className="px-5 py-4" style={{background:'#FFF5F5',borderBottom:`1px solid #FECACA`}}>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="relative flex size-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"/><span className="relative inline-flex rounded-full size-2.5 bg-red-500"/></span>
-            <span className="text-[13px] font-bold" style={{color:'#DC2626'}}>Trabajando Ahora</span>
-            <span className="text-[11px]" style={{color:'#EF4444'}}>{liveEntries.length} empleado{liveEntries.length!==1?'s':''} activo{liveEntries.length!==1?'s':''}</span>
-          </div>
-          {liveEntries.length===0?(
-            <p className="text-xs" style={{color:'#EF4444'}}>Nadie está trabajando en este momento.</p>
-          ):(
-            <div className="flex flex-wrap gap-3">
-              {liveEntries.map(e=>{
-                const ci=new Date(e.clock_in.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));
-                const elMin=Math.floor((nowTick.getTime()-ci.getTime())/60000);
-                const elH=Math.floor(elMin/60); const elM=elMin%60;
-                const emp=e.employee;
-                const color=emp?empColor(emp,0):'#6B7280';
-                const initials=emp?`${(emp.name??'?')[0]}${(emp.last_name??'')[0]??''}`.toUpperCase():'?';
-                return(
-                  <div key={e.id} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl" style={{background:'#fff',border:'1px solid #FECACA',minWidth:180}}>
-                    <div className="size-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{background:color}}>{initials}</div>
-                    <div>
-                      <p className="text-[12px] font-semibold" style={{color:'#111'}}>{emp?.name??'—'} {emp?.last_name??''}</p>
-                      <p className="text-[10px]" style={{color:'#6B7280'}}>Entró {ci.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true})}</p>
-                      <p className="text-[11px] font-bold mt-0.5" style={{color:'#16A34A'}}>{elH>0?`${elH}h `:''}${elM}m trabajando</p>
-                    </div>
-                    <span className="ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{background:'#DC2626',color:'#fff'}}>LIVE</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </div>
       )}
 
-      {/* ── Timeline body ── */}
-      <div className="px-5 pb-5">
-        <div className="rounded-2xl overflow-hidden" style={{...CARD,padding:0}}>
-
-          {/* Date bar */}
-          <div className="flex items-center justify-between px-5 py-3" style={{borderBottom:`1px solid ${T.border}`,background:T.bg}}>
-            <div className="flex items-center gap-2">
-              <span className="text-[14px] font-semibold capitalize" style={{color:T.black}}>
-                {new Date(selectedDate+'T12:00:00').toLocaleDateString('es-PR',{weekday:'long',day:'numeric',month:'long'})}
-              </span>
-              {isViewingToday&&<span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full" style={{background:'#EEF2FF',color:'#4F46E5'}}>Hoy</span>}
-            </div>
-            <span className="text-[12px]" style={{color:T.gray}}>{selectedDayShifts.length} turno{selectedDayShifts.length!==1?'s':''}</span>
-          </div>
-
-          {loading?(
-            <div className="p-5 space-y-3">{[0,1,2,3].map(i=><div key={i} className="h-16 rounded-xl animate-pulse" style={{background:T.grayLt}}/>)}</div>
-          ):employees.length===0?(
-            <div className="py-16 flex flex-col items-center gap-3">
-              <Users size={36} color={T.grayMid}/>
-              <p className="text-sm" style={{color:T.gray}}>No hay empleados activos</p>
-            </div>
-          ):(
-            <div className="overflow-x-auto" style={{scrollbarWidth:'none'} as React.CSSProperties}>
-              <div style={{minWidth:800}}>
-
-                {/* Hour ruler — every hour */}
-                <div className="flex" style={{paddingLeft:200,borderBottom:`1px solid ${T.border}`,background:T.bg}}>
-                  {hourTicks.map(h=>(
-                    <div key={h} style={{flex:`0 0 ${1/(H_END-H_START)*100}%`,textAlign:'center',padding:'7px 0',borderLeft:`1px solid ${T.border}`}}>
-                      <span style={{fontSize:11,color:T.grayMid,fontWeight:600}}>{fmtHour(h)}</span>
-                    </div>
-                  ))}
+      {/* Weekly columns grid */}
+      <div className="rounded-2xl overflow-hidden" style={{...CARD,padding:0}}>
+        {/* Day headers */}
+        <div className="grid" style={{gridTemplateColumns:`repeat(7,1fr)`,borderBottom:`1px solid ${T.border}`,background:T.bg}}>
+          {days.map(d=>{
+            const iso=isoDate(d);
+            const isToday=iso===isoDate(new Date());
+            const count=shifts.filter(s=>s.date===iso).length;
+            return(
+              <div key={iso} className="flex flex-col items-center py-3 gap-0.5 cursor-pointer" style={{borderRight:`1px solid ${T.border}`}} onClick={()=>setSelectedDate(iso)}>
+                <span className="text-[10px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>{DAY_ES[d.getDay()]}</span>
+                <div className={`size-8 rounded-full flex items-center justify-center`} style={{background:isToday?SB2:'transparent'}}>
+                  <span className="text-[15px] font-black" style={{color:isToday?'#fff':T.black}}>{d.getDate()}</span>
                 </div>
-
-                {/* Employee rows */}
-                {employees.map((emp,ei)=>{
-                  const empShifts=dayShifts(emp.id);
-                  const color=empColor(emp,ei);
-                  const totalHrs=empShifts.reduce((s,sh)=>s+Math.max(0,(toMinsEnd(sh.start_time,sh.end_time)-toMins(sh.start_time))/60),0);
-                  const cost=totalHrs*(emp.hourly_rate??0);
-                  return(
-                    <div key={emp.id} className="flex" style={{borderBottom:`1px solid ${T.border}`,minHeight:68}}>
-                      {/* Name column */}
-                      <div className="flex items-center gap-3 px-4 shrink-0" style={{width:200,borderRight:`1px solid ${T.border}`}}>
-                        <div className="size-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
-                        <div className="min-w-0">
-                          <p className="text-[14px] font-bold truncate" style={{color:T.black}}>{emp.name}</p>
-                          {emp.job_title&&<p className="text-[11px] truncate" style={{color:T.grayMid}}>{emp.job_title}</p>}
-                          <p className="text-[12px] font-semibold" style={{color:totalHrs>0?T.green:T.grayMid}}>
-                            {totalHrs>0?`${fmtHours(totalHrs)} / $${cost.toFixed(2)}`:`$${(emp.hourly_rate??0).toFixed(2)}/hr`}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Track */}
-                      <div className="flex-1 relative" style={{cursor:'pointer'}}
-                        onClick={()=>openAdd(selectedDate,emp.id)}>
-                        {/* Hour grid lines */}
-                        {hourTicks.map(h=>(
-                          <div key={h} className="absolute top-0 bottom-0" style={{left:`${(h-H_START)/(H_END-H_START)*100}%`,width:1,background:T.border}}/>
-                        ))}
-
-
-                        {/* Shift bars */}
-                        {empShifts.length>0?empShifts.map(s=>{
-                          const startM=toMins(s.start_time);
-                          const endM=toMinsEnd(s.start_time,s.end_time);
-                          const left=pct(startM);
-                          const width=Math.max(1,pct(endM)-left);
-                          const shortTime=(dt:string)=>{const d=new Date(dt.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));const h=d.getHours();const m=d.getMinutes();const hh=h===0?12:h>12?h-12:h;const ap=h<12?'am':'pm';return m>0?`${hh}:${String(m).padStart(2,'0')}${ap}`:`${hh}${ap}`;};
-                          const isDraft=s.status==='draft';
-                          return(
-                            <div key={s.id}
-                              onClick={e=>{e.stopPropagation();openEdit(s);}}
-                              className="absolute cursor-pointer hover:brightness-95 transition-all overflow-hidden"
-                              style={{left:`${left}%`,width:`${width}%`,top:8,height:52,background:color,borderRadius:8,zIndex:5,opacity:isDraft?0.7:1,border:isDraft?`2px dashed ${color}`:'none'}}>
-                              <div className="px-2.5 pt-1.5">
-                                <p className="text-[13px] font-bold text-white truncate leading-tight">
-                                  {shortTime(s.start_time)}–{shortTime(s.end_time)}
-                                </p>
-                                <p className="text-[11px] text-white truncate leading-tight" style={{opacity:0.85}}>
-                                  {emp.job_title??'Sin rol'}{s.break_minutes>0?` · ${s.break_minutes}m break`:''}
-                                </p>
-                              </div>
-                            </div>
-                          );
-                        }):(
-                          <div className="absolute flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity" style={{inset:'8px 4px',border:`1.5px dashed ${T.border}`,borderRadius:8}}>
-                            <Plus size={14} color={T.grayMid}/>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {/* Footer totals */}
-                <div className="flex items-center gap-3 px-5 py-3" style={{borderTop:`1px solid ${T.border}`,background:T.bg}}>
-                  {isViewingToday&&nowMins>=H_START*60&&nowMins<=H_END*60&&(
-                    <>
-                      <div className="size-2 rounded-full shrink-0" style={{background:'#EF4444'}}/>
-                      <span className="text-[12px] font-semibold" style={{color:'#EF4444'}}>
-                        Ahora: {nowTick.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true})}
-                      </span>
-                      <span className="text-[12px]" style={{color:T.gray}}>
-                        · {selectedDayShifts.filter(s=>{const sm=toMins(s.start_time);const em=toMinsEnd(s.start_time,s.end_time);return sm<=nowMins&&em>=nowMins;}).length} activos ahora
-                      </span>
-                    </>
-                  )}
-                  <div className="flex-1"/>
-                  {selectedDayShifts.length>0&&(()=>{
-                    const totalH=selectedDayShifts.reduce((s,sh)=>s+(toMinsEnd(sh.start_time,sh.end_time)-toMins(sh.start_time))/60,0);
-                    return<span className="text-[12px] font-semibold" style={{color:T.gray}}>{fmtHours(totalH)} totales hoy</span>;
-                  })()}
-                </div>
+                {count>0&&<span className="text-[10px] font-semibold" style={{color:T.green}}>{count} turno{count!==1?'s':''}</span>}
               </div>
-            </div>
-          )}
+            );
+          })}
         </div>
+
+        {/* Day columns body */}
+        {loading?(
+          <div className="p-5"><div className="h-48 rounded-xl animate-pulse" style={{background:T.grayLt}}/></div>
+        ):(
+          <div className="grid" style={{gridTemplateColumns:`repeat(7,1fr)`,minHeight:300,alignItems:'start'}}>
+            {days.map((d,di)=>{
+              const iso=isoDate(d);
+              const isToday=iso===isoDate(new Date());
+              const dayShiftList=shifts.filter(s=>s.date===iso);
+              return(
+                <div key={iso} className="p-2 space-y-2 min-h-[180px]"
+                  style={{borderRight:di<6?`1px solid ${T.border}`:'none',background:isToday?'#F8F9FF':'transparent'}}>
+                  {dayShiftList.map(s=>{
+                    const emp=employees.find(e=>e.id===s.employee_id);
+                    const color=emp?empColor(emp,0):'#6B7280';
+                    const st=shiftStatus(s);
+                    return(
+                      <div key={s.id} onClick={()=>openEdit(s)}
+                        className="rounded-xl p-2.5 cursor-pointer hover:shadow-sm transition-all"
+                        style={{background:'#fff',border:`1px solid ${T.border}`,borderLeft:`3px solid ${st.dot}`}}>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{background:st.bg,color:st.fg}}>{st.label}</span>
+                        </div>
+                        <p className="text-[12px] font-bold leading-tight mb-0.5" style={{color:T.black}}>{empName(emp)}</p>
+                        <p className="text-[10px]" style={{color:T.grayMid}}>{shortTime(s.start_time)} – {shortTime(s.end_time)}</p>
+                        {emp&&<div className="flex items-center gap-1 mt-1.5">
+                          <div className="size-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
+                          <span className="text-[10px] truncate" style={{color:T.gray}}>{emp.job_title??''}</span>
+                        </div>}
+                      </div>
+                    );
+                  })}
+                  <button onClick={()=>openAdd(iso)}
+                    className="w-full py-2 rounded-xl flex items-center justify-center gap-1 text-[11px] font-semibold opacity-0 hover:opacity-100 transition-opacity"
+                    style={{border:`1.5px dashed ${T.border}`,color:T.grayMid}}>
+                    <Plus size={12}/> Agregar
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
+
+      {/* Approvals Queue */}
+      {liveEntries.length>0&&(
+        <div className="rounded-2xl overflow-hidden" style={CARD}>
+          <div className="px-5 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
+            <p className="text-[14px] font-bold" style={{color:T.black}}>Approvals Queue</p>
+          </div>
+          <div>
+            <div className="grid px-5 py-2.5" style={{gridTemplateColumns:'2fr 2fr 1.5fr 1fr 1fr',borderBottom:`1px solid ${T.border}`,background:T.bg}}>
+              {['Empleado','Fecha y Hora','Posición','Estado','Acciones'].map(h=>(
+                <span key={h} className="text-[11px] font-bold uppercase tracking-wide" style={{color:T.grayMid}}>{h}</span>
+              ))}
+            </div>
+            {liveEntries.map((e,i)=>{
+              const emp=e.employee;
+              const color=emp?empColor(emp,i):'#6B7280';
+              const ci=new Date(e.clock_in.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));
+              return(
+                <div key={e.id} className="grid items-center px-5 py-3" style={{gridTemplateColumns:'2fr 2fr 1.5fr 1fr 1fr',borderBottom:`1px solid ${T.bg}`}}>
+                  <div className="flex items-center gap-2.5">
+                    <div className="size-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
+                    <div>
+                      <p className="text-[13px] font-semibold" style={{color:T.black}}>{empName(emp)}</p>
+                      <p className="text-[10px]" style={{color:T.grayMid}}>{emp?.job_title??'—'}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[12px] font-medium" style={{color:T.black}}>{ci.toLocaleDateString('es-PR',{day:'numeric',month:'short',year:'numeric'})}</p>
+                    <p className="text-[10px]" style={{color:T.grayMid}}>{ci.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true})}</p>
+                  </div>
+                  <span className="text-[12px]" style={{color:T.gray}}>{emp?.job_title??'—'}</span>
+                  <span className="inline-flex text-[10px] font-bold px-2 py-1 rounded-full w-fit" style={{background:'#FEF3C7',color:'#D97706'}}>ACTIVO</span>
+                  <div className="flex items-center gap-1.5">
+                    <div className="size-7 rounded-full flex items-center justify-center" style={{background:T.greenLt}}><CheckCircle2 size={14} color={T.green}/></div>
+                    <div className="size-7 rounded-full flex items-center justify-center" style={{background:T.redLt}}><XCircle size={14} color={T.red}/></div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <AnimatePresence>
         {showModal&&(
