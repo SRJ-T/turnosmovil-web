@@ -867,7 +867,11 @@ function TurnosView({bizId}:{bizId:string}) {
           </div>
           {(()=>{
             const forDay=(e:any)=>{
-              try{const d=new Date(e.clock_in.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));return isoDate(d)===selectedDate;}catch{return false;}
+              try{
+                // clock_in from Supabase: "2026-06-21 10:00:00+00" — compare date prefix directly
+                const raw:string=e.clock_in??'';
+                return raw.replace(' ','T').startsWith(selectedDate);
+              }catch{return false;}
             };
             const activeList=[
               ...liveEntries.filter(forDay).map((e:any)=>({...e,_live:true})),
