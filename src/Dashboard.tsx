@@ -171,252 +171,230 @@ export default function Dashboard({session}:{session:Session}) {
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string)=>void}) {
   const [loading,setLoading] = useState(true);
-  const [activeNow,setActiveNow] = useState(0);
-  const [notClockedIn,setNotClockedIn] = useState(0);
-  const [_pendingCount,setPendingCount] = useState(0);
-  const [laborCostToday,setLaborCostToday] = useState(0);
-  const [weekHours,setWeekHours] = useState<{label:string;hours:number;isToday:boolean}[]>([]);
-  const [liveEmps,setLiveEmps] = useState<{emp:Employee;minutesWorked:number}[]>([]);
-  const [empProgress,setEmpProgress] = useState<{emp:Employee;approved:number;total:number;color:string}[]>([]);
-  const [hourStatus,setHourStatus] = useState({approved:0,pending:0,other:0});
+  const [weekPayroll,setWeekPayroll] = useState(0);
+  const [pendingCount,setPendingCount] = useState(0);
+  const [activeStaff,setActiveStaff] = useState(0);
+  const [totalStaff,setTotalStaff] = useState(0);
+  const [recentActivity,setRecentActivity] = useState<{name:string;initials:string;color:string;event:string;time:string;status:string}[]>([]);
 
   useEffect(()=>{
     (async()=>{
       const now=new Date(); const today=isoDate(now);
       const days=weekDays(now);
       const weekStart=isoDate(days[0]); const weekEnd=isoDate(days[6]);
-      const monthStart=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
 
-      const [shiftsRes,pendingRes,weekClockRes,monthClockRes,empRes]=await Promise.all([
-        supabase.from('shifts').select('*,profiles(*)').eq('business_id',bizId).eq('date',today),
-        supabase.from('clock_entries').select('id').eq('business_id',bizId).eq('status','pending'),
+      const [weekClockRes,pendingRes,empRes,todayShiftsRes]=await Promise.all([
         supabase.from('clock_entries').select('*,profiles(*)').eq('business_id',bizId)
           .gte('clock_in',`${weekStart}T00:00:00`).lte('clock_in',`${weekEnd}T23:59:59`),
-        supabase.from('clock_entries').select('employee_id,clock_in,clock_out,status')
-          .eq('business_id',bizId).gte('clock_in',`${monthStart}T00:00:00`).not('clock_out','is',null),
-        supabase.from('profiles').select('*').eq('business_id',bizId).eq('role','employee').eq('status','active'),
+        supabase.from('clock_entries').select('id').eq('business_id',bizId).eq('status','pending'),
+        supabase.from('profiles').select('*').eq('business_id',bizId).eq('role','employee'),
+        supabase.from('shifts').select('*,profiles(*)').eq('business_id',bizId).eq('date',today),
       ]);
 
-      const todayShifts:Shift[]=((shiftsRes.data??[]) as any[]).map(s=>({...s,employee:s.profiles}));
       const weekClocks:ClockEntry[]=((weekClockRes.data??[]) as any[]).map(e=>({...e,employee:e.profiles}));
-      const monthClocks=(monthClockRes.data??[]) as any[];
       const employees=(empRes.data??[]) as Employee[];
+      const todayShifts=((todayShiftsRes.data??[]) as any[]).map(s=>({...s,employee:s.profiles}));
 
-      // Active now
-      const todayClocks=weekClocks.filter(e=>isoDate(new Date(e.clock_in))===today);
-      const activeList=todayClocks.filter(e=>e.clock_in&&!e.clock_out);
-      setActiveNow(activeList.length);
-      setNotClockedIn(todayShifts.filter(s=>!todayClocks.find(e=>e.shift_id===s.id)).length);
+      // Weekly payroll
+      const payroll=weekClocks.reduce((s,e)=>{
+        if(!e.clock_out) return s;
+        const h=diffHours(e.clock_in,e.clock_out);
+        return s+h*((e.employee as Employee)?.hourly_rate??0);
+      },0);
+      setWeekPayroll(payroll);
+
+      // Pending approvals
       setPendingCount(pendingRes.data?.length??0);
 
-      // Live employees
-      const live=activeList.map(e=>({
-        emp:e.employee as Employee,
-        minutesWorked:Math.floor((now.getTime()-new Date(e.clock_in).getTime())/60000),
-      })).filter(l=>l.emp);
-      setLiveEmps(live);
+      // Staff
+      const active=employees.filter(e=>e.status==='active');
+      setActiveStaff(active.length);
+      setTotalStaff(employees.length);
 
-      // Labor cost today
-      setLaborCostToday(live.reduce((s,l)=>s+(l.minutesWorked/60)*(l.emp?.hourly_rate??0),0));
+      // Recent activity — last 5 clock events today + shifts
+      const todayClocks=weekClocks.filter(e=>isoDate(new Date(e.clock_in))===today);
+      const activityRows:{name:string;initials:string;color:string;event:string;time:string;status:string}[]=[];
 
-      // Week hours by day
-      const DAY_SHORT=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
-      setWeekHours(days.map(d=>{
-        const iso=isoDate(d);
-        const h=weekClocks.filter(e=>isoDate(new Date(e.clock_in))===iso)
-          .reduce((s,e)=>s+(e.clock_out?diffHours(e.clock_in,e.clock_out):0),0);
-        return{label:iso===today?'HOY':DAY_SHORT[d.getDay()],hours:Math.round(h*10)/10,isToday:iso===today};
-      }));
-
-      // Hour status for donut
-      let approved=0,pending=0,other=0;
-      for(const e of monthClocks){
-        const h=diffHours(e.clock_in,e.clock_out);
-        if(e.status==='approved'||e.status==='paid')approved+=h;
-        else if(e.status==='pending')pending+=h;
-        else other+=h;
+      for(const e of todayClocks.slice(0,5)){
+        const emp=e.employee as Employee|undefined;
+        const t=new Date(e.clock_in);
+        const timeStr=t.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+        const hasShift=todayShifts.find(s=>s.shift_id===e.id||s.employee_id===e.employee_id);
+        let status='Pendiente'; let statusBg=T.amberLt; let statusFg=T.amber;
+        if(e.status==='approved'){status='Aprobado';statusBg=T.greenLt;statusFg=T.green;}
+        else if(e.status==='paid'){status='Procesado';statusBg=T.blueLt;statusFg=T.blue;}
+        else if(!e.clock_out){
+          const shiftStart=hasShift?new Date(hasShift.start_time):null;
+          const diff=shiftStart?Math.round((t.getTime()-shiftStart.getTime())/60000):0;
+          if(Math.abs(diff)<=10){status='A tiempo';statusBg=T.greenLt;statusFg=T.green;}
+          else if(diff>10){status=`Tarde ${diff}m`;statusBg=T.redLt;statusFg=T.red;}
+          else{status='A tiempo';statusBg=T.greenLt;statusFg=T.green;}
+        }
+        const idx=employees.findIndex(x=>x.id===emp?.id);
+        activityRows.push({
+          name:empName(emp),
+          initials:empInitials(emp),
+          color:empColor(emp,idx>=0?idx:0),
+          event:e.clock_out?'Salida · Turno':'Entrada · Turno',
+          time:timeStr,
+          status,
+        });
       }
-      setHourStatus({approved:Math.round(approved),pending:Math.round(pending),other:Math.round(other)});
-
-      // Employee progress
-      const prog=employees.map((emp,i)=>{
-        const ec=monthClocks.filter(e=>e.employee_id===emp.id);
-        const app=ec.filter(e=>e.status==='approved'||e.status==='paid').reduce((s,e)=>s+diffHours(e.clock_in,e.clock_out),0);
-        const tot=ec.reduce((s,e)=>s+diffHours(e.clock_in,e.clock_out),0);
-        return{emp,approved:Math.round(app),total:Math.round(tot),color:empColor(emp,i)};
-      }).filter(e=>e.total>0).sort((a,b)=>b.total-a.total).slice(0,4);
-      setEmpProgress(prog);
-
+      setRecentActivity(activityRows);
       setLoading(false);
     })();
   },[bizId]);
 
-  const totalHours=hourStatus.approved+hourStatus.pending+hourStatus.other;
-  const CIRC=2*Math.PI*38;
-  const approvedArc=totalHours>0?(hourStatus.approved/totalHours)*CIRC:0;
-  const pendingArc=totalHours>0?(hourStatus.pending/totalHours)*CIRC:0;
-  const maxWeek=Math.max(...weekHours.map(d=>d.hours),1);
-  const weekTotal=weekHours.reduce((s,d)=>s+d.hours,0);
-  const maxProg=Math.max(...empProgress.map(e=>e.total),1);
+  const statusStyle=(s:string)=>{
+    if(s.startsWith('Tarde')) return {bg:T.redLt,fg:T.red};
+    if(s==='A tiempo'||s==='Aprobado') return {bg:T.greenLt,fg:T.green};
+    if(s==='Procesado') return {bg:T.blueLt,fg:T.blue};
+    return {bg:T.amberLt,fg:T.amber};
+  };
 
-  const hour=new Date().getHours();
-  const greeting=hour<12?'Buenos días':hour<18?'Buenas tardes':'Buenas noches';
-  const dateLabel=new Date().toLocaleDateString('es-PR',{weekday:'long',day:'numeric',month:'long'});
+  const SB='#0f1f5c';
 
   return (
     <div className="p-5 lg:p-6 space-y-5 max-w-screen-xl">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold" style={{color:T.black}}>{greeting} 👋</h1>
-          <p className="text-xs mt-0.5 capitalize" style={{color:T.gray}}>{dateLabel} · {activeNow} empleado{activeNow!==1?'s':''} activo{activeNow!==1?'s':''} ahora</p>
-        </div>
-        <div className="hidden lg:flex gap-2">
-          <button className="h-9 px-4 rounded-xl flex items-center gap-2 text-xs font-semibold" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black}}><Download size={13}/> Exportar</button>
-          <button onClick={()=>setActiveTab('calendar')} className="h-9 px-4 rounded-xl flex items-center gap-2 text-xs font-semibold text-white" style={{background:'#0f1f5c'}}><Plus size={13}/> Crear turno</button>
-        </div>
-      </div>
 
       {/* Stat cards */}
-      {loading?(
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">{[0,1,2,3].map(i=><div key={i} className="h-28 rounded-2xl animate-pulse" style={{background:T.white}}/>)}</div>
-      ):(
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[
-            {Icon:RadioTower, iBg:'#F0FDF4', iColor:'#16A34A', val:activeNow, lbl:'En turno ahora',    chip:'● En vivo',  cBg:'#F0FDF4', cFg:'#16A34A', tab:null},
-            {Icon:AlertTriangle,iBg:'#FEF3C7',iColor:T.amber, val:notClockedIn,lbl:'Sin ponchar hoy',   chip:'Ver ahora', cBg:'#FEF3C7', cFg:T.amber,   tab:'approvals'},
-            {Icon:DollarSign,  iBg:'#EEF2FF', iColor:T.indigo, val:`$${Math.round(laborCostToday)}`, lbl:'Costo laboral hoy', chip:'Estimado', cBg:'#EEF2FF', cFg:T.indigo, tab:null},
-            {Icon:Clock,       iBg:'#EFF6FF', iColor:T.blue,   val:`${hourStatus.approved}h`, lbl:'Horas aprobadas', chip:`${totalHours>0?Math.round(hourStatus.approved/totalHours*100):0}% del mes`, cBg:'#EFF6FF', cFg:T.blue, tab:null},
-          ].map(({Icon,iBg,iColor,val,lbl,chip,cBg,cFg,tab})=>(
-            <div key={lbl} onClick={tab?()=>setActiveTab(tab as string):undefined}
-              className={`rounded-2xl p-4 ${tab?'cursor-pointer':''}`} style={CARD}>
-              <div className="size-9 rounded-xl flex items-center justify-center mb-3" style={{background:iBg}}><Icon size={18} color={iColor}/></div>
-              <p className="text-2xl font-bold leading-none" style={{color:T.black}}>{val}</p>
-              <p className="text-xs mt-1.5" style={{color:T.gray}}>{lbl}</p>
-              <span className="inline-flex items-center text-[10px] font-semibold px-2 py-1 rounded-full mt-2" style={{background:cBg,color:cFg}}>{chip}</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Row 1: Bar chart + Live employees */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 rounded-2xl overflow-hidden" style={CARD}>
-          <div className="flex items-center justify-between px-5 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
-            <span className="text-[13px] font-bold" style={{color:T.black}}>Horas trabajadas — esta semana</span>
-            <span className="text-[11px]" style={{color:T.gray}}>{weekTotal.toFixed(0)}h total</span>
-          </div>
-          <div className="px-5 pt-4 pb-3">
-            <div className="flex items-end gap-2" style={{height:96}}>
-              {weekHours.map((d,i)=>(
-                <div key={i} className="flex-1 flex flex-col items-center gap-1" style={{height:'100%',justifyContent:'flex-end'}}>
-                  <span className="text-[9px]" style={{color:T.gray}}>{d.hours>0?d.hours+'h':''}</span>
-                  <div className="w-full rounded-t-md" style={{height:`${Math.max(d.hours/maxWeek*80,d.hours>0?4:0)}px`,background:d.isToday?'#0f1f5c':'#CBD5E1'}}/>
-                  <span className="text-[9px] font-semibold" style={{color:d.isToday?'#0f1f5c':T.gray}}>{d.label}</span>
-                </div>
-              ))}
-            </div>
-            <div className="flex items-center justify-between mt-3 pt-3" style={{borderTop:`1px solid ${T.border}`}}>
-              <span className="text-[11px]" style={{color:T.gray}}>Costo estimado: <strong style={{color:T.black}}>${(weekTotal*12).toFixed(0)}</strong></span>
-              <button className="text-[11px] flex items-center gap-1 font-medium" style={{color:T.blue,background:'none',border:'none',cursor:'pointer'}}><Download size={11}/> Exportar Excel</button>
+        {/* Weekly Payroll */}
+        <div className="rounded-2xl p-5" style={CARD}>
+          <div className="flex items-start justify-between mb-3">
+            <p className="text-[11px] font-bold tracking-widest uppercase" style={{color:T.gray}}>Nómina Semanal</p>
+            <div className="size-8 rounded-lg flex items-center justify-center" style={{background:'#EEF2FF'}}>
+              <DollarSign size={15} color={T.indigo}/>
             </div>
           </div>
+          {loading?<div className="h-8 rounded-lg animate-pulse mb-2" style={{background:T.grayLt}}/>:(
+            <p className="text-3xl font-black mb-1" style={{color:T.black}}>${weekPayroll.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})}</p>
+          )}
+          <p className="text-[11px]" style={{color:T.grayMid}}>Total acumulado esta semana</p>
         </div>
 
-        <div className="rounded-2xl overflow-hidden" style={CARD}>
-          <div className="flex items-center justify-between px-4 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
-            <span className="text-[13px] font-bold" style={{color:T.black}}>En turno ahora</span>
-            <span className="size-2 rounded-full animate-pulse" style={{background:'#16A34A'}}/>
+        {/* Pending Approvals */}
+        <div className="rounded-2xl p-5" style={{...CARD,border:`1px solid ${T.amber}40`}}>
+          <div className="flex items-start justify-between mb-3">
+            <p className="text-[11px] font-bold tracking-widest uppercase" style={{color:T.gray}}>Aprobaciones Pendientes</p>
+            <div className="size-8 rounded-lg flex items-center justify-center" style={{background:T.amberLt}}>
+              <ClipboardCheck size={15} color={T.amber}/>
+            </div>
           </div>
-          {loading?(
-            <div className="p-4 space-y-3">{[0,1,2].map(i=><div key={i} className="h-12 rounded-xl animate-pulse" style={{background:T.grayLt}}/>)}</div>
-          ):liveEmps.length===0?(
-            <div className="flex flex-col items-center justify-center py-10 gap-2">
-              <RadioTower size={28} color={T.grayMid}/>
-              <p className="text-[12px]" style={{color:T.gray}}>Nadie en turno ahora</p>
+          {loading?<div className="h-8 rounded-lg animate-pulse mb-2" style={{background:T.grayLt}}/>:(
+            <p className="text-3xl font-black mb-1" style={{color:T.black}}>{pendingCount}</p>
+          )}
+          <button onClick={()=>setActiveTab('approvals')} className="text-[11px] font-semibold flex items-center gap-1" style={{color:T.amber,background:'none',border:'none',cursor:'pointer',padding:0}}>
+            Requiere acción →
+          </button>
+        </div>
+
+        {/* Active Staff */}
+        <div className="rounded-2xl p-5" style={CARD}>
+          <div className="flex items-start justify-between mb-3">
+            <p className="text-[11px] font-bold tracking-widest uppercase" style={{color:T.gray}}>Personal Activo</p>
+            <div className="size-8 rounded-lg flex items-center justify-center" style={{background:T.greenLt}}>
+              <Users size={15} color={T.green}/>
             </div>
-          ):liveEmps.map((l,i)=>(
-            <div key={i} className="flex items-center gap-3 px-4 py-3" style={{borderBottom:i<liveEmps.length-1?`1px solid #F5F5F5`:'none'}}>
-              <div className="size-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{background:empColor(l.emp,i)}}>{empInitials(l.emp)}</div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-semibold truncate" style={{color:T.black}}>{empName(l.emp)}</p>
-                <p className="text-[10px]" style={{color:T.gray}}>{fmtHours(l.minutesWorked/60)} trabajado</p>
-              </div>
-              <span className="text-[10px] font-semibold px-2 py-1 rounded-full" style={{background:'#F0FDF4',color:'#16A34A'}}>Activo</span>
-            </div>
-          ))}
+          </div>
+          {loading?<div className="h-8 rounded-lg animate-pulse mb-2" style={{background:T.grayLt}}/>:(
+            <p className="text-3xl font-black mb-2" style={{color:T.black}}>{activeStaff}<span className="text-base font-semibold" style={{color:T.grayMid}}>/{totalStaff}</span></p>
+          )}
+          <div className="h-2 rounded-full overflow-hidden" style={{background:T.grayLt}}>
+            <div className="h-full rounded-full transition-all duration-700" style={{width:`${totalStaff>0?activeStaff/totalStaff*100:0}%`,background:T.green}}/>
+          </div>
+          <p className="text-[11px] mt-1.5" style={{color:T.grayMid}}>{totalStaff>0&&activeStaff===totalStaff?'Cobertura óptima':'Empleados activos'}</p>
         </div>
       </div>
 
-      {/* Row 2: Employee progress + Donut */}
+      {/* Main row: Recent Activity + Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+        {/* Recent Activity */}
         <div className="lg:col-span-2 rounded-2xl overflow-hidden" style={CARD}>
           <div className="flex items-center justify-between px-5 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
-            <span className="text-[13px] font-bold" style={{color:T.black}}>Horas por empleado — este mes</span>
-            <button onClick={()=>setActiveTab('reports')} className="text-[11px] font-semibold" style={{color:T.blue,background:'none',border:'none',cursor:'pointer'}}>Ver reportes →</button>
+            <span className="text-[14px] font-bold" style={{color:T.black}}>Actividad Reciente</span>
+            <button onClick={()=>setActiveTab('approvals')} className="text-[12px] font-semibold flex items-center gap-1" style={{color:T.blue,background:'none',border:'none',cursor:'pointer'}}>
+              Ver historial →
+            </button>
           </div>
           {loading?(
-            <div className="p-5 space-y-4">{[0,1,2,3].map(i=><div key={i} className="h-8 rounded-xl animate-pulse" style={{background:T.grayLt}}/>)}</div>
-          ):empProgress.length===0?(
-            <div className="py-12 flex flex-col items-center"><p className="text-sm" style={{color:T.gray}}>Sin horas este mes</p></div>
+            <div className="p-5 space-y-3">{[0,1,2,3,4].map(i=><div key={i} className="h-12 rounded-xl animate-pulse" style={{background:T.grayLt}}/>)}</div>
+          ):recentActivity.length===0?(
+            <div className="flex flex-col items-center justify-center py-14 gap-2">
+              <Clock size={32} color={T.grayMid}/>
+              <p className="text-[13px]" style={{color:T.gray}}>Sin actividad hoy</p>
+            </div>
           ):(
-            <div className="px-5 py-4 space-y-4">
-              {empProgress.map((ep,i)=>(
-                <div key={i}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <div className="size-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0" style={{background:ep.color}}>{empInitials(ep.emp)}</div>
-                      <span className="text-[12px] font-semibold" style={{color:T.black}}>{empName(ep.emp)}</span>
+            <div>
+              <div className="grid px-5 py-2.5" style={{gridTemplateColumns:'2fr 2fr 1fr 1fr',borderBottom:`1px solid ${T.border}`}}>
+                {['Empleado','Evento','Hora','Estado'].map(h=>(
+                  <span key={h} className="text-[11px] font-bold uppercase tracking-wide" style={{color:T.grayMid}}>{h}</span>
+                ))}
+              </div>
+              {recentActivity.map((row,i)=>{
+                const {bg,fg}=statusStyle(row.status);
+                return(
+                  <div key={i} className="grid items-center px-5 py-3" style={{gridTemplateColumns:'2fr 2fr 1fr 1fr',borderBottom:i<recentActivity.length-1?`1px solid ${T.bg}`:'none'}}>
+                    <div className="flex items-center gap-2.5">
+                      <div className="size-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{background:row.color}}>{row.initials}</div>
+                      <span className="text-[13px] font-semibold truncate" style={{color:T.black}}>{row.name}</span>
                     </div>
-                    <span className="text-[11px]" style={{color:T.gray}}>{ep.approved}h aprob. / {ep.total}h total</span>
+                    <span className="text-[12px]" style={{color:T.gray}}>{row.event}</span>
+                    <span className="text-[12px] font-semibold" style={{color:T.black}}>{row.time}</span>
+                    <span className="inline-flex text-[11px] font-semibold px-2.5 py-1 rounded-full w-fit" style={{background:bg,color:fg}}>{row.status}</span>
                   </div>
-                  <div className="h-2 rounded-full overflow-hidden" style={{background:T.grayLt}}>
-                    <div className="h-full rounded-full transition-all duration-700" style={{width:`${ep.total/maxProg*100}%`,background:ep.color}}/>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
 
-        <div className="rounded-2xl overflow-hidden" style={CARD}>
-          <div className="px-4 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
-            <span className="text-[13px] font-bold" style={{color:T.black}}>Estado de horas</span>
-            <p className="text-[10px] mt-0.5" style={{color:T.gray}}>Este mes</p>
-          </div>
-          <div className="flex flex-col items-center px-5 py-5 gap-4">
-            {loading?(
-              <div className="w-24 h-24 rounded-full animate-pulse" style={{background:T.grayLt}}/>
-            ):(
-              <svg width="120" height="120" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="38" fill="none" stroke="#F3F4F6" strokeWidth="13"/>
-                {totalHours>0&&<>
-                  <circle cx="50" cy="50" r="38" fill="none" stroke="#16A34A" strokeWidth="13"
-                    strokeDasharray={`${approvedArc} ${CIRC}`} strokeDashoffset="0"
-                    strokeLinecap="round" transform="rotate(-90 50 50)"/>
-                  <circle cx="50" cy="50" r="38" fill="none" stroke="#D97706" strokeWidth="13"
-                    strokeDasharray={`${pendingArc} ${CIRC}`} strokeDashoffset={`${-approvedArc}`}
-                    strokeLinecap="round" transform="rotate(-90 50 50)"/>
-                </>}
-                <text x="50" y="47" textAnchor="middle" fontSize="13" fontWeight="600" fill="#111">{totalHours}h</text>
-                <text x="50" y="60" textAnchor="middle" fontSize="8" fill="#9CA3AF">total</text>
-              </svg>
-            )}
-            <div className="w-full space-y-2.5">
+        {/* Right column */}
+        <div className="space-y-4">
+          {/* Quick Actions */}
+          <div className="rounded-2xl p-5" style={{...CARD,background:SB}}>
+            <p className="text-[13px] font-bold text-white mb-4">Acciones Rápidas</p>
+            <div className="grid grid-cols-2 gap-3">
               {[
-                {label:'Aprobadas',  value:hourStatus.approved, color:'#16A34A', bg:'#F0FDF4'},
-                {label:'Pendientes', value:hourStatus.pending,  color:T.amber,   bg:'#FEF3C7'},
-                {label:'Sin aprobar',value:hourStatus.other,    color:T.grayMid, bg:T.grayLt},
-              ].map(({label,value,color,bg})=>(
-                <div key={label} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="size-2.5 rounded-full shrink-0" style={{background:color}}/>
-                    <span className="text-[12px]" style={{color:T.black}}>{label}</span>
+                {icon:Send,    label:'Publicar\nTurno',    tab:'calendar'},
+                {icon:UserPlus,label:'Nuevo\nEmpleado',    tab:'team'},
+                {icon:BarChart3,label:'Generar\nReporte',  tab:'reports'},
+                {icon:RefreshCw,label:'Ver\nNómina',       tab:'payroll'},
+              ].map(({icon:Icon,label,tab})=>(
+                <button key={tab} onClick={()=>setActiveTab(tab)}
+                  className="flex flex-col items-center justify-center gap-2 rounded-xl py-4 transition-all hover:opacity-80"
+                  style={{background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.12)',cursor:'pointer'}}>
+                  <div className="size-9 rounded-xl flex items-center justify-center" style={{background:'rgba(255,255,255,0.15)'}}>
+                    <Icon size={16} color="white"/>
                   </div>
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md" style={{background:bg,color}}>{value}h</span>
-                </div>
+                  <span className="text-[11px] font-semibold text-white text-center leading-tight whitespace-pre-line">{label}</span>
+                </button>
               ))}
             </div>
+          </div>
+
+          {/* Insight del Día */}
+          <div className="rounded-2xl p-5" style={CARD}>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="size-6 rounded-full flex items-center justify-center" style={{background:T.amberLt}}>
+                <AlertTriangle size={12} color={T.amber}/>
+              </div>
+              <span className="text-[13px] font-bold" style={{color:T.black}}>Insight del Día</span>
+            </div>
+            <p className="text-[12px] leading-relaxed mb-4" style={{color:T.gray}}>
+              {pendingCount>0
+                ? <>Tienes <strong style={{color:T.black}}>{pendingCount} horas pendientes</strong> de aprobación. Revísalas para mantener la nómina al día.</>
+                : activeStaff===0
+                  ? <>No hay empleados activos hoy. Verifica tu personal en la sección <strong style={{color:T.black}}>Personal</strong>.</>
+                  : <><strong style={{color:T.black}}>{activeStaff} empleado{activeStaff!==1?'s':''}</strong> activo{activeStaff!==1?'s':''} esta semana. Todo en orden.</>
+              }
+            </p>
+            <button onClick={()=>setActiveTab(pendingCount>0?'approvals':'team')}
+              className="w-full py-2.5 rounded-xl text-[12px] font-semibold transition-all hover:opacity-80"
+              style={{background:T.grayLt,color:T.black,border:`1px solid ${T.border}`,cursor:'pointer'}}>
+              {pendingCount>0?'Revisar ahora':'Ver personal'}
+            </button>
           </div>
         </div>
       </div>
