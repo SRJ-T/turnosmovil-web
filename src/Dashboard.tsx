@@ -706,9 +706,6 @@ function TurnosView({bizId}:{bizId:string}) {
               <CheckCircle2 size={13}/> Publicar {draftsCount}
             </button>
           )}
-          <button onClick={()=>openAdd(selectedDate)} className="h-10 px-4 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white" style={{background:SB2}}>
-            <Plus size={13}/> Crear turno
-          </button>
         </div>
       </div>
 
@@ -726,12 +723,17 @@ function TurnosView({bizId}:{bizId:string}) {
       </div>
 
       {/* Period + week nav */}
-      <div className="flex items-center gap-3">
-        <div className="px-5 py-2.5 rounded-xl text-[15px] font-bold" style={{background:'#fff',border:`1px solid ${T.border}`,color:T.black,boxShadow:'0 1px 4px rgba(0,0,0,0.06)'}}>
-          {days[0].toLocaleDateString('es-PR',{day:'numeric',month:'short'})} – {days[6].toLocaleDateString('es-PR',{day:'numeric',month:'short',year:'numeric'})}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="px-5 py-2.5 rounded-xl text-[15px] font-bold" style={{background:'#fff',border:`1px solid ${T.border}`,color:T.black,boxShadow:'0 1px 4px rgba(0,0,0,0.06)'}}>
+            {days[0].toLocaleDateString('es-PR',{day:'numeric',month:'short'})} – {days[6].toLocaleDateString('es-PR',{day:'numeric',month:'short',year:'numeric'})}
+          </div>
+          <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()-7);return n;})} className="size-10 rounded-xl flex items-center justify-center" style={{background:SB2,border:`1px solid ${SB2}`}}><ChevronLeft size={16} color="#fff"/></button>
+          <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()+7);return n;})} className="size-10 rounded-xl flex items-center justify-center" style={{background:SB2,border:`1px solid ${SB2}`}}><ChevronRight size={16} color="#fff"/></button>
         </div>
-        <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()-7);return n;})} className="size-10 rounded-xl flex items-center justify-center" style={{background:SB2,border:`1px solid ${SB2}`}}><ChevronLeft size={16} color="#fff"/></button>
-        <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()+7);return n;})} className="size-10 rounded-xl flex items-center justify-center" style={{background:SB2,border:`1px solid ${SB2}`}}><ChevronRight size={16} color="#fff"/></button>
+        <button onClick={()=>openAdd(selectedDate)} className="h-10 px-5 rounded-xl flex items-center gap-1.5 text-sm font-semibold text-white" style={{background:SB2}}>
+          <Plus size={14}/> Crear turno
+        </button>
       </div>
 
       {/* En Vivo tab content */}
