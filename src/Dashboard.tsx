@@ -623,7 +623,6 @@ function TurnosView({bizId}:{bizId:string}) {
   const [bulkDays,setBulkDays] = useState<number[]>([0,1,2,3,4]);
   const [bulkTime,setBulkTime] = useState({start:'09:00',end:'17:00',break_minutes:0});
   const [bulkSaving,setBulkSaving] = useState(false);
-  const [copying,setCopying] = useState(false);
   const [nowTick,setNowTick] = useState(new Date());
   const [liveEntries,setLiveEntries] = useState<any[]>([]);
   const [queueEntries,setQueueEntries] = useState<any[]>([]);
@@ -667,19 +666,6 @@ function TurnosView({bizId}:{bizId:string}) {
   const handleDelete=async(id:string)=>{ if(!confirm('¿Eliminar turno?'))return; await supabase.from('shifts').delete().eq('id',id); setShowModal(false);await load(); };
   const handlePublishAll=async()=>{ const drafts=shifts.filter(s=>s.status==='draft').map(s=>s.id); if(!drafts.length)return; await supabase.from('shifts').update({status:'published'}).in('id',drafts);await load(); };
 
-  const handleCopyWeek=async()=>{
-    if(!shifts.length){alert('No hay turnos esta semana para copiar.');return;}
-    if(!confirm(`¿Copiar ${shifts.length} turno${shifts.length>1?'s':''} a la próxima semana?`))return;
-    setCopying(true);
-    const addDays=(dt:string,d:number)=>{const t=new Date(dt.replace(/\+00(:\d{2})?$/,'').replace(' ','T'));t.setDate(t.getDate()+d);return t.toISOString().slice(0,19);};
-    const rows=shifts.map(s=>({business_id:bizId,employee_id:s.employee_id,
-      date:isoDate(new Date(new Date(s.date+'T12:00:00').getTime()+7*24*3600*1000)),
-      start_time:addDays(s.start_time,7),end_time:addDays(s.end_time,7),
-      status:'draft' as const,break_minutes:s.break_minutes??0}));
-    await supabase.from('shifts').insert(rows);
-    setCopying(false);
-    setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()+7);return n;});
-  };
 
   const handleBulkCreate=async()=>{
     if(!bulkEmps.length||!bulkDays.length)return;
