@@ -407,11 +407,13 @@ function TeamView({bizId}:{bizId:string}) {
   const [search,setSearch] = useState('');
   const [filter,setFilter] = useState<'all'|'active'|'pending'|'inactive'>('all');
   const [loading,setLoading] = useState(true);
-  const [showModal,setShowModal] = useState(false);
+  const [pageView,setPageView] = useState<'list'|'form'>('list');
   const [editEmp,setEditEmp] = useState<Employee|null>(null);
   const [confirmDeleteId,setConfirmDeleteId] = useState<string|null>(null);
   const [inviting,setInviting] = useState(false);
-  const [form,setForm] = useState({name:'',last_name:'',email:'',phone:'',job_title:'',hourly_rate:'',employee_color:EMP_COLORS[0]});
+  const [sendInvite,setSendInvite] = useState(true);
+  const [allowOvertime,setAllowOvertime] = useState(true);
+  const [form,setForm] = useState({name:'',last_name:'',email:'',phone:'',job_title:'',hourly_rate:'',start_date:'',employee_color:EMP_COLORS[0]});
 
   const load=useCallback(async()=>{
     setLoading(true);
@@ -421,15 +423,15 @@ function TeamView({bizId}:{bizId:string}) {
   },[bizId]);
   useEffect(()=>{load();},[load]);
 
-  const openAdd=()=>{ setEditEmp(null); setForm({name:'',last_name:'',email:'',phone:'',job_title:'',hourly_rate:'',employee_color:EMP_COLORS[0]}); setShowModal(true); };
-  const openEdit=(emp:Employee)=>{ setEditEmp(emp); setForm({name:emp.name,last_name:emp.last_name??'',email:emp.email??'',phone:emp.phone??'',job_title:emp.job_title??'',hourly_rate:String(emp.hourly_rate??''),employee_color:emp.employee_color||EMP_COLORS[0]}); setShowModal(true); };
+  const openAdd=()=>{ setEditEmp(null); setForm({name:'',last_name:'',email:'',phone:'',job_title:'',hourly_rate:'',start_date:'',employee_color:EMP_COLORS[0]}); setSendInvite(true); setAllowOvertime(true); setPageView('form'); };
+  const openEdit=(emp:Employee)=>{ setEditEmp(emp); setForm({name:emp.name,last_name:emp.last_name??'',email:emp.email??'',phone:emp.phone??'',job_title:emp.job_title??'',hourly_rate:String(emp.hourly_rate??''),start_date:'',employee_color:emp.employee_color||EMP_COLORS[0]}); setPageView('form'); };
 
   const handleSubmit=async(e:React.FormEvent)=>{
     e.preventDefault(); setInviting(true);
     try {
       if(editEmp){await supabase.from('profiles').update({name:form.name,last_name:form.last_name,phone:form.phone,job_title:form.job_title,hourly_rate:parseFloat(form.hourly_rate),employee_color:form.employee_color}).eq('id',editEmp.id);}
-      else{const{data:{session}}=await supabase.auth.getSession();await fetch('https://ctdxqijdmpigqgktlwxb.supabase.co/functions/v1/invite-employee',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session?.access_token}`},body:JSON.stringify({name:form.name,last_name:form.last_name,email:form.email,phone:form.phone,job_title:form.job_title,hourly_rate:parseFloat(form.hourly_rate),employee_color:form.employee_color})});}
-      setShowModal(false); await load();
+      else{const{data:{session}}=await supabase.auth.getSession();await fetch('https://ctdxqijdmpigqgktlwxb.supabase.co/functions/v1/invite-employee',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session?.access_token}`},body:JSON.stringify({name:form.name,last_name:form.last_name,email:form.email,phone:form.phone,job_title:form.job_title,hourly_rate:parseFloat(form.hourly_rate),employee_color:form.employee_color,send_invite:sendInvite})});}
+      setPageView('list'); await load();
     } finally{setInviting(false);}
   };
 
@@ -451,6 +453,147 @@ function TeamView({bizId}:{bizId:string}) {
     return empName(e).toLowerCase().includes(q)||(e.job_title?.toLowerCase()??'').includes(q);
   });
 
+  const SB2='#0f1f5c';
+  const previewColor=form.employee_color||EMP_COLORS[0];
+  const previewInitials=`${form.name?form.name[0]:''}${form.last_name?form.last_name[0]:''}`.toUpperCase()||'?';
+
+  if(pageView==='form') return (
+    <motion.div initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} className="p-5 lg:p-6 max-w-screen-xl">
+      {/* Breadcrumb + actions */}
+      <div className="flex items-center justify-between mb-1">
+        <nav className="flex items-center gap-1.5 text-[12px]" style={{color:T.grayMid}}>
+          <button onClick={()=>setPageView('list')} className="hover:underline" style={{color:T.blue}}>Personal</button>
+          <span>›</span>
+          <span style={{color:T.black}}>{editEmp?'Editar Empleado':'Añadir Empleado'}</span>
+        </nav>
+        <div className="flex items-center gap-2">
+          <button onClick={()=>setPageView('list')} className="h-10 px-5 rounded-xl text-[13px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.black,background:T.white}}>Cancelar</button>
+          <button form="emp-form" type="submit" disabled={inviting} className="h-10 px-5 rounded-xl text-[13px] font-bold text-white flex items-center gap-2" style={{background:SB2,opacity:inviting?0.6:1}}>
+            {inviting?<span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>:<>{editEmp?<Pencil size={14}/>:<Send size={14}/>}{editEmp?'Guardar cambios':'Guardar Empleado'}</>}
+          </button>
+        </div>
+      </div>
+      <p className="text-[12px] mb-5" style={{color:T.grayMid}}>{editEmp?'Actualiza la información del empleado.':'Crea un nuevo perfil y configura los parámetros de empleo.'}</p>
+
+      <form id="emp-form" onSubmit={handleSubmit}>
+        <div className="flex gap-5 items-start">
+          {/* Left: form cards */}
+          <div className="flex-1 space-y-4 min-w-0">
+            {/* Personal Info */}
+            <div className="rounded-2xl p-5" style={CARD}>
+              <div className="flex items-center gap-2 mb-4 pb-3" style={{borderBottom:`1px solid ${T.border}`}}>
+                <div className="size-7 rounded-lg flex items-center justify-center" style={{background:T.blueLt}}><UserPlus size={13} color={T.blue}/></div>
+                <span className="text-[13px] font-bold" style={{color:T.black}}>Información Personal</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {([['name','Nombre','p. ej. Michael'],['last_name','Apellido','p. ej. Scott']] as const).map(([f,label,ph])=>(
+                  <div key={f}>
+                    <label className="text-[11px] font-bold block mb-1.5" style={{color:T.black}}>{label}</label>
+                    <input required type="text" placeholder={ph} value={form[f]} onChange={e=>setForm(p=>({...p,[f]:e.target.value}))} className="w-full h-10 rounded-xl px-3 text-[13px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                {!editEmp&&(
+                  <div>
+                    <label className="text-[11px] font-bold block mb-1.5" style={{color:T.black}}>Correo electrónico</label>
+                    <input required type="email" placeholder="michael.s@company.com" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} className="w-full h-10 rounded-xl px-3 text-[13px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+                  </div>
+                )}
+                <div>
+                  <label className="text-[11px] font-bold block mb-1.5" style={{color:T.black}}>Teléfono</label>
+                  <input type="tel" placeholder="+1 (555) 000-0000" value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} className="w-full h-10 rounded-xl px-3 text-[13px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+                </div>
+              </div>
+            </div>
+
+            {/* Job Details */}
+            <div className="rounded-2xl p-5" style={CARD}>
+              <div className="flex items-center gap-2 mb-4 pb-3" style={{borderBottom:`1px solid ${T.border}`}}>
+                <div className="size-7 rounded-lg flex items-center justify-center" style={{background:T.greenLt}}><DollarSign size={13} color={T.green}/></div>
+                <span className="text-[13px] font-bold" style={{color:T.black}}>Detalles del Puesto</span>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-[11px] font-bold block mb-1.5" style={{color:T.black}}>Puesto / Rol</label>
+                  <select value={form.job_title} onChange={e=>setForm(p=>({...p,job_title:e.target.value}))} className="w-full h-10 rounded-xl px-3 text-[13px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:form.job_title?T.black:T.grayMid,outline:'none'}}>
+                    <option value="">Selecciona…</option>{JOB_TITLES.map(j=><option key={j} value={j}>{j}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold block mb-1.5" style={{color:T.black}}>Pago por Hora (USD)</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[13px] font-bold" style={{color:T.grayMid}}>$</span>
+                    <input required type="number" step="0.01" placeholder="25.00" value={form.hourly_rate} onChange={e=>setForm(p=>({...p,hourly_rate:e.target.value}))} className="w-full h-10 rounded-xl pl-6 pr-3 text-[13px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold block mb-1.5" style={{color:T.black}}>Fecha de Inicio</label>
+                  <input type="date" value={form.start_date} onChange={e=>setForm(p=>({...p,start_date:e.target.value}))} className="w-full h-10 rounded-xl px-3 text-[13px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right sidebar */}
+          <div className="w-56 shrink-0 space-y-4">
+            {/* Avatar preview */}
+            <div className="rounded-2xl p-4 flex flex-col items-center gap-3" style={CARD}>
+              <div className="size-20 rounded-full flex items-center justify-center text-2xl font-black text-white" style={{background:previewColor}}>{previewInitials}</div>
+              <div className="text-center">
+                <p className="text-[12px] font-bold" style={{color:T.black}}>Vista Previa</p>
+                <p className="text-[11px] mt-0.5" style={{color:T.grayMid}}>Color del empleado</p>
+              </div>
+              <div className="flex flex-wrap justify-center gap-2 w-full">
+                {EMP_COLORS.map(c=>(
+                  <button key={c} type="button" onClick={()=>setForm(p=>({...p,employee_color:c}))} className="size-7 rounded-full flex items-center justify-center transition-transform active:scale-90" style={{background:c,border:form.employee_color===c?`3px solid ${T.black}`:'3px solid transparent',boxShadow:form.employee_color===c?`0 0 0 2px white,0 0 0 3px ${c}60`:'none'}}>
+                    {form.employee_color===c&&<span className="text-white text-[10px] font-bold">✓</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Account Settings */}
+            <div className="rounded-2xl p-4 space-y-3" style={CARD}>
+              <div className="flex items-center gap-2 pb-2" style={{borderBottom:`1px solid ${T.border}`}}>
+                <div className="size-6 rounded-md flex items-center justify-center" style={{background:T.indigoLt}}><Settings size={11} color={T.indigo}/></div>
+                <span className="text-[12px] font-bold" style={{color:T.black}}>Configuración</span>
+              </div>
+              {/* Send Invitation toggle */}
+              {!editEmp&&(
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-[12px] font-semibold" style={{color:T.black}}>Enviar Invitación</p>
+                    <p className="text-[10px]" style={{color:T.grayMid}}>Notificar por email</p>
+                  </div>
+                  <button type="button" onClick={()=>setSendInvite(p=>!p)} className="relative shrink-0 w-10 h-6 rounded-full transition-colors" style={{background:sendInvite?T.green:T.grayMid}}>
+                    <span className="absolute top-1 left-1 size-4 rounded-full bg-white transition-transform" style={{transform:sendInvite?'translateX(16px)':'translateX(0)'}}/>
+                  </button>
+                </div>
+              )}
+              {/* Allow Overtime toggle */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-[12px] font-semibold" style={{color:T.black}}>Permitir Overtime</p>
+                  <p className="text-[10px]" style={{color:T.grayMid}}>Cálculo de OT</p>
+                </div>
+                <button type="button" onClick={()=>setAllowOvertime(p=>!p)} className="relative shrink-0 w-10 h-6 rounded-full transition-colors" style={{background:allowOvertime?T.green:T.grayMid}}>
+                  <span className="absolute top-1 left-1 size-4 rounded-full bg-white transition-transform" style={{transform:allowOvertime?'translateX(16px)':'translateX(0)'}}/>
+                </button>
+              </div>
+              {!editEmp&&(
+                <div className="rounded-xl p-2.5 flex items-start gap-2 mt-1" style={{background:T.blueLt}}>
+                  <span className="shrink-0 mt-0.5" style={{color:T.blue}}>ℹ</span>
+                  <p className="text-[10px] leading-relaxed" style={{color:T.blue}}>El empleado recibirá una contraseña temporal válida por 48 horas.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </form>
+    </motion.div>
+  );
+
   return (
     <div>
       {/* Header */}
@@ -462,7 +605,7 @@ function TeamView({bizId}:{bizId:string}) {
           </div>
           <div className="flex gap-2">
             <button onClick={load} className="size-10 rounded-xl flex items-center justify-center" style={{background:T.bg,border:`1px solid ${T.border}`}}><RefreshCw size={16} color={T.gray}/></button>
-            <button onClick={openAdd} className="h-10 px-4 rounded-xl flex items-center gap-2 text-[13px] font-bold text-white" style={{background:T.green}}><UserPlus size={15}/> Invitar empleado</button>
+            <button onClick={openAdd} className="h-10 px-4 rounded-xl flex items-center gap-2 text-[13px] font-bold text-white" style={{background:T.green}}><UserPlus size={15}/> Añadir Empleado</button>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -507,18 +650,15 @@ function TeamView({bizId}:{bizId:string}) {
           </div>
         ):(
           <div className="rounded-2xl overflow-hidden" style={CARD}>
-            {/* Table header */}
             <div className="grid px-5 py-3" style={{gridTemplateColumns:'2.5fr 1.5fr 1.2fr 1fr 1fr auto',background:T.bg,borderBottom:`1px solid ${T.border}`}}>
               {['Empleado','Puesto','Contacto','Salario/hr','Estado',''].map((h,i)=>(
                 <span key={i} className="text-[11px] font-bold uppercase tracking-wide" style={{color:T.grayMid}}>{h}</span>
               ))}
             </div>
-            {/* Rows */}
             {filtered.map((emp,i)=>{
               const color=empColor(emp,i);
               return(
                 <motion.div key={emp.id} layout initial={{opacity:0}} animate={{opacity:emp.status==='inactive'?0.5:1}} className="group grid px-5 py-3.5 items-center transition-colors hover:bg-[#FAFAFA]" style={{gridTemplateColumns:'2.5fr 1.5fr 1.2fr 1fr 1fr auto',borderBottom:i<filtered.length-1?`1px solid ${T.border}`:'none'}}>
-                  {/* Employee */}
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="size-9 rounded-full flex items-center justify-center text-[13px] font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
                     <div className="min-w-0">
@@ -526,15 +666,10 @@ function TeamView({bizId}:{bizId:string}) {
                       <p className="text-[11px] truncate" style={{color:T.grayMid}}>{emp.email}</p>
                     </div>
                   </div>
-                  {/* Puesto */}
                   <div>{emp.job_title?<span className="text-[11px] font-semibold px-2.5 py-1 rounded-full" style={{background:`${color}18`,color}}>{emp.job_title}</span>:<span className="text-[11px]" style={{color:T.grayMid}}>—</span>}</div>
-                  {/* Contacto */}
                   <p className="text-[12px] truncate" style={{color:T.gray}}>{emp.phone||'—'}</p>
-                  {/* Salario */}
                   <p className="text-[13px] font-semibold" style={{color:T.black}}>{emp.hourly_rate?`$${Number(emp.hourly_rate).toFixed(2)}/hr`:'—'}</p>
-                  {/* Estado */}
                   <div><StatusChip status={emp.status}/></div>
-                  {/* Acciones — visibles en hover */}
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     {emp.status==='pending'&&<button onClick={async()=>{const{data:{session}}=await supabase.auth.getSession();await fetch('https://ctdxqijdmpigqgktlwxb.supabase.co/functions/v1/invite-employee',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session?.access_token}`},body:JSON.stringify({employee_id:emp.id})});}} title="Reenviar invitación" className="size-8 rounded-xl flex items-center justify-center" style={{background:T.blueLt,color:T.blue}}><Send size={13}/></button>}
                     {emp.status==='active'&&<button onClick={()=>handleToggle(emp)} title="Desactivar" className="size-8 rounded-xl flex items-center justify-center" style={{background:T.amberLt,color:T.amber}}><MinusCircle size={13}/></button>}
@@ -548,44 +683,6 @@ function TeamView({bizId}:{bizId:string}) {
           </div>
         )}
       </div>
-
-      <AnimatePresence>
-        {showModal&&(
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" style={{background:'#00000066'}}>
-            <motion.div initial={{y:80,opacity:0}} animate={{y:0,opacity:1}} exit={{y:80,opacity:0}} transition={{type:'spring',damping:28,stiffness:300}} className="w-full max-w-md rounded-t-3xl sm:rounded-3xl overflow-hidden" style={{background:T.white}}>
-              <div className="p-6 overflow-y-auto max-h-[90vh]">
-                <div className="w-10 h-1 rounded-full mx-auto mb-4 sm:hidden" style={{background:T.border}}/>
-                <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-xl font-black" style={{color:T.black}}>{editEmp?'Editar Empleado':'Añadir Empleado'}</h2>
-                  <button onClick={()=>setShowModal(false)} className="p-2 rounded-xl" style={{color:T.gray}}><X size={20}/></button>
-                </div>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    {([['name','Nombre'],['last_name','Apellido']] as const).map(([f,label])=>(
-                      <div key={f}><label className="text-xs font-bold block mb-1" style={{color:T.black}}>{label}</label>
-                      <input required type="text" value={form[f as keyof typeof form] as string} onChange={e=>setForm(p=>({...p,[f]:e.target.value}))} className="w-full h-11 rounded-xl px-3 text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/></div>
-                    ))}
-                  </div>
-                  {!editEmp&&<div><label className="text-xs font-bold block mb-1" style={{color:T.black}}>Correo electrónico</label><input required type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} className="w-full h-11 rounded-xl px-3 text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/></div>}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div><label className="text-xs font-bold block mb-1" style={{color:T.black}}>Teléfono</label><input type="tel" value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} placeholder="787-000-0000" className="w-full h-11 rounded-xl px-3 text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/></div>
-                    <div><label className="text-xs font-bold block mb-1" style={{color:T.black}}>Pago/hr ($)</label><input required type="number" step="0.01" value={form.hourly_rate} onChange={e=>setForm(p=>({...p,hourly_rate:e.target.value}))} className="w-full h-11 rounded-xl px-3 text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/></div>
-                  </div>
-                  <div><label className="text-xs font-bold block mb-1" style={{color:T.black}}>Puesto</label>
-                  <select value={form.job_title} onChange={e=>setForm(p=>({...p,job_title:e.target.value}))} className="w-full h-11 rounded-xl px-3 text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}>
-                    <option value="">Selecciona un puesto</option>{JOB_TITLES.map(j=><option key={j} value={j}>{j}</option>)}
-                  </select></div>
-                  <div><label className="text-xs font-bold block mb-2" style={{color:T.black}}>Color del empleado</label>
-                  <div className="flex flex-wrap gap-2">{EMP_COLORS.map(c=><button key={c} type="button" onClick={()=>setForm(p=>({...p,employee_color:c}))} className="size-9 rounded-full flex items-center justify-center transition-transform active:scale-90" style={{background:c,border:form.employee_color===c?`3px solid ${T.black}`:'3px solid transparent',boxShadow:form.employee_color===c?`0 0 0 2px white,0 0 0 4px ${c}40`:'none'}}>{form.employee_color===c&&<span className="text-white text-xs font-bold">✓</span>}</button>)}</div></div>
-                  <button type="submit" disabled={inviting} className="w-full h-12 rounded-2xl text-white text-sm font-bold flex items-center justify-center gap-2" style={{background:T.black,opacity:inviting?0.6:1}}>
-                    {inviting?<span className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin"/>:editEmp?<><Pencil size={16}/>Guardar cambios</>:<><Send size={16}/>Enviar invitación</>}
-                  </button>
-                </form>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       <AnimatePresence>
         {confirmDeleteId&&(()=>{const emp=employees.find(e=>e.id===confirmDeleteId);return(
