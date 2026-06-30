@@ -1231,7 +1231,7 @@ function ApprovalsView({bizId}:{bizId:string}) {
     <div className="p-5 lg:p-6 space-y-5 max-w-screen-xl mx-auto w-full">
 
       {/* Stat cards */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-3">
         <div className="rounded-xl px-4 py-3 flex items-center gap-3" style={{...CARD,border:`1px solid ${T.amber}40`}}>
           <div className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:T.amberLt}}><AlertTriangle size={14} color={T.amber}/></div>
           <div className="min-w-0">
@@ -1266,6 +1266,15 @@ function ApprovalsView({bizId}:{bizId:string}) {
             <p className="text-[10px]" style={{color:T.grayMid}}>{history.length} marcaciones</p>
           </div>
         </div>
+
+        <button onClick={load} className="rounded-xl px-4 py-3 flex items-center gap-3 w-full transition-all hover:opacity-90" style={{...CARD,background:T.green,border:`1px solid ${T.green}`}}>
+          <div className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(255,255,255,0.2)'}}><RefreshCw size={14} color="#fff"/></div>
+          <div className="min-w-0 text-left">
+            <p className="text-[10px] font-bold tracking-widest uppercase text-white opacity-80">Sincronizar</p>
+            <p className="text-[13px] font-bold text-white leading-tight">Actualizar</p>
+            <p className="text-[10px] text-white opacity-70">datos</p>
+          </div>
+        </button>
       </div>
 
       {/* Main row */}
@@ -1470,10 +1479,6 @@ function ApprovalsView({bizId}:{bizId:string}) {
 
         </div>
 
-        {/* Refresh button */}
-        <button onClick={load} className="w-full flex items-center justify-center gap-2 h-9 rounded-xl text-[12px] font-semibold transition-all" style={{border:`1px solid ${T.border}`,color:T.gray,background:T.white}}>
-          <RefreshCw size={13}/> Actualizar datos
-        </button>
       </div>
 
       {/* Approve-all confirm modal */}
