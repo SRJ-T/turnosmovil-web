@@ -1287,10 +1287,27 @@ function ApprovalsView({bizId}:{bizId:string}) {
                 );
               })}
             </div>
-            {/* Search */}
-            <div className="relative hidden sm:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={13} color={T.gray}/>
-              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar…" className="h-9 pl-8 pr-3 rounded-xl text-xs w-40" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+            <div className="flex items-center gap-2">
+              {tab==='history'&&(
+                <>
+                  <button onClick={()=>{
+                    const header='Empleado,Fecha,Horas,Estado\n';
+                    const rows=visibleList.map(e=>`${empName(e.employee)},${new Date(e.clock_in.replace(/\+00(:\d{2})?$/,'+00:00').replace(' ','T')).toLocaleDateString('es-PR')},${diffHours(e.clock_in,e.clock_out??'').toFixed(1)},${e.status}`).join('\n');
+                    const blob=new Blob([header+rows],{type:'text/csv'});
+                    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='historial_horas.csv';a.click();
+                  }} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.green,background:T.greenLt}}>
+                    <BarChart3 size={12}/>Export Excel
+                  </button>
+                  <button className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.red,background:T.redLt}}>
+                    <ClipboardCheck size={12}/>Export PDF
+                  </button>
+                </>
+              )}
+              {/* Search */}
+              <div className="relative hidden sm:block">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={13} color={T.gray}/>
+                <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar…" className="h-9 pl-8 pr-3 rounded-xl text-xs w-40" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+              </div>
             </div>
           </div>
 
