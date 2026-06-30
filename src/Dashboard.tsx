@@ -670,12 +670,12 @@ function TeamView({bizId}:{bizId:string}) {
                   <p className="text-[12px] truncate" style={{color:T.gray}}>{emp.phone||'—'}</p>
                   <p className="text-[13px] font-semibold" style={{color:T.black}}>{emp.hourly_rate?`$${Number(emp.hourly_rate).toFixed(2)}/hr`:'—'}</p>
                   <div><StatusChip status={emp.status}/></div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {emp.status==='pending'&&<button onClick={async()=>{const{data:{session}}=await supabase.auth.getSession();await fetch('https://ctdxqijdmpigqgktlwxb.supabase.co/functions/v1/invite-employee',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session?.access_token}`},body:JSON.stringify({employee_id:emp.id})});}} title="Reenviar invitación" className="size-8 rounded-xl flex items-center justify-center" style={{background:T.blueLt,color:T.blue}}><Send size={13}/></button>}
-                    {emp.status==='active'&&<button onClick={()=>handleToggle(emp)} title="Desactivar" className="size-8 rounded-xl flex items-center justify-center" style={{background:T.amberLt,color:T.amber}}><MinusCircle size={13}/></button>}
-                    {emp.status==='inactive'&&<button onClick={()=>handleToggle(emp)} title="Activar" className="size-8 rounded-xl flex items-center justify-center" style={{background:T.greenLt,color:T.green}}><CheckCircle2 size={13}/></button>}
-                    <button onClick={()=>openEdit(emp)} title="Editar" className="size-8 rounded-xl flex items-center justify-center" style={{background:T.indigoLt,color:T.indigo}}><Pencil size={13}/></button>
-                    <button onClick={()=>setConfirmDeleteId(emp.id)} title="Eliminar" className="size-8 rounded-xl flex items-center justify-center" style={{background:T.redLt,color:T.red}}><Trash2 size={13}/></button>
+                  <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {emp.status==='pending'&&<button onClick={async()=>{const{data:{session}}=await supabase.auth.getSession();await fetch('https://ctdxqijdmpigqgktlwxb.supabase.co/functions/v1/invite-employee',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session?.access_token}`},body:JSON.stringify({employee_id:emp.id})});}} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{background:T.blueLt,color:T.blue}}><Send size={12}/>Reenviar</button>}
+                    {emp.status==='active'&&<button onClick={()=>handleToggle(emp)} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{background:T.amberLt,color:T.amber}}><MinusCircle size={12}/>Desactivar</button>}
+                    {emp.status==='inactive'&&<button onClick={()=>handleToggle(emp)} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{background:T.greenLt,color:T.green}}><CheckCircle2 size={12}/>Activar</button>}
+                    <button onClick={()=>openEdit(emp)} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{background:T.indigoLt,color:T.indigo}}><Pencil size={12}/>Editar</button>
+                    <button onClick={()=>setConfirmDeleteId(emp.id)} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{background:T.redLt,color:T.red}}><Trash2 size={12}/>Eliminar</button>
                   </div>
                 </motion.div>
               );
