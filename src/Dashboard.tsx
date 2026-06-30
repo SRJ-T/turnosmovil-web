@@ -1269,10 +1269,10 @@ function ApprovalsView({bizId}:{bizId:string}) {
       </div>
 
       {/* Main row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
 
         {/* Table */}
-        <div className="lg:col-span-2 rounded-2xl overflow-hidden" style={CARD}>
+        <div className="lg:col-span-3 rounded-2xl overflow-hidden" style={CARD}>
           <div className="flex items-center justify-between px-5 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
             {/* Tabs */}
             <div className="flex gap-1 p-1 rounded-xl" style={{background:T.bg,border:`1px solid ${T.border}`}}>
