@@ -1374,46 +1374,104 @@ function ApprovalsView({bizId}:{bizId:string}) {
 
         {/* Right panel */}
         <div className="space-y-4">
-          <div className="rounded-2xl p-4" style={{...CARD,background:SB}}>
-            <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{color:'rgba(255,255,255,0.45)'}}>Acciones Rápidas</p>
-            <button onClick={load}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left active:scale-95 transition-transform"
-              style={{background:'rgba(255,255,255,0.12)',border:'1px solid rgba(255,255,255,0.18)'}}>
-              <RefreshCw size={17} color="white" className="shrink-0"/>
-              <div className="flex-1"><p className="text-[13px] font-bold text-white leading-tight">Actualizar</p><p className="text-[10px]" style={{color:'rgba(255,255,255,0.5)'}}>Recargar datos</p></div>
-              <ChevronRight size={14} color="rgba(255,255,255,0.4)"/>
-            </button>
-          </div>
 
-          {/* Bar chart — marcaciones por estado */}
-          <div className="rounded-2xl p-5" style={CARD}>
-            <p className="text-[13px] font-bold mb-1" style={{color:T.black}}>Marcaciones por Estado</p>
-            <p className="text-[10px] mb-4" style={{color:T.grayMid}}>Total: {entries.length + active.length} registros</p>
+          {/* Progress rings */}
+          <div className="rounded-2xl p-4" style={CARD}>
+            <p className="text-[13px] font-bold mb-0.5" style={{color:T.black}}>Progreso Semanal</p>
+            <p className="text-[10px] mb-4" style={{color:T.grayMid}}>Meta: 40 hrs por empleado</p>
             {(()=>{
-              const bars=[
-                {label:'Aprobadas',  value:history.length,  color:T.green},
-                {label:'Pendientes', value:pending.length,  color:T.amber},
-                {label:'Rechazados', value:rejected.length, color:T.red},
-                {label:'Activos',    value:active.length,   color:'#DC2626'},
-              ];
-              const max=Math.max(...bars.map(b=>b.value),1);
+              const empMap:Record<string,{name:string;color:string;hours:number}>={};
+              for(const e of [...history,...pending]){
+                const id=e.employee_id;
+                if(!empMap[id]){empMap[id]={name:empName(e.employee),color:empColor(e.employee,Object.keys(empMap).length),hours:0};}
+                empMap[id].hours+=diffHours(e.clock_in,e.clock_out??'');
+              }
+              const emps=Object.values(empMap).slice(0,4);
+              if(emps.length===0) return <p className="text-[12px] text-center py-4" style={{color:T.grayMid}}>Sin datos esta semana</p>;
+              const R=32; const C=2*Math.PI*R;
               return(
-                <div className="space-y-3">
-                  {bars.map(({label,value,color})=>(
-                    <div key={label}>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[11px] font-semibold" style={{color:T.gray}}>{label}</span>
-                        <span className="text-[11px] font-bold" style={{color}}>{value}</span>
+                <div className="flex flex-wrap justify-center gap-4">
+                  {emps.map(({name,color,hours})=>{
+                    const pct=Math.min(hours/40,1);
+                    const offset=C*(1-pct);
+                    const initials=name.split(' ').map((w:string)=>w[0]).join('').slice(0,2).toUpperCase();
+                    return(
+                      <div key={name} className="flex flex-col items-center gap-1.5">
+                        <svg width="76" height="76" viewBox="0 0 76 76">
+                          <circle cx="38" cy="38" r={R} fill="none" stroke={T.grayLt} strokeWidth="7"/>
+                          <circle cx="38" cy="38" r={R} fill="none" stroke={color} strokeWidth="7"
+                            strokeDasharray={C} strokeDashoffset={offset}
+                            strokeLinecap="round" transform="rotate(-90 38 38)"
+                            style={{transition:'stroke-dashoffset 0.8s ease'}}/>
+                          <text x="38" y="35" textAnchor="middle" fontSize="11" fontWeight="600" fill={T.black}>{hours<1?'0':hours.toFixed(0)}h</text>
+                          <text x="38" y="48" textAnchor="middle" fontSize="9" fill={T.grayMid}>{Math.round(pct*100)}%</text>
+                        </svg>
+                        <div className="size-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white" style={{background:color}}>{initials}</div>
+                        <span className="text-[10px] font-semibold text-center max-w-[64px] leading-tight" style={{color:T.black}}>{name.split(' ')[0]}</span>
                       </div>
-                      <div className="h-2 rounded-full overflow-hidden" style={{background:T.grayLt}}>
-                        <div className="h-full rounded-full transition-all duration-700" style={{width:`${(value/max)*100}%`,background:color}}/>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               );
             })()}
           </div>
+
+          {/* Day timeline */}
+          <div className="rounded-2xl p-4" style={CARD}>
+            <p className="text-[13px] font-bold mb-0.5" style={{color:T.black}}>Timeline de Hoy</p>
+            <p className="text-[10px] mb-3" style={{color:T.grayMid}}>{new Date().toLocaleDateString('es-PR',{weekday:'long',day:'numeric',month:'short'})}</p>
+            {(()=>{
+              const todayIso=isoDate(new Date());
+              const todayEntries=[...history,...pending].filter(e=>e.clock_in.slice(0,10)===todayIso||isoDate(new Date(e.clock_in.replace(/\+00(:\d{2})?$/,'+00:00').replace(' ','T')))===todayIso);
+              const START_H=7; const END_H=23; const RANGE=END_H-START_H;
+              const toPos=(dt:string)=>{
+                const d=new Date(dt.replace(/\+00(:\d{2})?$/,'+00:00').replace(' ','T'));
+                const h=d.getHours()+d.getMinutes()/60;
+                return Math.max(0,Math.min(100,((h-START_H)/RANGE)*100));
+              };
+              const empIds:string[]=[]; const seen:Record<string,boolean>={};
+              for(const e of todayEntries){if(!seen[e.employee_id]){seen[e.employee_id]=true;empIds.push(e.employee_id);}}
+              const hours=['7am','10am','1pm','4pm','7pm','10pm'];
+              if(empIds.length===0) return(
+                <div className="py-6 text-center">
+                  <p className="text-[12px]" style={{color:T.grayMid}}>Sin marcaciones hoy</p>
+                </div>
+              );
+              return(
+                <div>
+                  <div className="flex justify-between mb-2 pl-8">
+                    {hours.map(h=><span key={h} className="text-[9px]" style={{color:T.grayMid}}>{h}</span>)}
+                  </div>
+                  <div className="space-y-2.5">
+                    {empIds.map((eid,idx)=>{
+                      const empEntry=todayEntries.find(e=>e.employee_id===eid)!;
+                      const color=empColor(empEntry.employee,idx);
+                      const initials=empName(empEntry.employee).split(' ').map((w:string)=>w[0]).join('').slice(0,2).toUpperCase();
+                      const empSegments=todayEntries.filter(e=>e.employee_id===eid);
+                      return(
+                        <div key={eid} className="flex items-center gap-2">
+                          <div className="size-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0" style={{background:color,minWidth:24}}>{initials}</div>
+                          <div className="flex-1 relative h-5 rounded-full overflow-hidden" style={{background:T.grayLt}}>
+                            {empSegments.map((seg,si)=>{
+                              if(!seg.clock_out) return null;
+                              const left=toPos(seg.clock_in);
+                              const right=toPos(seg.clock_out);
+                              return <div key={si} className="absolute top-0 h-full rounded-full" style={{left:`${left}%`,width:`${Math.max(right-left,2)}%`,background:color,opacity:0.85}}/>;
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Refresh button */}
+          <button onClick={load} className="w-full flex items-center justify-center gap-2 h-9 rounded-xl text-[12px] font-semibold transition-all" style={{border:`1px solid ${T.border}`,color:T.gray,background:T.white}}>
+            <RefreshCw size={13}/> Actualizar datos
+          </button>
         </div>
       </div>
 
