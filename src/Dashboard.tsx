@@ -1456,9 +1456,12 @@ function ApprovalsView({bizId}:{bizId:string}) {
 
 // ─── NÓMINA ───────────────────────────────────────────────────────────────────
 function PayrollView({bizId}:{bizId:string}) {
-  const [data,setData] = useState<{emp:Employee;hours:number;overtime:number;gross:number;deductions:number;net:number}[]>([]);
+  type PayRow={emp:Employee;hours:number;overtime:number;gross:number;deductions:number;net:number};
+  const [data,setData] = useState<PayRow[]>([]);
   const [loading,setLoading] = useState(true);
-  const [period,setPeriod] = useState<'week'|'month'>('week');
+  const [period,setPeriod] = useState<'week'|'month'>('month');
+  const [payTab,setPayTab] = useState<'nomina'|'historial'>('nomina');
+  const [processed,setProcessed] = useState(false);
 
   useEffect(()=>{
     (async()=>{
@@ -1479,80 +1482,159 @@ function PayrollView({bizId}:{bizId:string}) {
         const deductions=gross*0.1465;
         return{emp,hours,overtime,gross,deductions,net:gross-deductions};
       }).filter(r=>r.hours+r.overtime>0);
-      setData(rows);
-      setLoading(false);
+      setData(rows);setLoading(false);
     })();
   },[bizId,period]);
 
   const totals=data.reduce((acc,r)=>({gross:acc.gross+r.gross,deductions:acc.deductions+r.deductions,net:acc.net+r.net}),{gross:0,deductions:0,net:0});
+  const SB2='#0f1f5c';
+  const now=new Date();
+  const periodLabel=period==='week'
+    ?`${isoDate(weekDays(now)[0])} – ${isoDate(weekDays(now)[6])}`
+    :`01 de ${now.toLocaleDateString('es-PR',{month:'short'})} – ${new Date(now.getFullYear(),now.getMonth()+1,0).getDate()} de ${now.toLocaleDateString('es-PR',{month:'short'})}`;
+
+  const exportCSV=()=>{
+    const header='Empleado,Puesto,Hrs Reg,Hrs OT,Base,Extras,Total a Pagar,Deducciones,Neto\n';
+    const rows=data.map(r=>`${empName(r.emp)},${r.emp.job_title||''},${r.hours.toFixed(1)},${r.overtime.toFixed(1)},${(r.hours*r.emp.hourly_rate).toFixed(2)},${(r.overtime*r.emp.hourly_rate*1.5).toFixed(2)},${r.gross.toFixed(2)},${r.deductions.toFixed(2)},${r.net.toFixed(2)}`).join('\n');
+    const blob=new Blob([header+rows],{type:'text/csv'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`nomina_${isoDate(now)}.csv`;a.click();
+  };
 
   return (
-    <div>
-      <div className="px-5 pt-6 pb-5" style={{background:T.white,borderBottom:`1px solid ${T.border}`}}>
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold" style={{color:T.black}}>Nómina</h1>
-          <div className="flex p-1 rounded-xl gap-1" style={{background:T.bg,border:`1px solid ${T.border}`}}>
-            {(['week','month'] as const).map(p=><button key={p} onClick={()=>setPeriod(p)} className="px-4 py-1.5 rounded-lg text-xs font-bold transition-all" style={{background:period===p?T.violet:'transparent',color:period===p?T.white:T.gray}}>{p==='week'?'Esta Semana':'Este Mes'}</button>)}
+    <div className="p-5 lg:p-6 max-w-screen-xl space-y-5">
+      {/* Top row: period + tabs + procesar */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <p className="text-[11px] font-semibold" style={{color:T.grayMid}}>Ciclo de pago actual: <span style={{color:T.black}}>{periodLabel}</span></p>
+          <div className="flex items-center gap-1 mt-2">
+            {(['week','month'] as const).map(p=>(
+              <button key={p} onClick={()=>setPeriod(p)} className="h-8 px-4 rounded-xl text-[12px] font-bold transition-all" style={{background:period===p?SB2:'transparent',color:period===p?'#fff':T.gray,border:`1px solid ${period===p?SB2:T.border}`}}>
+                {p==='week'?'Esta Semana':'Este Mes'}
+              </button>
+            ))}
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-3">
-          {[{label:'Total Bruto',value:totals.gross,color:T.blue,bg:T.blueLt},{label:'Deducciones',value:totals.deductions,color:T.red,bg:T.redLt},{label:'Total Neto',value:totals.net,color:T.violet,bg:T.violetLt}].map(({label,value,color,bg})=>(
-            <div key={label} className="rounded-2xl p-4 text-center" style={{background:bg}}>
-              <p className="text-[9px] font-bold uppercase tracking-widest" style={{color:`${color}99`}}>{label}</p>
-              <p className="text-[22px] font-black mt-1 font-mono" style={{color}}>{loading?'—':`$${value.toFixed(2)}`}</p>
-            </div>
-          ))}
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-xl overflow-hidden" style={{border:`1px solid ${T.border}`}}>
+            {(['nomina','historial'] as const).map(t=>(
+              <button key={t} onClick={()=>setPayTab(t)} className="h-9 px-5 text-[13px] font-bold transition-all" style={{background:payTab===t?T.amber:T.white,color:payTab===t?'#fff':T.gray}}>
+                {t==='nomina'?'Nómina':'Historial'}
+              </button>
+            ))}
+          </div>
+          <button onClick={()=>setProcessed(true)} className="h-9 px-5 rounded-xl text-[13px] font-bold text-white flex items-center gap-2" style={{background:processed?T.green:SB2}}>
+            {processed?<><CheckCircle2 size={14}/>Procesada</>:<><DollarSign size={14}/>Procesar Nómina</>}
+          </button>
         </div>
       </div>
 
-      <div className="p-5 space-y-3">
-        {loading?Array.from({length:2}).map((_,i)=><div key={i} className="h-28 rounded-2xl animate-pulse" style={{background:T.white}}/>):
-        data.length===0?(
-          <div className="rounded-2xl py-14 flex flex-col items-center" style={CARD}><DollarSign size={40} color={T.grayMid} className="mb-3"/><p className="text-sm font-semibold" style={{color:T.gray}}>No hay horas aprobadas en este período</p></div>
+      {/* Stat cards */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="rounded-2xl p-4" style={CARD}>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[11px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>Total a Pagar</p>
+            <div className="size-8 rounded-lg flex items-center justify-center" style={{background:T.blueLt}}><DollarSign size={14} color={T.blue}/></div>
+          </div>
+          <p className="text-[26px] font-black font-mono" style={{color:T.black}}>{loading?'—':`$${totals.net.toFixed(2)}`}</p>
+          {data.length>0&&<p className="text-[11px] mt-1" style={{color:T.green}}>↑ {data.length} empleado{data.length!==1?'s':''} activos</p>}
+        </div>
+        <div className="rounded-2xl p-4" style={CARD}>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[11px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>Empleados Activos</p>
+            <div className="size-8 rounded-lg flex items-center justify-center" style={{background:T.greenLt}}><Users size={14} color={T.green}/></div>
+          </div>
+          <p className="text-[26px] font-black" style={{color:T.black}}>{loading?'—':data.length}</p>
+          {data.length>0&&<p className="text-[11px] mt-1" style={{color:T.grayMid}}>con horas aprobadas</p>}
+        </div>
+        <div className="rounded-2xl p-4" style={CARD}>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[11px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>Estado</p>
+            <div className="size-8 rounded-lg flex items-center justify-center" style={{background:processed?T.greenLt:T.amberLt}}><ClipboardCheck size={14} color={processed?T.green:T.amber}/></div>
+          </div>
+          <p className="text-[20px] font-black" style={{color:processed?T.green:T.amber}}>{processed?'Procesada':'Pendiente'}</p>
+          <p className="text-[11px] mt-1" style={{color:T.grayMid}}>{processed?'Nómina completada':'Requiere aprobación'}</p>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="rounded-2xl overflow-hidden" style={CARD}>
+        <div className="flex items-center justify-between px-5 py-3.5" style={{borderBottom:`1px solid ${T.border}`}}>
+          <div className="flex items-center gap-2">
+            <p className="text-[14px] font-bold" style={{color:T.black}}>Listado de Empleados</p>
+            <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full" style={{background:T.blueLt,color:T.blue}}>{periodLabel}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={exportCSV} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.green,background:T.greenLt}}>
+              <BarChart3 size={12}/>Export Excel
+            </button>
+            <button onClick={()=>{}} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.red,background:T.redLt}}>
+              <ClipboardCheck size={12}/>Export PDF
+            </button>
+          </div>
+        </div>
+
+        {/* Table header */}
+        <div className="grid px-5 py-2.5" style={{gridTemplateColumns:'2fr 1.2fr 0.8fr 1.2fr 1.2fr 1fr',background:T.bg,borderBottom:`1px solid ${T.border}`}}>
+          {['Empleado','Departamento','Horas','Base / Extras','Total a Pagar','Estado'].map((h,i)=>(
+            <span key={i} className="text-[10px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>{h}</span>
+          ))}
+        </div>
+
+        {loading?(
+          Array.from({length:3}).map((_,i)=>(
+            <div key={i} className="grid px-5 py-4 items-center gap-4" style={{gridTemplateColumns:'2fr 1.2fr 0.8fr 1.2fr 1.2fr 1fr',borderBottom:`1px solid ${T.border}`}}>
+              <div className="flex items-center gap-3"><div className="size-9 rounded-full animate-pulse" style={{background:T.grayLt}}/><div className="h-3 w-28 rounded animate-pulse" style={{background:T.grayLt}}/></div>
+              {[1,2,3,4,5].map(j=><div key={j} className="h-3 rounded animate-pulse" style={{background:T.grayLt}}/>)}
+            </div>
+          ))
+        ):data.length===0?(
+          <div className="py-16 flex flex-col items-center gap-2">
+            <DollarSign size={36} color={T.grayMid}/>
+            <p className="text-[13px] font-semibold" style={{color:T.gray}}>No hay horas aprobadas en este período</p>
+          </div>
         ):(
           <>
-            <div className="hidden md:grid grid-cols-6 gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest" style={{color:T.gray,background:T.bg}}>
-              <div className="col-span-2">Empleado</div>
-              <div className="text-center">Hrs Reg</div>
-              <div className="text-center">Hrs OT</div>
-              <div className="text-center">Bruto</div>
-              <div className="text-right">Neto</div>
-            </div>
             {data.map((row,i)=>{
               const color=empColor(row.emp,i);
+              const base=row.hours*row.emp.hourly_rate;
+              const extras=row.overtime*row.emp.hourly_rate*1.5;
+              const hasOT=row.overtime>0;
               return(
-                <div key={row.emp.id} className="rounded-2xl overflow-hidden" style={CARD}>
-                  <div className="hidden md:grid grid-cols-6 gap-2 items-center px-4 py-4">
-                    <div className="col-span-2 flex items-center gap-3">
-                      <div className="size-10 rounded-[12px] flex items-center justify-center text-sm font-bold text-white shrink-0" style={{background:color}}>{empInitials(row.emp)}</div>
-                      <div><p className="text-[13px] font-bold" style={{color:T.black}}>{empName(row.emp)}</p><p className="text-xs" style={{color:T.gray}}>${row.emp.hourly_rate}/hr · {row.emp.job_title??'—'}</p></div>
+                <div key={row.emp.id} className="grid px-5 py-3.5 items-center hover:bg-[#FAFAFA] transition-colors" style={{gridTemplateColumns:'2fr 1.2fr 0.8fr 1.2fr 1.2fr 1fr',borderBottom:i<data.length-1?`1px solid ${T.border}`:'none'}}>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="size-9 rounded-full flex items-center justify-center text-[12px] font-bold text-white shrink-0" style={{background:color}}>{empInitials(row.emp)}</div>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-semibold truncate" style={{color:T.black}}>{empName(row.emp)}</p>
+                      <p className="text-[10px]" style={{color:T.grayMid}}>ID: TM-{row.emp.id.slice(0,4).toUpperCase()}</p>
                     </div>
-                    <div className="text-center"><span className="text-[13px] font-bold" style={{color:T.black}}>{fmtHours(row.hours)}</span></div>
-                    <div className="text-center"><span className="text-[13px] font-bold" style={{color:row.overtime>0?T.amber:T.grayMid}}>{fmtHours(row.overtime)}</span></div>
-                    <div className="text-center"><span className="text-[13px] font-bold" style={{color:T.black}}>${row.gross.toFixed(2)}</span></div>
-                    <div className="text-right"><span className="text-[18px] font-black font-mono" style={{color:T.violet}}>${row.net.toFixed(2)}</span></div>
                   </div>
-                  <div className="md:hidden">
-                    <div className="flex items-center gap-3 px-4 py-4">
-                      <div className="size-12 rounded-[14px] flex items-center justify-center text-base font-bold text-white shrink-0" style={{background:color}}>{empInitials(row.emp)}</div>
-                      <div className="flex-1 min-w-0"><p className="text-[14px] font-bold" style={{color:T.black}}>{empName(row.emp)}</p><p className="text-xs" style={{color:T.gray}}>${row.emp.hourly_rate}/hr</p></div>
-                      <div className="text-right"><p className="text-[10px] font-semibold" style={{color:T.gray}}>Neto</p><p className="text-xl font-black font-mono" style={{color:T.violet}}>${row.net.toFixed(2)}</p></div>
-                    </div>
-                    <div className="mx-3 mb-3 px-3 py-2.5 rounded-xl flex items-center gap-2" style={{background:T.bg}}>
-                      {[{label:`Reg ${fmtHours(row.hours)}`,color:T.green},{label:`OT ${fmtHours(row.overtime)}`,color:T.amber},{label:`Ded -$${row.deductions.toFixed(0)}`,color:T.red}].map(({label,color})=>(
-                        <span key={label} className="text-[10px] font-bold px-2 py-1 rounded-md flex-1 text-center" style={{background:`${color}15`,color}}>{label}</span>
-                      ))}
-                    </div>
+                  <div>{row.emp.job_title?<span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{background:`${color}18`,color}}>{row.emp.job_title}</span>:<span style={{color:T.grayMid}}>—</span>}</div>
+                  <div>
+                    <p className="text-[13px] font-bold" style={{color:T.black}}>{(row.hours+row.overtime).toFixed(1)}</p>
+                    <p className="text-[10px]" style={{color:T.grayMid}}>hrs</p>
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-semibold" style={{color:T.black}}>${base.toFixed(2)}</p>
+                    {hasOT&&<p className="text-[10px] font-semibold" style={{color:T.amber}}>+ ${extras.toFixed(2)} extras</p>}
+                    {!hasOT&&<p className="text-[10px]" style={{color:T.grayMid}}>$0.00 extras</p>}
+                  </div>
+                  <p className="text-[15px] font-black font-mono" style={{color:T.blue}}>${row.net.toFixed(2)}</p>
+                  <div>
+                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-full" style={{background:processed?T.greenLt:T.amberLt,color:processed?T.green:T.amber}}>
+                      {processed?'VALIDADO':'PENDIENTE'}
+                    </span>
                   </div>
                 </div>
               );
             })}
-            <div className="hidden md:grid grid-cols-6 gap-2 items-center px-4 py-3 rounded-2xl" style={{background:T.black}}>
-              <div className="col-span-2 text-sm font-bold text-white">Total ({data.length} empleados)</div>
-              <div className="text-center text-sm font-bold text-white">{fmtHours(data.reduce((s,r)=>s+r.hours,0))}</div>
-              <div className="text-center text-sm font-bold" style={{color:T.amber}}>{fmtHours(data.reduce((s,r)=>s+r.overtime,0))}</div>
-              <div className="text-center text-sm font-bold text-white">${totals.gross.toFixed(2)}</div>
-              <div className="text-right text-lg font-black font-mono" style={{color:'#A78BFA'}}>${totals.net.toFixed(2)}</div>
+            {/* Totals row */}
+            <div className="grid px-5 py-3.5 items-center" style={{gridTemplateColumns:'2fr 1.2fr 0.8fr 1.2fr 1.2fr 1fr',background:SB2}}>
+              <p className="text-[13px] font-bold text-white">Total — {data.length} empleado{data.length!==1?'s':''}</p>
+              <div/>
+              <p className="text-[13px] font-bold text-white">{fmtHours(data.reduce((s,r)=>s+r.hours+r.overtime,0))}</p>
+              <p className="text-[13px] font-bold text-white">${totals.gross.toFixed(2)}</p>
+              <p className="text-[15px] font-black font-mono" style={{color:'#93C5FD'}}>${totals.net.toFixed(2)}</p>
+              <div/>
             </div>
           </>
         )}
