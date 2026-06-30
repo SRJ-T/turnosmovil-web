@@ -1230,6 +1230,22 @@ function ApprovalsView({bizId}:{bizId:string}) {
   return (
     <div className="p-5 lg:p-6 space-y-5 max-w-screen-xl mx-auto w-full">
 
+      {/* Tab header bar — like Nómina */}
+      <div className="flex items-center justify-between">
+        <div/>
+        <div className="flex rounded-xl overflow-hidden" style={{border:`1px solid ${T.border}`}}>
+          {tabs.map(({key,label,count,color})=>{
+            const sel=tab===key;
+            return(
+              <button key={key} onClick={()=>setTab(key)} className="h-9 px-5 text-[13px] font-bold transition-all flex items-center gap-1.5" style={{background:sel?color:T.white,color:sel?T.white:T.gray}}>
+                {label}
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{background:sel?'rgba(255,255,255,0.25)':T.border,color:sel?T.white:T.gray}}>{count}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Stat cards */}
       <div className="grid grid-cols-4 gap-4">
         <div className="rounded-2xl p-4" style={CARD}>
@@ -1275,22 +1291,6 @@ function ApprovalsView({bizId}:{bizId:string}) {
           <p className="text-[26px] font-black text-white leading-tight">↺</p>
           <p className="text-[11px] mt-1 text-white opacity-80">Actualizar datos</p>
         </button>
-      </div>
-
-      {/* Tab header bar — like Nómina */}
-      <div className="flex items-center justify-between">
-        <div/>
-        <div className="flex rounded-xl overflow-hidden" style={{border:`1px solid ${T.border}`}}>
-          {tabs.map(({key,label,count,color})=>{
-            const sel=tab===key;
-            return(
-              <button key={key} onClick={()=>setTab(key)} className="h-9 px-5 text-[13px] font-bold transition-all flex items-center gap-1.5" style={{background:sel?color:T.white,color:sel?T.white:T.gray}}>
-                {label}
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{background:sel?'rgba(255,255,255,0.25)':T.border,color:sel?T.white:T.gray}}>{count}</span>
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       {/* Main row */}
