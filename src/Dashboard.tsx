@@ -458,7 +458,7 @@ function TeamView({bizId}:{bizId:string}) {
   const previewInitials=`${form.name?form.name[0]:''}${form.last_name?form.last_name[0]:''}`.toUpperCase()||'?';
 
   if(pageView==='form') return (
-    <motion.div initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} className="p-5 lg:p-6 max-w-screen-xl">
+    <motion.div initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} className="p-5 lg:p-6 max-w-screen-xl mx-auto w-full">
       {/* Breadcrumb + actions */}
       <div className="flex items-center justify-between mb-1">
         <nav className="flex items-center gap-1.5 text-[12px]" style={{color:T.grayMid}}>
@@ -778,7 +778,7 @@ function TurnosView({bizId}:{bizId:string}) {
 
   const SB2='#0f1f5c';
   return (
-    <div className="space-y-5 max-w-screen-xl">
+    <div className="space-y-5 max-w-screen-xl mx-auto w-full">
 
       {/* Sticky sub-header */}
       <div className="sticky top-14 z-10 px-5 lg:px-6 pt-2 pb-2" style={{background:T.bg,borderBottom:`1px solid ${T.border}`}}>
@@ -1579,7 +1579,7 @@ function PayrollView({bizId}:{bizId:string}) {
   };
 
   return (
-    <div className="p-5 lg:p-6 max-w-screen-xl space-y-5">
+    <div className="p-5 lg:p-6 max-w-screen-xl mx-auto w-full space-y-5">
       {/* Top row: period + tabs + procesar */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
