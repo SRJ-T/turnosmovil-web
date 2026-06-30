@@ -1269,10 +1269,10 @@ function ApprovalsView({bizId}:{bizId:string}) {
       </div>
 
       {/* Main row */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+      <div className="flex flex-col gap-4">
 
         {/* Table */}
-        <div className="lg:col-span-3 rounded-2xl overflow-hidden" style={CARD}>
+        <div className="rounded-2xl overflow-hidden" style={CARD}>
           <div className="flex items-center justify-between px-5 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
             {/* Tabs */}
             <div className="flex gap-1 p-1 rounded-xl" style={{background:T.bg,border:`1px solid ${T.border}`}}>
@@ -1372,8 +1372,8 @@ function ApprovalsView({bizId}:{bizId:string}) {
           )}
         </div>
 
-        {/* Right panel */}
-        <div className="space-y-4">
+        {/* Bottom widgets row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
           {/* Progress rings */}
           <div className="rounded-2xl p-4" style={CARD}>
@@ -1468,11 +1468,12 @@ function ApprovalsView({bizId}:{bizId:string}) {
             })()}
           </div>
 
-          {/* Refresh button */}
-          <button onClick={load} className="w-full flex items-center justify-center gap-2 h-9 rounded-xl text-[12px] font-semibold transition-all" style={{border:`1px solid ${T.border}`,color:T.gray,background:T.white}}>
-            <RefreshCw size={13}/> Actualizar datos
-          </button>
         </div>
+
+        {/* Refresh button */}
+        <button onClick={load} className="w-full flex items-center justify-center gap-2 h-9 rounded-xl text-[12px] font-semibold transition-all" style={{border:`1px solid ${T.border}`,color:T.gray,background:T.white}}>
+          <RefreshCw size={13}/> Actualizar datos
+        </button>
       </div>
 
       {/* Approve-all confirm modal */}
