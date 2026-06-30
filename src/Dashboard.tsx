@@ -893,11 +893,12 @@ function TurnosView({bizId}:{bizId:string}) {
             ))}
           </div>
           {(()=>{
+            const entryDay=(ci:string)=>isoDate(new Date(ci.replace(/\+00(:\d{2})?$/,'+00:00').replace(' ','T')));
             const activeList=[
-              ...liveEntries.map((e:any)=>({...e,_live:true})),
-              ...queueEntries.filter(e=>e.status==='pending'||e.status==='approved'||e.status==='paid'),
+              ...liveEntries.filter((e:any)=>entryDay(e.clock_in)===selectedDate).map((e:any)=>({...e,_live:true})),
+              ...queueEntries.filter(e=>(e.status==='pending'||e.status==='approved'||e.status==='paid')&&entryDay(e.clock_in)===selectedDate),
             ];
-            const rejectedList=queueEntries.filter(e=>e.status==='rejected');
+            const rejectedList=queueEntries.filter(e=>e.status==='rejected'&&entryDay(e.clock_in)===selectedDate);
             const list=queueTab==='active'?activeList:rejectedList;
             if(list.length===0) return(
               <div className="py-12 flex flex-col items-center gap-2">
