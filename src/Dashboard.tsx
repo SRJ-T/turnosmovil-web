@@ -1232,7 +1232,9 @@ function ApprovalsView({bizId}:{bizId:string}) {
 
       {/* Tab header bar — like Nómina */}
       <div className="flex items-center justify-between">
-        <div/>
+        <button onClick={load} className="h-9 px-5 rounded-xl text-[13px] font-bold text-white flex items-center gap-2" style={{background:T.green}}>
+          <RefreshCw size={14}/>Actualizar datos
+        </button>
         <div className="flex rounded-xl overflow-hidden" style={{border:`1px solid ${T.border}`}}>
           {tabs.map(({key,label,count,color})=>{
             const sel=tab===key;
@@ -1247,7 +1249,7 @@ function ApprovalsView({bizId}:{bizId:string}) {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <div className="rounded-2xl p-4" style={CARD}>
           <div className="flex items-center justify-between mb-2">
             <p className="text-[11px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>Pendientes</p>
@@ -1283,14 +1285,6 @@ function ApprovalsView({bizId}:{bizId:string}) {
           <p className="text-[11px] mt-1" style={{color:T.grayMid}}>{history.length} marcaciones</p>
         </div>
 
-        <button onClick={load} className="rounded-2xl p-4 text-left transition-all hover:opacity-90" style={{...CARD,background:T.green,border:`1px solid ${T.green}`}}>
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-white opacity-80">Sincronizar</p>
-            <div className="size-8 rounded-lg flex items-center justify-center" style={{background:'rgba(255,255,255,0.2)'}}><RefreshCw size={14} color="#fff"/></div>
-          </div>
-          <p className="text-[26px] font-black text-white leading-tight">↺</p>
-          <p className="text-[11px] mt-1 text-white opacity-80">Actualizar datos</p>
-        </button>
       </div>
 
       {/* Main row */}
