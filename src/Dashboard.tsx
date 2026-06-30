@@ -1231,49 +1231,49 @@ function ApprovalsView({bizId}:{bizId:string}) {
     <div className="p-5 lg:p-6 space-y-5 max-w-screen-xl mx-auto w-full">
 
       {/* Stat cards */}
-      <div className="grid grid-cols-4 gap-3">
-        <div className="rounded-xl px-4 py-3 flex items-center gap-3" style={{...CARD,border:`1px solid ${T.amber}40`}}>
-          <div className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:T.amberLt}}><AlertTriangle size={14} color={T.amber}/></div>
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold tracking-widest uppercase truncate" style={{color:T.grayMid}}>Pendientes</p>
-            {loading?<div className="h-5 w-8 rounded animate-pulse mt-0.5" style={{background:T.grayLt}}/>:(
-              <p className="text-xl font-black leading-tight" style={{color:T.black}}>{pending.length}</p>
-            )}
-            <p className="text-[10px] truncate" style={{color:pending.length>0?T.amber:T.grayMid}}>{pending.length>0?'Requiere acción':'Al día'}</p>
+      <div className="grid grid-cols-4 gap-4">
+        <div className="rounded-2xl p-4" style={CARD}>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[11px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>Pendientes</p>
+            <div className="size-8 rounded-lg flex items-center justify-center" style={{background:T.amberLt}}><AlertTriangle size={14} color={T.amber}/></div>
           </div>
+          {loading?<div className="h-7 w-8 rounded animate-pulse" style={{background:T.grayLt}}/>:(
+            <p className="text-[26px] font-black leading-tight" style={{color:T.black}}>{pending.length}</p>
+          )}
+          <p className="text-[11px] mt-1" style={{color:pending.length>0?T.amber:T.grayMid}}>{pending.length>0?'Requiere acción':'Al día'}</p>
         </div>
 
-        <div className="rounded-xl px-4 py-3 flex items-center gap-3" style={{...CARD,border:`1px solid ${T.red}30`}}>
-          <div className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:T.redLt}}>
-            <span className="size-2.5 rounded-full animate-pulse" style={{background:T.red}}/>
+        <div className="rounded-2xl p-4" style={CARD}>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[11px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>Activos ahora</p>
+            <div className="size-8 rounded-lg flex items-center justify-center" style={{background:T.redLt}}>
+              <span className="size-2.5 rounded-full animate-pulse" style={{background:T.red}}/>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold tracking-widest uppercase" style={{color:T.grayMid}}>Activos ahora</p>
-            {loading?<div className="h-5 w-8 rounded animate-pulse mt-0.5" style={{background:T.grayLt}}/>:(
-              <p className="text-xl font-black leading-tight" style={{color:T.black}}>{active.length}</p>
-            )}
-            <p className="text-[10px]" style={{color:T.grayMid}}>{active.length>0?'En turno':'Nadie activo'}</p>
-          </div>
+          {loading?<div className="h-7 w-8 rounded animate-pulse" style={{background:T.grayLt}}/>:(
+            <p className="text-[26px] font-black leading-tight" style={{color:T.black}}>{active.length}</p>
+          )}
+          <p className="text-[11px] mt-1" style={{color:T.grayMid}}>{active.length>0?'En turno':'Nadie activo'}</p>
         </div>
 
-        <div className="rounded-xl px-4 py-3 flex items-center gap-3" style={CARD}>
-          <div className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:T.greenLt}}><CheckCircle2 size={14} color={T.green}/></div>
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold tracking-widest uppercase" style={{color:T.grayMid}}>Aprobadas</p>
-            {loading?<div className="h-5 w-16 rounded animate-pulse mt-0.5" style={{background:T.grayLt}}/>:(
-              <p className="text-xl font-black leading-tight" style={{color:T.black}}>{fmtHours(approvedHrs)}</p>
-            )}
-            <p className="text-[10px]" style={{color:T.grayMid}}>{history.length} marcaciones</p>
+        <div className="rounded-2xl p-4" style={CARD}>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[11px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>Aprobadas</p>
+            <div className="size-8 rounded-lg flex items-center justify-center" style={{background:T.greenLt}}><CheckCircle2 size={14} color={T.green}/></div>
           </div>
+          {loading?<div className="h-7 w-16 rounded animate-pulse" style={{background:T.grayLt}}/>:(
+            <p className="text-[26px] font-black leading-tight" style={{color:T.black}}>{fmtHours(approvedHrs)}</p>
+          )}
+          <p className="text-[11px] mt-1" style={{color:T.grayMid}}>{history.length} marcaciones</p>
         </div>
 
-        <button onClick={load} className="rounded-xl px-4 py-3 flex items-center gap-3 w-full transition-all hover:opacity-90" style={{...CARD,background:T.green,border:`1px solid ${T.green}`}}>
-          <div className="size-8 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(255,255,255,0.2)'}}><RefreshCw size={14} color="#fff"/></div>
-          <div className="min-w-0 text-left">
-            <p className="text-[10px] font-bold tracking-widest uppercase text-white opacity-80">Sincronizar</p>
-            <p className="text-[13px] font-bold text-white leading-tight">Actualizar</p>
-            <p className="text-[10px] text-white opacity-70">datos</p>
+        <button onClick={load} className="rounded-2xl p-4 text-left transition-all hover:opacity-90" style={{...CARD,background:T.green,border:`1px solid ${T.green}`}}>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-white opacity-80">Sincronizar</p>
+            <div className="size-8 rounded-lg flex items-center justify-center" style={{background:'rgba(255,255,255,0.2)'}}><RefreshCw size={14} color="#fff"/></div>
           </div>
+          <p className="text-[26px] font-black text-white leading-tight">↺</p>
+          <p className="text-[11px] mt-1 text-white opacity-80">Actualizar datos</p>
         </button>
       </div>
 
