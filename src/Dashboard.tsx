@@ -254,7 +254,7 @@ function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string
   const SB='#0f1f5c';
 
   return (
-    <div className="p-5 lg:p-6 space-y-5 max-w-screen-xl">
+    <div className="p-5 lg:p-6 space-y-5 max-w-screen-xl mx-auto w-full">
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -1228,7 +1228,7 @@ function ApprovalsView({bizId}:{bizId:string}) {
   const visibleList=filtered(curList as ClockEntry[]);
 
   return (
-    <div className="p-5 lg:p-6 space-y-5 max-w-screen-xl">
+    <div className="p-5 lg:p-6 space-y-5 max-w-screen-xl mx-auto w-full">
 
       {/* Stat cards */}
       <div className="grid grid-cols-3 gap-3">
