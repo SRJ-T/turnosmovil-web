@@ -1277,25 +1277,28 @@ function ApprovalsView({bizId}:{bizId:string}) {
         </button>
       </div>
 
+      {/* Tab header bar — like Nómina */}
+      <div className="flex items-center justify-between">
+        <div/>
+        <div className="flex rounded-xl overflow-hidden" style={{border:`1px solid ${T.border}`}}>
+          {tabs.map(({key,label,count,color})=>{
+            const sel=tab===key;
+            return(
+              <button key={key} onClick={()=>setTab(key)} className="h-9 px-5 text-[13px] font-bold transition-all flex items-center gap-1.5" style={{background:sel?color:T.white,color:sel?T.white:T.gray}}>
+                {label}
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{background:sel?'rgba(255,255,255,0.25)':T.border,color:sel?T.white:T.gray}}>{count}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Main row */}
       <div className="flex flex-col gap-4">
 
         {/* Table */}
         <div className="rounded-2xl overflow-hidden" style={CARD}>
           <div className="flex items-center justify-between px-5 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
-            {/* Tabs */}
-            <div className="flex gap-1 p-1 rounded-xl" style={{background:T.bg,border:`1px solid ${T.border}`}}>
-              {tabs.map(({key,label,count,color})=>{
-                const sel=tab===key;
-                return(
-                  <button key={key} onClick={()=>setTab(key)} className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5"
-                    style={{background:sel?color:'transparent',color:sel?T.white:T.gray}}>
-                    {label}
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{background:sel?'rgba(255,255,255,0.25)':T.border,color:sel?T.white:T.gray}}>{count}</span>
-                  </button>
-                );
-              })}
-            </div>
             <div className="flex items-center gap-2">
               {tab==='history'&&(
                 <>
