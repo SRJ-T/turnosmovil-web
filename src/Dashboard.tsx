@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import type { Session } from '@supabase/supabase-js';
 import {
   LayoutDashboard, Calendar as CalendarIcon, Users, DollarSign, Settings,
@@ -1304,7 +1306,29 @@ function ApprovalsView({bizId}:{bizId:string}) {
                   }} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.green,background:T.greenLt}}>
                     <BarChart3 size={12}/>Export Excel
                   </button>
-                  <button className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.red,background:T.redLt}}>
+                  <button onClick={()=>{
+                    const doc=new jsPDF();
+                    doc.setFontSize(16);doc.setTextColor(15,31,92);
+                    doc.text('Historial de Horas',14,16);
+                    doc.setFontSize(9);doc.setTextColor(120,120,120);
+                    doc.text(`Generado: ${new Date().toLocaleDateString('es-PR')}`,14,22);
+                    autoTable(doc,{
+                      startY:28,
+                      head:[['Empleado','Fecha','Entrada','Salida','Horas','Estado']],
+                      body:visibleList.map(e=>[
+                        empName(e.employee),
+                        new Date(e.clock_in.replace(/\+00(:\d{2})?$/,'+00:00').replace(' ','T')).toLocaleDateString('es-PR'),
+                        new Date(e.clock_in.replace(/\+00(:\d{2})?$/,'+00:00').replace(' ','T')).toLocaleTimeString('es-PR',{hour:'2-digit',minute:'2-digit'}),
+                        e.clock_out?new Date(e.clock_out.replace(/\+00(:\d{2})?$/,'+00:00').replace(' ','T')).toLocaleTimeString('es-PR',{hour:'2-digit',minute:'2-digit'}):'—',
+                        diffHours(e.clock_in,e.clock_out??'').toFixed(1)+'h',
+                        e.status==='approved'?'Aprobado':e.status==='rejected'?'Rechazado':'Pendiente',
+                      ]),
+                      headStyles:{fillColor:[15,31,92],textColor:255,fontSize:9,fontStyle:'bold'},
+                      bodyStyles:{fontSize:9},
+                      alternateRowStyles:{fillColor:[245,245,247]},
+                    });
+                    doc.save('historial_horas.pdf');
+                  }} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.red,background:T.redLt}}>
                     <ClipboardCheck size={12}/>Export PDF
                   </button>
                 </>
@@ -1645,7 +1669,33 @@ function PayrollView({bizId}:{bizId:string}) {
             <button onClick={exportCSV} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.green,background:T.greenLt}}>
               <BarChart3 size={12}/>Export Excel
             </button>
-            <button onClick={()=>{}} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.red,background:T.redLt}}>
+            <button onClick={()=>{
+              const doc=new jsPDF();
+              doc.setFontSize(16);doc.setTextColor(15,31,92);
+              doc.text('Nómina — '+periodLabel,14,16);
+              doc.setFontSize(9);doc.setTextColor(120,120,120);
+              doc.text(`Generado: ${new Date().toLocaleDateString('es-PR')}`,14,22);
+              autoTable(doc,{
+                startY:28,
+                head:[['Empleado','ID','Puesto','Horas','Base','Extras','Total','Estado']],
+                body:data.map(r=>[
+                  `${r.employee.name??''} ${r.employee.last_name??''}`.trim(),
+                  r.employee.employee_id??'—',
+                  r.employee.job_title??'—',
+                  r.totalHours.toFixed(1)+'h',
+                  '$'+r.gross.toFixed(2),
+                  '$'+r.overtime.toFixed(2),
+                  '$'+r.net.toFixed(2),
+                  processed?'VALIDADO':'PENDIENTE',
+                ]),
+                foot:[['Total','','',data.reduce((a,r)=>a+r.totalHours,0).toFixed(1)+'h','$'+totals.gross.toFixed(2),'','$'+totals.net.toFixed(2),'']],
+                headStyles:{fillColor:[15,31,92],textColor:255,fontSize:9,fontStyle:'bold'},
+                footStyles:{fillColor:[15,31,92],textColor:255,fontSize:9,fontStyle:'bold'},
+                bodyStyles:{fontSize:9},
+                alternateRowStyles:{fillColor:[245,245,247]},
+              });
+              doc.save(`nomina_${periodLabel.replace(/\s/g,'_')}.pdf`);
+            }} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.red,background:T.redLt}}>
               <ClipboardCheck size={12}/>Export PDF
             </button>
           </div>
