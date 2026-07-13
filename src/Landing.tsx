@@ -6,7 +6,7 @@ import {
   ShieldCheck, Star, ChevronDown, Smartphone, MessageCircle,
   Coffee, ShoppingBag, Scissors, Store, Loader2,
   ArrowRight, Zap, BarChart3, ClipboardCheck, ChevronRight,
-  Globe, Play
+  Globe, Play, Palmtree, Wallet, Bot, Bell, FileText, Umbrella
 } from 'lucide-react';
 
 // ─── Brand tokens (matching Homebase-level professionalism) ──────────────────
@@ -367,12 +367,18 @@ export default function Landing() {
 
           <div className="grid md:grid-cols-2 gap-6">
             {[
-              { icon: Calendar,      color: B.blue,   bg: B.blueLt,  title: 'Horarios inteligentes', desc: 'Crea turnos en segundos. Publica con un toque. Tus empleados los reciben en su teléfono al instante.' },
-              { icon: Smartphone,    color: B.green,  bg: B.greenLt, title: 'Marcado de asistencia móvil', desc: 'Clock In/Out desde el celular con GPS. Sin relojes de tarjeta, sin fraudes, sin problemas.' },
+              { icon: Calendar,      color: B.blue,    bg: B.blueLt,   title: 'Horarios inteligentes', desc: 'Crea turnos en segundos. Publica con un toque. Tus empleados los reciben en su teléfono al instante.' },
+              { icon: Smartphone,    color: B.green,   bg: B.greenLt,  title: 'Marcado de asistencia móvil', desc: 'Clock In/Out desde el celular con GPS. Sin relojes de tarjeta, sin fraudes, sin problemas.' },
               { icon: DollarSign,    color: '#7C3AED', bg: '#EDE9FE',  title: 'Nómina automática', desc: 'El sistema calcula horas regulares, horas extras y deducciones. Listo para pagar en minutos.' },
               { icon: ShieldCheck,   color: '#D97706', bg: '#FEF3C7',  title: 'Trimestrales a un clic', desc: 'Genera reportes SURI, DTRH y SINOT automáticamente. Cumple con la ley sin contratar a nadie.' },
               { icon: ClipboardCheck,color: '#0891B2', bg: '#E0F2FE',  title: 'Aprobación de hojas de horas', desc: 'Revisa, ajusta y aprueba las horas de cada empleado. Historial completo y auditable.' },
               { icon: BarChart3,     color: '#059669', bg: '#D1FAE5',  title: 'Reportes y análisis', desc: 'Visualiza costos de personal, horas extras y productividad por semana, mes o trimestre.' },
+              { icon: Palmtree,      color: '#0D9488', bg: '#CCFBF1',  title: 'Días Feriados de PR', desc: 'Selecciona cuáles días feriados pagas. El sistema los contempla automáticamente en la nómina.' },
+              { icon: Umbrella,      color: '#7C3AED', bg: '#EDE9FE',  title: 'Licencias, Vacaciones y Enfermedad', desc: 'Aprueba solicitudes de licencia. Las horas aprobadas se incluyen automáticamente al procesar la nómina.' },
+              { icon: FileText,      color: '#0D225C', bg: '#EFF6FF',  title: 'W2 y 499R-4.1', desc: 'Genera el W2 anual y el formulario 499R-4.1 de retención para tus empleados desde la misma plataforma.' },
+              { icon: Wallet,        color: '#D97706', bg: '#FEF3C7',  title: 'Gastos del Negocio', desc: 'Registra y categoriza los gastos de tu operación. Lleva el control de lo que entra y lo que sale.' },
+              { icon: Bot,           color: '#6366F1', bg: '#EEF2FF',  title: 'Asistente AI', desc: 'Pregúntale al asistente inteligente sobre nómina, feriados, licencias o reportes. Respuestas al instante.' },
+              { icon: Bell,          color: '#059669', bg: '#D1FAE5',  title: 'Notificaciones push', desc: 'Tus empleados reciben alertas de nuevos turnos, cambios de horario y recordatorios en tiempo real.' },
             ].map(({ icon: Icon, color, bg, title, desc }) => (
               <div key={title} className="flex gap-5 p-6 rounded-2xl border transition-all hover:shadow-md hover:border-blue-200 group" style={{ background: 'white', borderColor: B.border }}>
                 <div className="size-12 rounded-2xl flex items-center justify-center shrink-0" style={{ background: bg }}>
