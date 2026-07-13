@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { Session } from '@supabase/supabase-js';
@@ -8,7 +8,8 @@ import {
   CheckCircle2, XCircle, ChevronLeft, ChevronRight, Clock,
   UserPlus, AlertTriangle, Trash2, Search, BarChart3,
   MinusCircle, LogOut, RefreshCw,
-  Send, Pencil
+  Send, Pencil, Palmtree, Umbrella, Wallet, Bot, MessageSquare,
+  ChevronDown, Tag, Receipt
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase, diffHours } from './lib/supabase';
@@ -83,9 +84,9 @@ function StatusChip({status}:{status:string}) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 export default function Dashboard({session}:{session:Session}) {
-  const TAB_SLUG:Record<string,string>={dashboard:'',calendar:'horario',approvals:'horas',team:'personal',payroll:'nomina',reports:'reportes',settings:'configuracion'};
-  const SLUG_TAB:Record<string,string>={'':'dashboard',horario:'calendar',horas:'approvals',personal:'team',nomina:'payroll',reportes:'reports',configuracion:'settings'};
-  const TAB_LABEL:Record<string,string>={dashboard:'Dashboard',calendar:'Turnos',approvals:'Horas',team:'Personal',payroll:'Nómina',reports:'Reportes',settings:'Configuración'};
+  const TAB_SLUG:Record<string,string>={dashboard:'',calendar:'horario',approvals:'horas',team:'personal',payroll:'nomina',reports:'reportes',feriados:'feriados',licencias:'licencias',gastos:'gastos',asistente:'asistente',settings:'configuracion'};
+  const SLUG_TAB:Record<string,string>={'':'dashboard',horario:'calendar',horas:'approvals',personal:'team',nomina:'payroll',reportes:'reports',feriados:'feriados',licencias:'licencias',gastos:'gastos',asistente:'asistente',configuracion:'settings'};
+  const TAB_LABEL:Record<string,string>={dashboard:'Dashboard',calendar:'Turnos',approvals:'Horas',team:'Personal',payroll:'Nómina',reports:'Reportes',feriados:'Días Feriados',licencias:'Licencias',gastos:'Gastos',asistente:'Asistente AI',settings:'Configuración'};
   const initTab=(()=>{const parts=window.location.pathname.split('/');const slug=parts[2]??'';return SLUG_TAB[slug]??'dashboard';})();
   const [activeTab,setActiveTab] = useState(initTab);
   const [sidebarOpen,setSidebarOpen] = useState(false);
@@ -118,6 +119,10 @@ export default function Dashboard({session}:{session:Session}) {
         <div className="pt-3 pb-1 px-2"><p className="text-[9px] font-semibold uppercase tracking-widest" style={{color:`rgba(255,255,255,0.25)`}}>Gestión</p></div>
         <NavItem icon={DollarSign}     label="Nómina"        active={activeTab==='payroll'}   onClick={()=>{navigate('payroll');setSidebarOpen(false)}} color={NAV.payroll}/>
         <NavItem icon={BarChart3}      label="Reportes"      active={activeTab==='reports'}   onClick={()=>{navigate('reports');setSidebarOpen(false)}} color={NAV.reports}/>
+        <NavItem icon={Palmtree}       label="Días Feriados" active={activeTab==='feriados'}  onClick={()=>{navigate('feriados');setSidebarOpen(false)}} color='#0D9488'/>
+        <NavItem icon={Umbrella}       label="Licencias"     active={activeTab==='licencias'} onClick={()=>{navigate('licencias');setSidebarOpen(false)}} color={T.violet}/>
+        <NavItem icon={Wallet}         label="Gastos"        active={activeTab==='gastos'}    onClick={()=>{navigate('gastos');setSidebarOpen(false)}} color={T.amber}/>
+        <NavItem icon={Bot}            label="Asistente AI"  active={activeTab==='asistente'} onClick={()=>{navigate('asistente');setSidebarOpen(false)}} color={T.indigo}/>
         <NavItem icon={Settings}       label="Configuración" active={activeTab==='settings'}  onClick={()=>{navigate('settings');setSidebarOpen(false)}} color={NAV.settings}/>
       </div>
       <div className="p-3" style={{borderTop:`1px solid rgba(255,255,255,0.08)`}}>
@@ -161,6 +166,10 @@ export default function Dashboard({session}:{session:Session}) {
               {activeTab==='approvals' && <ApprovalsView bizId={bizId}/>}
               {activeTab==='payroll'   && <PayrollView bizId={bizId}/>}
               {activeTab==='reports'   && <ReportsView bizId={bizId}/>}
+              {activeTab==='feriados'  && <FeriadosView bizId={bizId}/>}
+              {activeTab==='licencias' && <LicenciasView bizId={bizId}/>}
+              {activeTab==='gastos'    && <GastosView bizId={bizId}/>}
+              {activeTab==='asistente' && <AsistenteView/>}
               {activeTab==='settings'  && <SettingsView bizId={bizId}/>}
             </motion.div>
           )}
@@ -2313,6 +2322,517 @@ function W2Tab({bizId}:{bizId:string}) {
           )}
         </>
       )}
+    </div>
+  );
+}
+
+// ─── DÍAS FERIADOS ────────────────────────────────────────────────────────────
+const PR_HOLIDAYS=[
+  {key:'anio_nuevo',       name:'Año Nuevo',              date:'1 ene'},
+  {key:'reyes',            name:'Día de Reyes',           date:'6 ene'},
+  {key:'natalicio_eugenio',name:'Natalicio Eugenio M.deHostos',date:'2do lun ene'},
+  {key:'martin_luther',    name:'Natalicio Martin Luther King Jr.',date:'3er lun ene'},
+  {key:'washington',       name:'Natalicio Washington',   date:'3er lun feb'},
+  {key:'abolicion',        name:'Abolición Esclavitud',   date:'22 mar'},
+  {key:'viernes_santo',    name:'Viernes Santo',          date:'Variable'},
+  {key:'jose_de_diego',    name:'Natalicio José de Diego',date:'3er lun abr'},
+  {key:'memorial',         name:'Memorial Day',           date:'Último lun may'},
+  {key:'san_juan',         name:'Natalicio San Juan Bautista',date:'24 jun'},
+  {key:'independencia',    name:'Día de Independencia EE.UU.',date:'4 jul'},
+  {key:'munoz_rivera',     name:'Natalicio Muñoz Rivera', date:'2do lun jul'},
+  {key:'constitucion',     name:'Constitución ELA',       date:'25 jul'},
+  {key:'barbosa',          name:'Natalicio Barbosa',      date:'27 jul'},
+  {key:'labor',            name:'Día del Trabajo',        date:'1er lun sep'},
+  {key:'colon',            name:'Día de la Raza/Colón',   date:'2do lun oct'},
+  {key:'veteranos',        name:'Día de los Veteranos',   date:'11 nov'},
+  {key:'thanksgiving',     name:'Acción de Gracias',      date:'4to jue nov'},
+  {key:'navidad',          name:'Navidad',                date:'25 dic'},
+];
+
+function FeriadosView({bizId}:{bizId:string}) {
+  const [paysHolidays,setPaysHolidays]=useState(false);
+  const [rate,setRate]=useState<1|1.5|2>(1.5);
+  const [paidKeys,setPaidKeys]=useState<Set<string>>(new Set());
+  const [loading,setLoading]=useState(true);
+  const [saving,setSaving]=useState(false);
+  const [saved,setSaved]=useState(false);
+
+  useEffect(()=>{
+    supabase.from('businesses').select('pays_holidays,holiday_pay_rate,paid_holidays').eq('id',bizId).single().then(({data})=>{
+      if(data){
+        setPaysHolidays(!!data.pays_holidays);
+        setRate((data.holiday_pay_rate as 1|1.5|2)||1.5);
+        const raw=data.paid_holidays;
+        if(Array.isArray(raw))setPaidKeys(new Set(raw.map(String)));
+      }
+      setLoading(false);
+    });
+  },[bizId]);
+
+  const toggle=(key:string)=>setPaidKeys(prev=>{const s=new Set(prev);s.has(key)?s.delete(key):s.add(key);return s;});
+  const selectAll=()=>setPaidKeys(new Set(PR_HOLIDAYS.map(h=>h.key)));
+  const selectNone=()=>setPaidKeys(new Set());
+
+  const save=async()=>{
+    setSaving(true);
+    await supabase.from('businesses').update({pays_holidays:paysHolidays,holiday_pay_rate:rate,paid_holidays:[...paidKeys]}).eq('id',bizId);
+    setSaving(false);setSaved(true);setTimeout(()=>setSaved(false),2500);
+  };
+
+  if(loading)return<div className="p-6"><div className="h-64 rounded-2xl animate-pulse" style={{background:'white'}}/></div>;
+
+  return(
+    <div className="p-6 space-y-5 max-w-3xl mx-auto">
+      {/* Toggle card */}
+      <div className="rounded-2xl p-5" style={CARD}>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[15px] font-bold" style={{color:T.black}}>Pago de Días Feriados</p>
+            <p className="text-[12px] mt-0.5" style={{color:T.gray}}>Ley 180 de Puerto Rico — el pago de feriados no es obligatorio, es decisión del patrono.</p>
+          </div>
+          <button onClick={()=>setPaysHolidays(p=>!p)}
+            className="relative w-12 h-6 rounded-full transition-all"
+            style={{background:paysHolidays?'#0D9488':T.grayMid}}>
+            <span className="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all"
+              style={{left:paysHolidays?'calc(100% - 22px)':'2px'}}/>
+          </button>
+        </div>
+      </div>
+
+      {paysHolidays&&(<>
+        {/* Rate */}
+        <div className="rounded-2xl p-5" style={CARD}>
+          <p className="text-[13px] font-bold mb-3" style={{color:T.black}}>Tasa de pago por feriado</p>
+          <div className="flex gap-3">
+            {([1,1.5,2] as const).map(r=>(
+              <button key={r} onClick={()=>setRate(r)}
+                className="flex-1 py-3 rounded-xl text-sm font-bold border-2 transition-all"
+                style={{background:rate===r?'#0D9488':'white',color:rate===r?'white':T.gray,borderColor:rate===r?'#0D9488':T.border}}>
+                {r}x {r===1?'(Regular)':r===1.5?'(Tiempo y medio)':'(Doble)'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Holiday list */}
+        <div className="rounded-2xl overflow-hidden" style={CARD}>
+          <div className="px-5 py-4 flex items-center justify-between" style={{borderBottom:`1px solid ${T.border}`}}>
+            <div>
+              <span className="text-[13px] font-bold" style={{color:T.black}}>Días feriados de PR</span>
+              <span className="ml-2 text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{background:'#CCFBF1',color:'#0D9488'}}>{paidKeys.size} seleccionados</span>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={selectAll} className="text-[11px] font-bold px-3 py-1.5 rounded-lg" style={{background:'#CCFBF1',color:'#0D9488'}}>Todos</button>
+              <button onClick={selectNone} className="text-[11px] font-bold px-3 py-1.5 rounded-lg" style={{background:T.grayLt,color:T.gray}}>Ninguno</button>
+            </div>
+          </div>
+          <div className="divide-y" style={{borderColor:T.border}}>
+            {PR_HOLIDAYS.map(h=>{
+              const checked=paidKeys.has(h.key);
+              return(
+                <button key={h.key} onClick={()=>toggle(h.key)} className="w-full flex items-center gap-4 px-5 py-3 text-left hover:opacity-80 transition-all"
+                  style={{background:checked?'#F0FDFA':'white'}}>
+                  <div className="size-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all"
+                    style={{background:checked?'#0D9488':'white',borderColor:checked?'#0D9488':T.border}}>
+                    {checked&&<CheckCircle2 size={12} color="white" fill="white"/>}
+                  </div>
+                  <span className="flex-1 text-[13px] font-semibold" style={{color:T.black}}>{h.name}</span>
+                  <span className="text-[11px]" style={{color:T.gray}}>{h.date}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </>)}
+
+      <button onClick={save} disabled={saving}
+        className="w-full h-11 rounded-xl font-bold text-white text-[14px] flex items-center justify-center gap-2"
+        style={{background:'#0D9488',opacity:saving?0.7:1}}>
+        {saved?<><CheckCircle2 size={16}/>Guardado</> : saving?'Guardando...':'Guardar cambios'}
+      </button>
+    </div>
+  );
+}
+
+// ─── LICENCIAS ────────────────────────────────────────────────────────────────
+function LicenciasView({bizId}:{bizId:string}) {
+  type LeaveReq={id:string;employee_id:string;type:string;start_date:string;end_date:string;hours_requested:number;approved_hours:number|null;status:string;notes:string|null;employee?:Employee};
+  const [tab,setTab]=useState<'pending'|'approved'|'rejected'>('pending');
+  const [reqs,setReqs]=useState<LeaveReq[]>([]);
+  const [emps,setEmps]=useState<Employee[]>([]);
+  const [loading,setLoading]=useState(true);
+  const [acting,setActing]=useState<string|null>(null);
+
+  const load=useCallback(async()=>{
+    setLoading(true);
+    const[lRes,eRes]=await Promise.all([
+      supabase.from('leave_requests').select('*').eq('business_id',bizId).order('created_at',{ascending:false}),
+      supabase.from('profiles').select('*').eq('business_id',bizId).eq('role','employee'),
+    ]);
+    const empList=(eRes.data??[]) as Employee[];
+    setEmps(empList);
+    const empMap=Object.fromEntries(empList.map(e=>[e.id,e]));
+    setReqs(((lRes.data??[]) as LeaveReq[]).map(r=>({...r,employee:empMap[r.employee_id]})));
+    setLoading(false);
+  },[bizId]);
+
+  useEffect(()=>{load();},[load]);
+
+  const filtered=reqs.filter(r=>r.status===tab);
+
+  const approve=async(r:LeaveReq)=>{
+    setActing(r.id);
+    await supabase.from('leave_requests').update({status:'approved',approved_hours:r.hours_requested}).eq('id',r.id);
+    await load();setActing(null);
+  };
+  const reject=async(r:LeaveReq)=>{
+    setActing(r.id);
+    await supabase.from('leave_requests').update({status:'rejected'}).eq('id',r.id);
+    await load();setActing(null);
+  };
+
+  const typeLabel:Record<string,{label:string;color:string;bg:string}>={
+    vacation:{label:'Vacaciones',color:T.blue,bg:T.blueLt},
+    sick:{label:'Enfermedad',color:T.violet,bg:T.violetLt},
+    personal:{label:'Personal',color:T.amber,bg:T.amberLt},
+  };
+
+  return(
+    <div>
+      <div className="px-6 pt-6 pb-0" style={{background:'white',borderBottom:`1px solid ${T.border}`}}>
+        <h1 className="text-xl font-bold mb-1" style={{color:T.black}}>Licencias</h1>
+        <p className="text-xs mb-4" style={{color:T.gray}}>Solicitudes de vacaciones, enfermedad y licencia personal</p>
+        <div className="flex gap-1.5">
+          {([['pending','Pendientes',T.amber],['approved','Aprobadas',T.green],['rejected','Rechazadas',T.red]] as const).map(([id,label,color])=>(
+            <button key={id} onClick={()=>setTab(id)}
+              className="h-9 px-4 rounded-t-xl text-[12px] font-semibold border-b-2 transition-all"
+              style={{background:tab===id?`${color}12`:'transparent',color:tab===id?color:T.gray,borderBottomColor:tab===id?color:'transparent'}}>
+              {label}
+              {id==='pending'&&reqs.filter(r=>r.status==='pending').length>0&&(
+                <span className="ml-1.5 text-[10px] font-black px-1.5 py-0.5 rounded-full" style={{background:T.amber,color:'white'}}>{reqs.filter(r=>r.status==='pending').length}</span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="p-6 space-y-3">
+        {loading?<>{Array.from({length:3}).map((_,i)=><div key={i} className="h-24 rounded-2xl animate-pulse" style={{background:'white'}}/>)}</>
+        :filtered.length===0?(
+          <div className="rounded-2xl py-14 flex flex-col items-center" style={CARD}>
+            <Umbrella size={36} color={T.grayMid} className="mb-3"/>
+            <p className="text-sm font-semibold" style={{color:T.gray}}>No hay solicitudes {tab==='pending'?'pendientes':tab==='approved'?'aprobadas':'rechazadas'}</p>
+          </div>
+        ):(
+          filtered.map(r=>{
+            const tp=typeLabel[r.type]??{label:r.type,color:T.gray,bg:T.grayLt};
+            const emp=r.employee;
+            const color=emp?empColor(emp,emps.findIndex(e=>e.id===emp.id)):T.gray;
+            return(
+              <div key={r.id} className="rounded-2xl p-5" style={CARD}>
+                <div className="flex items-start gap-4">
+                  <div className="size-10 rounded-full flex items-center justify-center text-[12px] font-bold text-white shrink-0" style={{background:color}}>
+                    {emp?empInitials(emp):'?'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[14px] font-bold" style={{color:T.black}}>{emp?empName(emp):'Empleado'}</span>
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{background:tp.bg,color:tp.color}}>{tp.label}</span>
+                    </div>
+                    <p className="text-[12px] mt-0.5" style={{color:T.gray}}>
+                      {r.start_date} → {r.end_date} · {r.hours_requested}h solicitadas
+                    </p>
+                    {r.notes&&<p className="text-[12px] mt-1 italic" style={{color:T.gray}}>"{r.notes}"</p>}
+                  </div>
+                  {tab==='pending'&&(
+                    <div className="flex gap-2 shrink-0">
+                      <button onClick={()=>approve(r)} disabled={acting===r.id}
+                        className="h-8 px-3 rounded-lg text-[12px] font-bold text-white" style={{background:T.green}}>
+                        {acting===r.id?'...':'Aprobar'}
+                      </button>
+                      <button onClick={()=>reject(r)} disabled={acting===r.id}
+                        className="h-8 px-3 rounded-lg text-[12px] font-bold" style={{background:T.redLt,color:T.red}}>
+                        {acting===r.id?'...':'Rechazar'}
+                      </button>
+                    </div>
+                  )}
+                  {tab==='approved'&&(
+                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0" style={{background:T.greenLt,color:T.green}}>✓ {r.approved_hours??r.hours_requested}h aprobadas</span>
+                  )}
+                  {tab==='rejected'&&(
+                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0" style={{background:T.redLt,color:T.red}}>✗ Rechazada</span>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── GASTOS ───────────────────────────────────────────────────────────────────
+function GastosView({bizId}:{bizId:string}) {
+  type Expense={id:string;description:string;amount:number;category:string;date:string;notes:string|null;created_at:string};
+  const CATS=['Nómina','Inventario','Renta','Utilidades','Mercadeo','Equipo','Seguros','Impuestos','Otro'];
+  const [expenses,setExpenses]=useState<Expense[]>([]);
+  const [loading,setLoading]=useState(true);
+  const [showForm,setShowForm]=useState(false);
+  const [form,setForm]=useState({description:'',amount:'',category:'Otro',date:isoDate(new Date()),notes:''});
+  const [saving,setSaving]=useState(false);
+  const [deleting,setDeleting]=useState<string|null>(null);
+
+  const load=useCallback(async()=>{
+    setLoading(true);
+    const{data}=await supabase.from('expenses').select('*').eq('business_id',bizId).order('date',{ascending:false});
+    setExpenses((data??[]) as Expense[]);
+    setLoading(false);
+  },[bizId]);
+
+  useEffect(()=>{load();},[load]);
+
+  const save=async(e:React.FormEvent)=>{
+    e.preventDefault();setSaving(true);
+    await supabase.from('expenses').insert({business_id:bizId,description:form.description,amount:parseFloat(form.amount),category:form.category,date:form.date,notes:form.notes||null});
+    setForm({description:'',amount:'',category:'Otro',date:isoDate(new Date()),notes:''});
+    setShowForm(false);setSaving(false);load();
+  };
+
+  const del=async(id:string)=>{
+    setDeleting(id);
+    await supabase.from('expenses').delete().eq('id',id);
+    setDeleting(null);load();
+  };
+
+  const total=expenses.reduce((s,e)=>s+e.amount,0);
+  const byCategory:Record<string,number>={};
+  for(const e of expenses)byCategory[e.category]=(byCategory[e.category]??0)+e.amount;
+
+  const CAT_COLORS:Record<string,string>={Nómina:T.violet,Inventario:T.blue,Renta:T.amber,Utilidades:T.green,Mercadeo:T.indigo,Equipo:'#0891B2',Seguros:'#DC2626',Impuestos:'#9333EA',Otro:T.gray};
+
+  return(
+    <div>
+      <div className="px-6 pt-6 pb-4 flex items-center justify-between" style={{background:'white',borderBottom:`1px solid ${T.border}`}}>
+        <div>
+          <h1 className="text-xl font-bold" style={{color:T.black}}>Gastos del Negocio</h1>
+          <p className="text-xs mt-0.5" style={{color:T.gray}}>Registra y controla los gastos de tu operación</p>
+        </div>
+        <button onClick={()=>setShowForm(p=>!p)} className="h-10 px-4 rounded-xl text-[13px] font-bold text-white flex items-center gap-2" style={{background:T.amber}}>
+          <Plus size={15}/>Nuevo gasto
+        </button>
+      </div>
+
+      <div className="p-6 space-y-5">
+        {/* Summary */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="rounded-2xl p-4" style={{background:T.amberLt}}>
+            <p className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{color:`${T.amber}99`}}>Total gastos</p>
+            <p className="text-2xl font-black" style={{color:T.amber}}>${total.toFixed(2)}</p>
+          </div>
+          <div className="rounded-2xl p-4" style={{background:T.grayLt}}>
+            <p className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{color:T.gray}}>Registros</p>
+            <p className="text-2xl font-black" style={{color:T.black}}>{expenses.length}</p>
+          </div>
+          {Object.entries(byCategory).slice(0,2).map(([cat,amt])=>(
+            <div key={cat} className="rounded-2xl p-4" style={{background:`${CAT_COLORS[cat]??T.gray}18`}}>
+              <p className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{color:`${CAT_COLORS[cat]??T.gray}99`}}>{cat}</p>
+              <p className="text-2xl font-black" style={{color:CAT_COLORS[cat]??T.gray}}>${amt.toFixed(2)}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Form */}
+        {showForm&&(
+          <form onSubmit={save} className="rounded-2xl p-5 space-y-4" style={CARD}>
+            <p className="text-[13px] font-bold" style={{color:T.black}}>Nuevo gasto</p>
+            <div className="grid md:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] font-bold block mb-1" style={{color:T.gray}}>Descripción *</label>
+                <input required value={form.description} onChange={e=>setForm(p=>({...p,description:e.target.value}))} placeholder="Ej: Electricidad mayo"
+                  className="w-full h-10 px-3 rounded-xl text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+              </div>
+              <div>
+                <label className="text-[11px] font-bold block mb-1" style={{color:T.gray}}>Monto ($) *</label>
+                <input required type="number" step="0.01" min="0" value={form.amount} onChange={e=>setForm(p=>({...p,amount:e.target.value}))} placeholder="0.00"
+                  className="w-full h-10 px-3 rounded-xl text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+              </div>
+              <div>
+                <label className="text-[11px] font-bold block mb-1" style={{color:T.gray}}>Categoría</label>
+                <select value={form.category} onChange={e=>setForm(p=>({...p,category:e.target.value}))} className="w-full h-10 px-3 rounded-xl text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}>
+                  {CATS.map(c=><option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-[11px] font-bold block mb-1" style={{color:T.gray}}>Fecha</label>
+                <input type="date" value={form.date} onChange={e=>setForm(p=>({...p,date:e.target.value}))} className="w-full h-10 px-3 rounded-xl text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+              </div>
+            </div>
+            <div>
+              <label className="text-[11px] font-bold block mb-1" style={{color:T.gray}}>Notas (opcional)</label>
+              <input value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))} placeholder="Detalles adicionales..."
+                className="w-full h-10 px-3 rounded-xl text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+            </div>
+            <div className="flex gap-2">
+              <button type="submit" disabled={saving} className="h-10 px-5 rounded-xl text-sm font-bold text-white" style={{background:T.amber}}>{saving?'Guardando...':'Guardar'}</button>
+              <button type="button" onClick={()=>setShowForm(false)} className="h-10 px-5 rounded-xl text-sm font-bold" style={{background:T.grayLt,color:T.gray}}>Cancelar</button>
+            </div>
+          </form>
+        )}
+
+        {/* List */}
+        {loading?<div className="h-48 rounded-2xl animate-pulse" style={{background:'white'}}/>
+        :expenses.length===0?(
+          <div className="rounded-2xl py-14 flex flex-col items-center" style={CARD}>
+            <Receipt size={36} color={T.grayMid} className="mb-3"/>
+            <p className="text-sm font-semibold" style={{color:T.gray}}>Sin gastos registrados</p>
+            <p className="text-xs mt-1" style={{color:T.grayMid}}>Toca "Nuevo gasto" para agregar el primero</p>
+          </div>
+        ):(
+          <div className="rounded-2xl overflow-hidden" style={CARD}>
+            <div className="divide-y" style={{borderColor:T.border}}>
+              {expenses.map(e=>{
+                const cc=CAT_COLORS[e.category]??T.gray;
+                return(
+                  <div key={e.id} className="flex items-center gap-4 px-5 py-4">
+                    <div className="size-10 rounded-xl flex items-center justify-center shrink-0" style={{background:`${cc}18`}}>
+                      <Tag size={16} style={{color:cc}}/>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-semibold" style={{color:T.black}}>{e.description}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{background:`${cc}18`,color:cc}}>{e.category}</span>
+                        <span className="text-[11px]" style={{color:T.gray}}>{e.date}</span>
+                      </div>
+                    </div>
+                    <p className="text-[15px] font-black shrink-0" style={{color:T.black}}>${e.amount.toFixed(2)}</p>
+                    <button onClick={()=>del(e.id)} disabled={deleting===e.id} className="p-1.5 rounded-lg hover:opacity-80" style={{color:T.red}}>
+                      <Trash2 size={14}/>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── ASISTENTE AI ─────────────────────────────────────────────────────────────
+function AsistenteView() {
+  type Msg={role:'user'|'assistant';text:string};
+  const [msgs,setMsgs]=useState<Msg[]>([]);
+  const [input,setInput]=useState('');
+  const bottomRef=useRef<HTMLDivElement>(null);
+
+  const SUGGESTIONS=['¿Cómo proceso la nómina?','¿Cuáles feriados son obligatorios en PR?','¿Cómo apruebo una licencia?','¿Cómo genero el reporte trimestral?','¿Qué es el 499R-4.1?','¿Cómo agrego un empleado?'];
+
+  useEffect(()=>{bottomRef.current?.scrollIntoView({behavior:'smooth'});},[msgs]);
+
+  const norm=(s:string)=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const has=(q:string,...kw:string[])=>kw.some(k=>norm(q).includes(norm(k)));
+
+  const respond=(q:string):string=>{
+    if(has(q,'nomina','pagar','pago','procesar'))
+      return'Para procesar la nómina:\n1. Ve a **Nómina** en el menú lateral\n2. Selecciona el período de pago\n3. El sistema calcula horas regulares, overtime y deducciones automáticamente\n4. Revisa los totales y pulsa **Procesar Nómina**\n5. Se genera el talonario de cada empleado';
+    if(has(q,'feriado','holiday','festivo','paga feriado','ley 180'))
+      return'En Puerto Rico la Ley 180 establece que el pago de días feriados **no es obligatorio** — es decisión del patrono.\n\nPara configurarlo:\n- Ve a **Días Feriados** en el menú\n- Activa el toggle y selecciona qué días pagas\n- Elige la tasa: 1x, 1.5x o 2x\n- Los feriados se calculan automáticamente en la nómina';
+    if(has(q,'licencia','vacacion','enfermedad','leave','aprobar licencia'))
+      return'Para gestionar licencias:\n1. Ve a **Licencias** en el menú lateral\n2. Verás las solicitudes en tabs: Pendientes / Aprobadas / Rechazadas\n3. Pulsa **Aprobar** o **Rechazar** en cada solicitud\n4. Las vacaciones aprobadas se contemplan automáticamente en la nómina del período';
+    if(has(q,'trimestral','suri','dtrh','sinot','formulario','quarterly'))
+      return'Para generar el reporte trimestral:\n1. Ve a **Reportes** → tab **Trimestrales**\n2. Selecciona el año y el trimestre (T1–T4)\n3. Pulsa **Generar Reporte**\n4. El sistema calcula salarios brutos, SS (6.2%) y Medicare (1.45%) por empleado\n5. Descarga el PDF con el botón **Descargar PDF**';
+    if(has(q,'499r','retencion','withholding'))
+      return'El formulario **499R-4.1** (Retención en el Origen) se genera en **Reportes** → tab **W2 Anual**.\n\nInformación por empleado:\n- Box 1: Salarios brutos\n- Box 2: Retención federal estimada (12%)\n- Box 3–4: Seguro Social\n- Box 5–6: Medicare\n\nLa retención federal exacta depende del W-4 de cada empleado. Coordina con tu CPA para los formularios oficiales.';
+    if(has(q,'w2','w-2','anual','annual'))
+      return'Para generar el W2:\n1. Ve a **Reportes** → tab **W2 Anual**\n2. Selecciona el año fiscal\n3. Pulsa **Generar W2**\n4. El sistema genera el resumen por empleado con todos los boxes del W2\n5. Descarga el PDF — incluye un W2 por página por empleado';
+    if(has(q,'empleado','agregar empleado','invitar','añadir'))
+      return'Para agregar un empleado:\n1. Ve a **Personal** en el menú\n2. Pulsa el botón **+ Nuevo**\n3. Llena nombre, email, puesto y pago por hora\n4. El sistema envía un email de invitación automáticamente\n5. El empleado activa su cuenta en turnosmovil.com/activar\n6. Luego descarga la app y puede marcar turnos';
+    if(has(q,'gasto','expense','costo'))
+      return'Para registrar gastos:\n1. Ve a **Gastos** en el menú lateral\n2. Pulsa **+ Nuevo gasto**\n3. Ingresa descripción, monto, categoría y fecha\n4. Los gastos se organizan por categoría: Nómina, Inventario, Renta, etc.\n5. Puedes ver el total acumulado en el resumen superior';
+    if(has(q,'turno','horario','schedule','crear turno'))
+      return'Para crear turnos:\n1. Ve a **Turnos** en el menú\n2. Selecciona el día en el calendario\n3. Pulsa **+ Nuevo turno**\n4. Asigna empleado, hora de inicio y fin\n5. Pulsa **Publicar** para que el empleado lo vea en su app';
+    if(has(q,'horas','aprobacion','aprobar horas','clock'))
+      return'Para aprobar horas:\n1. Ve a **Horas** en el menú\n2. Verás todas las entradas de clock in/out pendientes\n3. Revisa la hora real vs. la hora del turno\n4. Pulsa **Aprobar** para aceptar o ajusta las horas si es necesario\n5. Las horas aprobadas se usan para calcular la nómina';
+    if(has(q,'reporte','informe','analytics','estadistica'))
+      return'Para ver reportes:\n1. Ve a **Reportes** en el menú\n2. **Horas y Costos**: horas por empleado, costo laboral, tendencia semanal, exportar CSV\n3. **Trimestrales**: nómina trimestral con contribuciones FICA — descarga PDF\n4. **W2 Anual**: formularios W2 anuales por empleado — descarga PDF';
+    if(has(q,'overtime','horas extras','ot','extra'))
+      return'El sistema calcula overtime automáticamente según la Ley de Puerto Rico:\n- Más de **8 horas** en un día = 1.5x la hora regular\n- Más de **40 horas** semanales = 1.5x la hora regular\nEsto se refleja automáticamente en la nómina y en los reportes.';
+    return'No tengo una respuesta específica para eso. Puedes preguntarme sobre:\n- **Nómina** y cálculo de horas\n- **Días Feriados** y Ley 180\n- **Licencias** y vacaciones\n- **Reportes** Trimestrales y W2\n- **Empleados** y turnos\n- **Gastos** del negocio\n\n¿Sobre cuál tema quieres saber más?';
+  };
+
+  const send=()=>{
+    const q=input.trim();if(!q)return;
+    const newMsgs:Msg[]=[...msgs,{role:'user',text:q}];
+    setMsgs(newMsgs);setInput('');
+    setTimeout(()=>setMsgs(m=>[...m,{role:'assistant',text:respond(q)}]),400);
+  };
+
+  const renderText=(t:string)=>t.split('\n').map((line,i)=>{
+    const parts=line.split(/\*\*(.*?)\*\*/g);
+    return<p key={i} className={i>0?'mt-1':''}>{parts.map((p,j)=>j%2===1?<strong key={j}>{p}</strong>:p)}</p>;
+  });
+
+  return(
+    <div className="flex flex-col h-[calc(100vh-56px)]">
+      {/* Header */}
+      <div className="px-6 py-4 flex items-center gap-3" style={{background:'white',borderBottom:`1px solid ${T.border}`}}>
+        <div className="size-10 rounded-xl flex items-center justify-center" style={{background:T.indigoLt}}>
+          <Bot size={20} style={{color:T.indigo}}/>
+        </div>
+        <div>
+          <p className="text-[14px] font-bold" style={{color:T.black}}>Asistente AI</p>
+          <p className="text-[11px]" style={{color:T.green}}>● En línea</p>
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        {msgs.length===0&&(
+          <div className="space-y-4">
+            <div className="text-center py-8">
+              <div className="size-16 rounded-2xl mx-auto flex items-center justify-center mb-3" style={{background:T.indigoLt}}>
+                <Bot size={28} style={{color:T.indigo}}/>
+              </div>
+              <p className="text-[15px] font-bold" style={{color:T.black}}>¿En qué puedo ayudarte?</p>
+              <p className="text-[13px] mt-1" style={{color:T.gray}}>Pregúntame sobre nómina, feriados, licencias o reportes</p>
+            </div>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {SUGGESTIONS.map(s=>(
+                <button key={s} onClick={()=>{setInput(s);setTimeout(()=>document.getElementById('ai-input')?.focus(),0);}}
+                  className="px-3 py-2 rounded-xl text-[12px] font-semibold transition-all hover:opacity-80"
+                  style={{background:T.indigoLt,color:T.indigo}}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {msgs.map((m,i)=>(
+          <div key={i} className={`flex ${m.role==='user'?'justify-end':'justify-start'} gap-3`}>
+            {m.role==='assistant'&&<div className="size-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background:T.indigoLt}}><Bot size={14} style={{color:T.indigo}}/></div>}
+            <div className="max-w-[75%] rounded-2xl px-4 py-3 text-[13px] leading-relaxed"
+              style={{background:m.role==='user'?T.indigo:'white',color:m.role==='user'?'white':T.black,
+                border:m.role==='assistant'?`1px solid ${T.border}`:'none'}}>
+              {renderText(m.text)}
+            </div>
+          </div>
+        ))}
+        <div ref={bottomRef}/>
+      </div>
+
+      {/* Input */}
+      <div className="px-6 py-4" style={{background:'white',borderTop:`1px solid ${T.border}`}}>
+        <div className="flex gap-3">
+          <input id="ai-input" value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()}
+            placeholder="Escribe tu pregunta..."
+            className="flex-1 h-11 px-4 rounded-xl text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+          <button onClick={send} disabled={!input.trim()} className="h-11 px-4 rounded-xl font-bold text-white flex items-center gap-2" style={{background:T.indigo,opacity:input.trim()?1:0.4}}>
+            <Send size={16}/>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
