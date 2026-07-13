@@ -1773,6 +1773,41 @@ function PayrollView({bizId}:{bizId:string}) {
 
 // ─── REPORTES ─────────────────────────────────────────────────────────────────
 function ReportsView({bizId}:{bizId:string}) {
+  const [reportTab,setReportTab] = useState<'hours'|'quarterly'|'w2'>('hours');
+
+  const REPORT_TABS:[string,string,string][]=[
+    ['hours','Horas y Costos',T.indigo],
+    ['quarterly','Trimestrales',T.violet],
+    ['w2','W2 Anual',T.blue],
+  ];
+
+  return(
+    <div>
+      <div className="px-6 pt-6 pb-0" style={{background:T.white,borderBottom:`1px solid ${T.border}`}}>
+        <h1 className="text-xl font-bold mb-1" style={{color:T.black}}>Reportes</h1>
+        <p className="text-xs mb-4" style={{color:T.gray}}>Horas, cumplimiento y formularios oficiales</p>
+        <div className="flex gap-1.5">
+          {REPORT_TABS.map(([id,label,color])=>(
+            <button key={id} onClick={()=>setReportTab(id as any)}
+              className="h-9 px-4 rounded-t-xl text-[12px] font-semibold transition-all border-b-2"
+              style={{
+                background:reportTab===id?`${color}12`:'transparent',
+                color:reportTab===id?color:T.gray,
+                borderBottomColor:reportTab===id?color:'transparent',
+              }}>{label}</button>
+          ))}
+        </div>
+      </div>
+
+      {reportTab==='hours'&&<HoursTab bizId={bizId}/>}
+      {reportTab==='quarterly'&&<QuarterlyTab bizId={bizId}/>}
+      {reportTab==='w2'&&<W2Tab bizId={bizId}/>}
+    </div>
+  );
+}
+
+// ─── HORAS TAB ────────────────────────────────────────────────────────────────
+function HoursTab({bizId}:{bizId:string}) {
   type EmpReport = {emp:Employee;hours:number;cost:number;entries:number;overtime:number};
   const [period,setPeriod] = useState<'week'|'month'|'quarter'>('month');
   const [rows,setRows] = useState<EmpReport[]>([]);
@@ -1804,7 +1839,6 @@ function ReportsView({bizId}:{bizId:string}) {
       }).sort((a,b)=>b.hours-a.hours);
       setRows(reportRows);
 
-      // Weekly trend last 8 weeks
       const trend:{label:string;hrs:number}[]=[];
       for(let w=7;w>=0;w--){
         const anchor=new Date(now);anchor.setDate(now.getDate()-w*7);
@@ -1830,22 +1864,19 @@ function ReportsView({bizId}:{bizId:string}) {
 
   return(
     <div>
-      <div className="px-6 pt-6 pb-4" style={{background:T.white,borderBottom:`1px solid ${T.border}`}}>
-        <div className="flex items-center justify-between mb-4">
-          <div><h1 className="text-xl font-bold" style={{color:T.black}}>Reportes</h1><p className="text-xs mt-0.5" style={{color:T.gray}}>Horas trabajadas y costo laboral</p></div>
-          <button onClick={exportCSV} disabled={rows.length===0} className="h-10 px-4 rounded-xl flex items-center gap-2 text-[13px] font-bold text-white" style={{background:T.green,opacity:rows.length===0?0.5:1}}><Download size={15}/>Exportar CSV</button>
-        </div>
-        <div className="flex gap-1.5">
-          {([['week','Esta semana'],['month','Este mes'],['quarter','Este trimestre']] as const).map(([p,l])=>(
-            <button key={p} onClick={()=>setPeriod(p)} className="h-9 px-4 rounded-xl text-[12px] font-semibold transition-all" style={{background:period===p?T.black:'transparent',color:period===p?T.white:T.gray,border:`1px solid ${period===p?T.black:T.border}`}}>{l}</button>
-          ))}
+      <div className="px-6 pt-4 pb-4" style={{background:T.white,borderBottom:`1px solid ${T.border}`}}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex gap-1.5">
+            {([['week','Esta semana'],['month','Este mes'],['quarter','Este trimestre']] as const).map(([p,l])=>(
+              <button key={p} onClick={()=>setPeriod(p)} className="h-9 px-4 rounded-xl text-[12px] font-semibold transition-all" style={{background:period===p?T.black:'transparent',color:period===p?T.white:T.gray,border:`1px solid ${period===p?T.black:T.border}`}}>{l}</button>
+            ))}
+          </div>
+          <button onClick={exportCSV} disabled={rows.length===0} className="h-9 px-4 rounded-xl flex items-center gap-2 text-[12px] font-bold text-white" style={{background:T.green,opacity:rows.length===0?0.5:1}}><Download size={14}/>Exportar CSV</button>
         </div>
       </div>
-
       <div className="p-6 space-y-5">
         {loading?<>{Array.from({length:3}).map((_,i)=><div key={i} className="h-28 rounded-2xl animate-pulse" style={{background:T.white}}/>)}</>:(
           <>
-            {/* Summary cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {([
                 {label:'Total horas',value:fmtHours(totalHours),color:T.blue,bg:T.blueLt,Icon:Clock},
@@ -1859,8 +1890,6 @@ function ReportsView({bizId}:{bizId:string}) {
                 </div>
               ))}
             </div>
-
-            {/* Employee bars */}
             {rows.length===0?(
               <div className="rounded-2xl py-14 flex flex-col items-center" style={CARD}><BarChart3 size={40} color={T.grayMid} className="mb-3"/><p className="text-sm font-semibold" style={{color:T.gray}}>Sin horas aprobadas en este período</p></div>
             ):(
@@ -1894,8 +1923,6 @@ function ReportsView({bizId}:{bizId:string}) {
                 </div>
               </div>
             )}
-
-            {/* Weekly trend */}
             <div className="rounded-2xl p-5" style={CARD}>
               <div className="flex items-center justify-between mb-4">
                 <span className="text-[13px] font-bold" style={{color:T.black}}>Tendencia semanal (últimas 8 semanas)</span>
@@ -1916,6 +1943,376 @@ function ReportsView({bizId}:{bizId:string}) {
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+// ─── TRIMESTRALES TAB ─────────────────────────────────────────────────────────
+function QuarterlyTab({bizId}:{bizId:string}) {
+  const now=new Date();
+  const [year,setYear]=useState(now.getFullYear());
+  const [quarter,setQuarter]=useState(Math.floor(now.getMonth()/3)+1);
+  const [rows,setRows]=useState<{emp:Employee;wages:number;ssEmp:number;medEmp:number;ssEr:number;medEr:number}[]>([]);
+  const [bizName,setBizName]=useState('');
+  const [loading,setLoading]=useState(false);
+  const [generated,setGenerated]=useState(false);
+
+  const qMonths:Record<number,string>={1:'Ene–Mar',2:'Abr–Jun',3:'Jul–Sep',4:'Oct–Dic'};
+
+  const generate=async()=>{
+    setLoading(true);setGenerated(false);
+    const qStart=`${year}-${String((quarter-1)*3+1).padStart(2,'0')}-01`;
+    const qEndMonth=(quarter-1)*3+3;
+    const qEndDay=new Date(year,qEndMonth,0).getDate();
+    const qEnd=`${year}-${String(qEndMonth).padStart(2,'0')}-${String(qEndDay).padStart(2,'0')}`;
+
+    const[empRes,entryRes,bizRes]=await Promise.all([
+      supabase.from('profiles').select('*').eq('business_id',bizId).eq('role','employee'),
+      supabase.from('clock_entries').select('employee_id,clock_in,clock_out,approved_hours').eq('business_id',bizId).in('status',['approved','paid']).not('clock_out','is',null).gte('clock_in',`${qStart}T00:00:00`).lte('clock_in',`${qEnd}T23:59:59`),
+      supabase.from('businesses').select('name').eq('id',bizId).single(),
+    ]);
+    setBizName(bizRes.data?.name??'');
+    const emps=(empRes.data??[]) as Employee[];
+    const entries=entryRes.data??[];
+    const hrMap:Record<string,number>={};
+    for(const e of entries){
+      const h=e.approved_hours!=null?Number(e.approved_hours):diffHours(e.clock_in,e.clock_out);
+      hrMap[e.employee_id]=(hrMap[e.employee_id]??0)+h;
+    }
+    const result=emps.filter(e=>hrMap[e.id]>0).map(emp=>{
+      const hrs=hrMap[emp.id]??0;
+      const regHrs=Math.min(hrs,13*40);
+      const otHrs=Math.max(0,hrs-13*40);
+      const wages=regHrs*(emp.hourly_rate??0)+otHrs*(emp.hourly_rate??0)*1.5;
+      const ssBase=Math.min(wages,160200/4);
+      return{emp,wages,ssEmp:ssBase*0.062,medEmp:wages*0.0145,ssEr:ssBase*0.062,medEr:wages*0.0145};
+    }).sort((a,b)=>b.wages-a.wages);
+    setRows(result);setLoading(false);setGenerated(true);
+  };
+
+  const totalWages=rows.reduce((s,r)=>s+r.wages,0);
+  const totalSsEmp=rows.reduce((s,r)=>s+r.ssEmp,0);
+  const totalMedEmp=rows.reduce((s,r)=>s+r.medEmp,0);
+  const totalSsEr=rows.reduce((s,r)=>s+r.ssEr,0);
+  const totalMedEr=rows.reduce((s,r)=>s+r.medEr,0);
+  const totalTaxes=totalSsEmp+totalMedEmp+totalSsEr+totalMedEr;
+
+  const exportPDF=()=>{
+    const doc=new jsPDF();
+    const c={navy:[13,34,92],green:[22,163,74],gray:[100,116,139]};
+    doc.setFillColor(...c.navy as [number,number,number]);doc.rect(0,0,210,28,'F');
+    doc.setFontSize(16);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
+    doc.text('REPORTE TRIMESTRAL — NÓMINA',14,12);
+    doc.setFontSize(9);doc.setFont('helvetica','normal');
+    doc.text(`${bizName} · T${quarter} ${year} (${qMonths[quarter]})`,14,20);
+    doc.text(`Generado: ${new Date().toLocaleDateString('es-PR')}`,150,20);
+
+    autoTable(doc,{
+      startY:34,
+      head:[['Empleado','Salarios Brutos','SS Emp (6.2%)','Med Emp (1.45%)','SS Patron (6.2%)','Med Patron (1.45%)']],
+      body:[
+        ...rows.map(r=>[empName(r.emp),`$${r.wages.toFixed(2)}`,`$${r.ssEmp.toFixed(2)}`,`$${r.medEmp.toFixed(2)}`,`$${r.ssEr.toFixed(2)}`,`$${r.medEr.toFixed(2)}`]),
+        ['TOTAL',`$${totalWages.toFixed(2)}`,`$${totalSsEmp.toFixed(2)}`,`$${totalMedEmp.toFixed(2)}`,`$${totalSsEr.toFixed(2)}`,`$${totalMedEr.toFixed(2)}`],
+      ],
+      headStyles:{fillColor:c.navy,fontStyle:'bold',fontSize:8},
+      bodyStyles:{fontSize:8},
+      alternateRowStyles:{fillColor:[248,250,252]},
+      footStyles:{fillColor:[22,163,74],textColor:[255,255,255],fontStyle:'bold'},
+    });
+    const finalY=(doc as any).lastAutoTable.finalY+8;
+    doc.setFontSize(8);doc.setTextColor(...c.gray as [number,number,number]);
+    doc.text(`Total contribuciones FICA este trimestre: $${totalTaxes.toFixed(2)}`,14,finalY);
+    doc.text('Este reporte es de referencia. Verifique con su contador o asesor fiscal.',14,finalY+6);
+    doc.save(`trimestral-T${quarter}-${year}.pdf`);
+  };
+
+  return(
+    <div className="p-6 space-y-5">
+      {/* Selector */}
+      <div className="rounded-2xl p-5" style={CARD}>
+        <p className="text-[13px] font-bold mb-4" style={{color:T.black}}>Selecciona el período</p>
+        <div className="flex flex-wrap gap-3 items-end">
+          <div>
+            <label className="text-[11px] font-bold block mb-1.5 uppercase tracking-wide" style={{color:T.gray}}>Año</label>
+            <select value={year} onChange={e=>setYear(+e.target.value)} className="h-10 px-3 rounded-xl text-sm font-semibold" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}>
+              {[now.getFullYear(),now.getFullYear()-1,now.getFullYear()-2].map(y=><option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-[11px] font-bold block mb-1.5 uppercase tracking-wide" style={{color:T.gray}}>Trimestre</label>
+            <div className="flex gap-1.5">
+              {[1,2,3,4].map(q=>(
+                <button key={q} onClick={()=>setQuarter(q)} className="h-10 px-4 rounded-xl text-sm font-bold transition-all" style={{background:quarter===q?T.violet:T.bg,color:quarter===q?'white':T.gray,border:`1px solid ${quarter===q?T.violet:T.border}`}}>T{q} <span className="text-[10px] opacity-70">{qMonths[q]}</span></button>
+              ))}
+            </div>
+          </div>
+          <button onClick={generate} disabled={loading} className="h-10 px-5 rounded-xl text-sm font-bold text-white flex items-center gap-2 transition-all hover:opacity-90" style={{background:T.violet}}>
+            {loading?<><RefreshCw size={14} className="animate-spin"/>Calculando...</>:<><BarChart3 size={14}/>Generar Reporte</>}
+          </button>
+        </div>
+      </div>
+
+      {/* Info cards */}
+      <div className="grid md:grid-cols-3 gap-3">
+        {[
+          {label:'Seguro Social (SS)',desc:'6.2% empleado + 6.2% patrono',color:T.indigo,bg:T.indigoLt},
+          {label:'Medicare',desc:'1.45% empleado + 1.45% patrono',color:T.blue,bg:T.blueLt},
+          {label:'Base salarial SS 2025',desc:'$160,200 anual / $40,050 por trimestre',color:T.green,bg:T.greenLt},
+        ].map(c=>(
+          <div key={c.label} className="rounded-xl p-4" style={{background:c.bg}}>
+            <p className="text-[12px] font-bold" style={{color:c.color}}>{c.label}</p>
+            <p className="text-[11px] mt-0.5" style={{color:`${c.color}99`}}>{c.desc}</p>
+          </div>
+        ))}
+      </div>
+
+      {generated&&(
+        <>
+          {/* Summary */}
+          <div className="rounded-2xl p-5" style={{...CARD,borderLeft:`4px solid ${T.violet}`}}>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-[15px] font-bold" style={{color:T.black}}>T{quarter} {year} — {qMonths[quarter]}</p>
+                <p className="text-[12px]" style={{color:T.gray}}>{rows.length} empleado{rows.length!==1?'s':''} con salarios este trimestre</p>
+              </div>
+              <button onClick={exportPDF} className="h-9 px-4 rounded-xl text-[12px] font-bold text-white flex items-center gap-2" style={{background:T.violet}}><Download size={13}/>Descargar PDF</button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                {label:'Salarios Brutos',value:`$${totalWages.toFixed(2)}`,color:T.black},
+                {label:'SS Empleados',value:`$${totalSsEmp.toFixed(2)}`,color:T.indigo},
+                {label:'Medicare Empleados',value:`$${totalMedEmp.toFixed(2)}`,color:T.blue},
+                {label:'Total FICA (Emp+Patrono)',value:`$${totalTaxes.toFixed(2)}`,color:T.violet},
+              ].map(s=>(
+                <div key={s.label} className="rounded-xl p-3" style={{background:T.bg}}>
+                  <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{color:T.gray}}>{s.label}</p>
+                  <p className="text-[18px] font-black" style={{color:s.color}}>{s.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Table */}
+          {rows.length===0?(
+            <div className="rounded-2xl py-12 flex flex-col items-center" style={CARD}>
+              <BarChart3 size={36} color={T.grayMid} className="mb-3"/>
+              <p className="text-sm font-semibold" style={{color:T.gray}}>Sin salarios registrados en T{quarter} {year}</p>
+            </div>
+          ):(
+            <div className="rounded-2xl overflow-hidden" style={CARD}>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[640px]">
+                  <thead>
+                    <tr style={{background:T.violet}}>
+                      {['Empleado','Puesto','Salarios Brutos','SS Emp 6.2%','Med Emp 1.45%','SS Patrono 6.2%','Med Patrono 1.45%'].map(h=>(
+                        <th key={h} className="px-4 py-3 text-left text-[11px] font-bold text-white uppercase tracking-wide">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((r,i)=>(
+                      <tr key={r.emp.id} style={{background:i%2===0?'white':T.bg,borderBottom:`1px solid ${T.border}`}}>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <div className="size-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{background:empColor(r.emp,i)}}>{empInitials(r.emp)}</div>
+                            <span className="text-[13px] font-semibold" style={{color:T.black}}>{empName(r.emp)}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-[12px]" style={{color:T.gray}}>{r.emp.job_title??'—'}</td>
+                        <td className="px-4 py-3 text-[13px] font-bold" style={{color:T.black}}>${r.wages.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-[12px]" style={{color:T.indigo}}>${r.ssEmp.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-[12px]" style={{color:T.blue}}>${r.medEmp.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-[12px]" style={{color:T.violet}}>${r.ssEr.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-[12px]" style={{color:T.violet}}>${r.medEr.toFixed(2)}</td>
+                      </tr>
+                    ))}
+                    <tr style={{background:T.violet}}>
+                      <td colSpan={2} className="px-4 py-3 text-[12px] font-bold text-white">TOTALES</td>
+                      <td className="px-4 py-3 text-[13px] font-black text-white">${totalWages.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-[12px] font-bold text-white">${totalSsEmp.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-[12px] font-bold text-white">${totalMedEmp.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-[12px] font-bold text-white">${totalSsEr.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-[12px] font-bold text-white">${totalMedEr.toFixed(2)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── W2 TAB ───────────────────────────────────────────────────────────────────
+function W2Tab({bizId}:{bizId:string}) {
+  const now=new Date();
+  const [year,setYear]=useState(now.getFullYear()-1);
+  const [rows,setRows]=useState<{emp:Employee;wages:number;ssWages:number;ssW:number;medW:number;federalW:number}[]>([]);
+  const [bizName,setBizName]=useState('');
+  const [loading,setLoading]=useState(false);
+  const [generated,setGenerated]=useState(false);
+
+  const generate=async()=>{
+    setLoading(true);setGenerated(false);
+    const[empRes,entryRes,bizRes]=await Promise.all([
+      supabase.from('profiles').select('*').eq('business_id',bizId).eq('role','employee'),
+      supabase.from('clock_entries').select('employee_id,clock_in,clock_out,approved_hours').eq('business_id',bizId).in('status',['approved','paid']).not('clock_out','is',null).gte('clock_in',`${year}-01-01T00:00:00`).lte('clock_in',`${year}-12-31T23:59:59`),
+      supabase.from('businesses').select('name').eq('id',bizId).single(),
+    ]);
+    setBizName(bizRes.data?.name??'');
+    const emps=(empRes.data??[]) as Employee[];
+    const entries=entryRes.data??[];
+    const hrMap:Record<string,number>={};
+    for(const e of entries){
+      const h=e.approved_hours!=null?Number(e.approved_hours):diffHours(e.clock_in,e.clock_out);
+      hrMap[e.employee_id]=(hrMap[e.employee_id]??0)+h;
+    }
+    const W2_SS_BASE=160200;
+    const result=emps.filter(e=>hrMap[e.id]>0).map(emp=>{
+      const hrs=hrMap[emp.id]??0;
+      const regHrs=Math.min(hrs,52*40);
+      const otHrs=Math.max(0,hrs-52*40);
+      const wages=regHrs*(emp.hourly_rate??0)+otHrs*(emp.hourly_rate??0)*1.5;
+      const ssWages=Math.min(wages,W2_SS_BASE);
+      // Estimate federal withholding ~12% (single, standard — reference only)
+      const federalW=wages*0.12;
+      return{emp,wages,ssWages,ssW:ssWages*0.062,medW:wages*0.0145,federalW};
+    }).sort((a,b)=>b.wages-a.wages);
+    setRows(result);setLoading(false);setGenerated(true);
+  };
+
+  const exportPDF=()=>{
+    const doc=new jsPDF();
+    const cNavy:[number,number,number]=[13,34,92];
+    const cBlue:[number,number,number]=[37,99,235];
+
+    rows.forEach((r,idx)=>{
+      if(idx>0)doc.addPage();
+      // Header
+      doc.setFillColor(...cNavy);doc.rect(0,0,210,22,'F');
+      doc.setFontSize(13);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
+      doc.text('FORMULARIO W-2  —  Wage and Tax Statement',14,9);
+      doc.setFontSize(8);doc.setFont('helvetica','normal');
+      doc.text(`Año fiscal ${year}  ·  Generado ${new Date().toLocaleDateString('es-PR')}`,14,16);
+
+      // Employer box
+      doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(...cNavy);
+      doc.text('a  Patrono / Employer',14,30);
+      doc.setFont('helvetica','normal');doc.setTextColor(50,50,50);doc.setFontSize(10);
+      doc.text(bizName||'Negocio',14,37);
+
+      // Employee box
+      doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(...cNavy);
+      doc.text('e  Empleado / Employee',110,30);
+      doc.setFont('helvetica','normal');doc.setTextColor(50,50,50);doc.setFontSize(10);
+      doc.text(empName(r.emp),110,37);
+      doc.setFontSize(8);doc.setTextColor(100,116,139);
+      doc.text(r.emp.email??'',110,43);doc.text(r.emp.job_title??'',110,49);
+
+      // Boxes
+      const boxes=[
+        ['1  Salarios / Wages','$'+r.wages.toFixed(2)],
+        ['3  SS Wages','$'+r.ssWages.toFixed(2)],
+        ['4  SS Tax Withheld','$'+r.ssW.toFixed(2)],
+        ['5  Medicare Wages','$'+r.wages.toFixed(2)],
+        ['6  Medicare Tax','$'+r.medW.toFixed(2)],
+        ['2  Fed. Income Tax (est.)','$'+r.federalW.toFixed(2)],
+      ];
+      boxes.forEach(([label,val],i)=>{
+        const col=i%2===0?14:110;const row=Math.floor(i/2);const y=60+row*20;
+        doc.setFillColor(248,250,252);doc.roundedRect(col,y,90,16,2,2,'F');
+        doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(...cBlue);doc.text(label,col+3,y+6);
+        doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(30,30,30);doc.text(val,col+3,y+13);
+      });
+
+      doc.setFontSize(7);doc.setTextColor(150,150,150);
+      doc.text('Este formulario es de referencia. Los valores de retención federal son estimados. Consulte con su CPA.',14,125);
+    });
+    doc.save(`W2-${year}-${bizName.replace(/\s+/g,'-')}.pdf`);
+  };
+
+  const totalWages=rows.reduce((s,r)=>s+r.wages,0);
+
+  return(
+    <div className="p-6 space-y-5">
+      {/* Selector */}
+      <div className="rounded-2xl p-5" style={CARD}>
+        <p className="text-[13px] font-bold mb-4" style={{color:T.black}}>Selecciona el año fiscal</p>
+        <div className="flex flex-wrap gap-3 items-end">
+          <div>
+            <label className="text-[11px] font-bold block mb-1.5 uppercase tracking-wide" style={{color:T.gray}}>Año</label>
+            <div className="flex gap-1.5">
+              {[now.getFullYear()-1,now.getFullYear()-2,now.getFullYear()-3].map(y=>(
+                <button key={y} onClick={()=>setYear(y)} className="h-10 px-4 rounded-xl text-sm font-bold transition-all" style={{background:year===y?T.blue:T.bg,color:year===y?'white':T.gray,border:`1px solid ${year===y?T.blue:T.border}`}}>{y}</button>
+              ))}
+            </div>
+          </div>
+          <button onClick={generate} disabled={loading} className="h-10 px-5 rounded-xl text-sm font-bold text-white flex items-center gap-2 transition-all hover:opacity-90" style={{background:T.blue}}>
+            {loading?<><RefreshCw size={14} className="animate-spin"/>Calculando...</>:<><BarChart3 size={14}/>Generar W2</>}
+          </button>
+        </div>
+      </div>
+
+      {/* Notice */}
+      <div className="rounded-xl p-4 flex gap-3" style={{background:T.amberLt,border:`1px solid ${T.amber}33`}}>
+        <AlertTriangle size={16} color={T.amber} className="shrink-0 mt-0.5"/>
+        <p className="text-[12px]" style={{color:T.amber}}>Los valores de retención federal son estimados (12% tasa plana de referencia). La retención federal real depende de las elecciones W-4 de cada empleado. Coordine con su CPA para los W2 oficiales.</p>
+      </div>
+
+      {generated&&(
+        <>
+          {/* Summary */}
+          <div className="rounded-2xl p-5" style={{...CARD,borderLeft:`4px solid ${T.blue}`}}>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-[15px] font-bold" style={{color:T.black}}>W2 — Año Fiscal {year}</p>
+                <p className="text-[12px]" style={{color:T.gray}}>{rows.length} empleado{rows.length!==1?'s':''} · Total salarios: ${totalWages.toFixed(2)}</p>
+              </div>
+              {rows.length>0&&<button onClick={exportPDF} className="h-9 px-4 rounded-xl text-[12px] font-bold text-white flex items-center gap-2" style={{background:T.blue}}><Download size={13}/>Descargar PDF</button>}
+            </div>
+          </div>
+
+          {/* Cards por empleado */}
+          {rows.length===0?(
+            <div className="rounded-2xl py-12 flex flex-col items-center" style={CARD}>
+              <BarChart3 size={36} color={T.grayMid} className="mb-3"/>
+              <p className="text-sm font-semibold" style={{color:T.gray}}>Sin salarios registrados en {year}</p>
+            </div>
+          ):(
+            <div className="grid md:grid-cols-2 gap-4">
+              {rows.map((r,i)=>(
+                <div key={r.emp.id} className="rounded-2xl overflow-hidden" style={CARD}>
+                  <div className="px-5 py-3 flex items-center gap-3" style={{background:T.bg,borderBottom:`1px solid ${T.border}`}}>
+                    <div className="size-9 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{background:empColor(r.emp,i)}}>{empInitials(r.emp)}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-bold truncate" style={{color:T.black}}>{empName(r.emp)}</p>
+                      <p className="text-[11px]" style={{color:T.gray}}>{r.emp.job_title??r.emp.email}</p>
+                    </div>
+                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{background:T.blueLt,color:T.blue}}>W2 · {year}</span>
+                  </div>
+                  <div className="p-4 grid grid-cols-2 gap-2">
+                    {[
+                      {n:'Box 1 — Salarios',v:`$${r.wages.toFixed(2)}`,c:T.black},
+                      {n:'Box 2 — Fed (est.)',v:`$${r.federalW.toFixed(2)}`,c:T.amber},
+                      {n:'Box 3 — SS Wages',v:`$${r.ssWages.toFixed(2)}`,c:T.indigo},
+                      {n:'Box 4 — SS Tax',v:`$${r.ssW.toFixed(2)}`,c:T.indigo},
+                      {n:'Box 5 — Medicare W.',v:`$${r.wages.toFixed(2)}`,c:T.blue},
+                      {n:'Box 6 — Medicare Tax',v:`$${r.medW.toFixed(2)}`,c:T.blue},
+                    ].map(b=>(
+                      <div key={b.n} className="rounded-lg p-2.5" style={{background:T.bg}}>
+                        <p className="text-[9px] font-bold uppercase tracking-wide mb-0.5" style={{color:T.grayMid}}>{b.n}</p>
+                        <p className="text-[14px] font-black" style={{color:b.c}}>{b.v}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
