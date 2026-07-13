@@ -1680,7 +1680,7 @@ function PayrollView({bizId}:{bizId:string}) {
                 head:[['Empleado','ID','Puesto','Horas','Base','Extras','Total','Estado']],
                 body:data.map(r=>[
                   empName(r.emp),
-                  r.emp.employee_id??'—',
+                  r.emp.id??'—',
                   r.emp.job_title??'—',
                   r.hours.toFixed(1)+'h',
                   '$'+r.gross.toFixed(2),
@@ -2014,10 +2014,10 @@ function QuarterlyTab({bizId}:{bizId:string}) {
         ...rows.map(r=>[empName(r.emp),`$${r.wages.toFixed(2)}`,`$${r.ssEmp.toFixed(2)}`,`$${r.medEmp.toFixed(2)}`,`$${r.ssEr.toFixed(2)}`,`$${r.medEr.toFixed(2)}`]),
         ['TOTAL',`$${totalWages.toFixed(2)}`,`$${totalSsEmp.toFixed(2)}`,`$${totalMedEmp.toFixed(2)}`,`$${totalSsEr.toFixed(2)}`,`$${totalMedEr.toFixed(2)}`],
       ],
-      headStyles:{fillColor:c.navy,fontStyle:'bold',fontSize:8},
+      headStyles:{fillColor:c.navy as [number,number,number],fontStyle:'bold',fontSize:8},
       bodyStyles:{fontSize:8},
-      alternateRowStyles:{fillColor:[248,250,252]},
-      footStyles:{fillColor:[22,163,74],textColor:[255,255,255],fontStyle:'bold'},
+      alternateRowStyles:{fillColor:[248,250,252] as [number,number,number]},
+      footStyles:{fillColor:[22,163,74] as [number,number,number],textColor:[255,255,255] as [number,number,number],fontStyle:'bold'},
     });
     const finalY=(doc as any).lastAutoTable.finalY+8;
     doc.setFontSize(8);doc.setTextColor(...c.gray as [number,number,number]);
