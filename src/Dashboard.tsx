@@ -8,8 +8,7 @@ import {
   CheckCircle2, XCircle, ChevronLeft, ChevronRight, Clock,
   UserPlus, AlertTriangle, Trash2, Search, BarChart3,
   MinusCircle, LogOut, RefreshCw,
-  Send, Pencil, Palmtree, Umbrella, Wallet, Bot, MessageSquare,
-  ChevronDown, Tag, Receipt
+  Send, Pencil, Palmtree, Umbrella, Wallet, Bot, Tag, Receipt
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase, diffHours } from './lib/supabase';
