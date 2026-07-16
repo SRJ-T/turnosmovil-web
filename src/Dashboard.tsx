@@ -1331,7 +1331,7 @@ function ApprovalsView({bizId}:{bizId:string}) {
                         diffHours(e.clock_in,e.clock_out??'').toFixed(1)+'h',
                         e.status==='approved'?'Aprobado':e.status==='rejected'?'Rechazado':'Pendiente',
                       ]),
-                      headStyles:{fillColor:[15,31,92],textColor:255,fontSize:9,fontStyle:'bold'},
+                      headStyles:{fillColor:[15,31,92],textColor:[255,255,255] as [number,number,number],fontSize:9,fontStyle:'bold'},
                       bodyStyles:{fontSize:9},
                       alternateRowStyles:{fillColor:[245,245,247]},
                     });
@@ -1697,8 +1697,8 @@ function PayrollView({bizId}:{bizId:string}) {
                   processed?'VALIDADO':'PENDIENTE',
                 ]),
                 foot:[['Total','','',data.reduce((a,r)=>a+r.hours,0).toFixed(1)+'h','$'+totals.gross.toFixed(2),'','$'+totals.net.toFixed(2),'']],
-                headStyles:{fillColor:[15,31,92],textColor:255,fontSize:9,fontStyle:'bold'},
-                footStyles:{fillColor:[15,31,92],textColor:255,fontSize:9,fontStyle:'bold'},
+                headStyles:{fillColor:[15,31,92],textColor:[255,255,255] as [number,number,number],fontSize:9,fontStyle:'bold'},
+                footStyles:{fillColor:[15,31,92],textColor:[255,255,255] as [number,number,number],fontSize:9,fontStyle:'bold'},
                 bodyStyles:{fontSize:9},
                 alternateRowStyles:{fillColor:[245,245,247]},
               });
