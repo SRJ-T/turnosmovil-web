@@ -181,12 +181,12 @@ export default function Landing() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [showComparison, setShowComparison] = useState(false);
-  const [loadingPlan, setLoadingPlan] = useState<'Starter'|'Pro'|'Premium'|null>(null);
+  const [loadingPlan, setLoadingPlan] = useState<'Starter'|'Empresarial'|'Elite'|'ProMax'|null>(null);
 
-  const handleSelectPlan = async (plan: 'Starter'|'Pro'|'Premium') => {
+  const handleSelectPlan = async (plan: 'Starter'|'Empresarial'|'Elite'|'ProMax') => {
     setLoadingPlan(plan);
     try {
-      const priceId = { Starter:'price_1TbiWe2Lx6mtbfcWEFr0DJuv', Pro:'price_1TbiXA2Lx6mtbfcWlb7aTxGm', Premium:'price_1TbiYl2Lx6mtbfcWnWXe5iCb' }[plan];
+      const priceId = { Starter:'price_1TbiWe2Lx6mtbfcWEFr0DJuv', Empresarial:'price_1TbiXA2Lx6mtbfcWlb7aTxGm', Elite:'price_1TbiYl2Lx6mtbfcWnWXe5iCb', ProMax:'price_1TbiYl2Lx6mtbfcWnWXe5iCb' }[plan];
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout-session`, {
         method:'POST', headers:{'Content-Type':'application/json','apikey':import.meta.env.VITE_SUPABASE_ANON_KEY},
         body: JSON.stringify({ priceId, successUrl:`${window.location.origin}/success?session_id={CHECKOUT_SESSION_ID}`, cancelUrl:`${window.location.origin}/#pricing` }),
@@ -489,14 +489,16 @@ export default function Landing() {
             <p className="text-base" style={{ color: B.gray }}>14 días gratis en todos los planes. Sin tarjeta de crédito.</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-10">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mb-10">
             {[
-              { id:'Starter',  name:'Básico',       price:'$29.99', period:'/mes', sub:'Hasta 10 empleados', popular:false, color: B.slate,
+              { id:'Starter',     name:'Básico',       price:'$29.99', period:'/mes', sub:'Hasta 10 empleados', popular:false, color: B.slate,
                 features:['Asistencia digital (Clock In/Out)','Calendario semanal básico','Gestión de hasta 10 empleados','Revisión simple de Timesheets','App móvil incluida'] },
-              { id:'Pro',      name:'Profesional',  price:'$49',    period:'/mes', sub:'Hasta 50 empleados', popular:true,  color: B.blue,
+              { id:'Empresarial', name:'Empresarial',  price:'$49.99', period:'/mes', sub:'Hasta 50 empleados', popular:true,  color: B.blue,
                 features:['Todo lo del plan Básico','Cálculo de Nómina automatizado','Bolsa de Turnos (Shift Swap)','Historial de nómina y reportes','Duplicador de turnos (1 toque)'] },
-              { id:'Premium',  name:'Avanzado',     price:'$69',    period:'/mes', sub:'Personal ilimitado',  popular:false, color: B.green,
-                features:['Todo lo del plan Profesional','Geocercas de seguridad GPS','Alertas GPS sospechosas','Rastreador de Horas Extras (OT)','Soporte multi-administrador','Trimestrales completos automáticos'] },
+              { id:'Elite',       name:'Elite',        price:'$69.99', period:'/mes', sub:'Personal ilimitado',  popular:false, color: B.green,
+                features:['Todo lo del plan Empresarial','Geocercas de seguridad GPS','Alertas GPS sospechosas','Rastreador de Horas Extras (OT)','Soporte multi-administrador','Trimestrales completos automáticos'] },
+              { id:'ProMax',      name:'Pro',          price:'$99.99', period:'/mes', sub:'Personal ilimitado + todo',  popular:false, color: '#7C3AED',
+                features:['Todo lo del plan Elite','Gestión de Vacaciones','Solicitudes y aprobación de vacaciones','Balance de días disponibles','Historial de vacaciones por empleado'] },
             ].map(({ id, name, price, period, sub, popular, color, features }) => (
               <div key={id} className={`relative flex flex-col rounded-2xl overflow-hidden border transition-all ${popular ? 'shadow-2xl md:-translate-y-4 mt-4 md:mt-0' : 'shadow-sm'}`}
                 style={{ background: 'white', borderColor: popular ? color : B.border, borderWidth: popular ? 2 : 1 }}>
@@ -545,21 +547,22 @@ export default function Landing() {
                     <thead>
                       <tr style={{ borderBottom: `1px solid ${B.border}` }}>
                         <th className="p-5 text-left text-sm font-black" style={{ color: B.slate }}>Característica</th>
-                        {['Básico','Profesional','Avanzado'].map(p=>(
+                        {['Básico','Empresarial','Elite','Pro'].map(p=>(
                           <th key={p} className="p-5 text-center text-sm font-black" style={{ color: B.slate }}>{p}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {[
-                        ['Precio','$29.99/mes','$49/mes','$69/mes'],
-                        ['Empleados','Hasta 10','Hasta 50','Ilimitados'],
-                        ['Marcado móvil','✓','✓','✓'],
-                        ['Nómina automática','—','✓','✓'],
-                        ['Trimestrales PR','—','Básico','Completo'],
-                        ['Horas extras (OT)','—','—','✓'],
-                        ['Geocercas GPS','—','—','✓'],
-                        ['Multi-administrador','—','—','✓'],
+                        ['Precio','$29.99/mes','$49.99/mes','$69.99/mes','$99.99/mes'],
+                        ['Empleados','Hasta 10','Hasta 50','Ilimitados','Ilimitados'],
+                        ['Marcado móvil','✓','✓','✓','✓'],
+                        ['Nómina automática','—','✓','✓','✓'],
+                        ['Trimestrales PR','—','Básico','Completo','Completo'],
+                        ['Horas extras (OT)','—','—','✓','✓'],
+                        ['Geocercas GPS','—','—','✓','✓'],
+                        ['Multi-administrador','—','—','✓','✓'],
+                        ['Gestión de Vacaciones','—','—','—','✓'],
                       ].map(([feature,...vals],i)=>(
                         <tr key={feature} style={{ borderBottom: `1px solid ${B.border}`, background: i%2===0?'white':B.bg }}>
                           <td className="p-4 text-sm font-semibold" style={{ color: B.slate }}>{feature}</td>
@@ -580,7 +583,7 @@ export default function Landing() {
           <div className="flex flex-wrap justify-center gap-x-8 gap-y-3 mt-10 text-sm font-medium" style={{ color: B.gray }}>
             <span className="flex items-center gap-2"><ShieldCheck size={16} className="text-green-600"/> Sin contrato, cancela cuando quieras</span>
             <span className="flex items-center gap-2"><Clock size={16} className="text-green-600"/> Actualizaciones incluidas</span>
-            <span className="flex items-center gap-2"><Zap size={16} className="text-green-600"/> Soporte prioritario en planes Pro y Premium</span>
+            <span className="flex items-center gap-2"><Zap size={16} className="text-green-600"/> Soporte prioritario en planes Elite y Pro</span>
           </div>
         </div>
       </section>
