@@ -736,13 +736,17 @@ export default function Landing() {
             {[
               { label:'Producto', links:[['#features','Funciones'],['#pricing','Precios'],['#descargar','Descargar App']] },
               { label:'Empresa', links:[['#','Acerca de'],['#','Blog'],['#','Contacto']] },
-              { label:'Legal', links:[['#','Privacidad'],['#','Términos de uso'],['#','Cookies']] },
+              { label:'Legal', links:[['/privacidad','Privacidad'],['/terminos','Términos de uso']] },
             ].map(({ label, links }) => (
               <div key={label}>
                 <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: 'rgba(255,255,255,0.3)' }}>{label}</p>
                 <ul className="space-y-2.5">
                   {links.map(([href, name]) => (
-                    <li key={name}><a href={href} className="text-sm hover:text-white transition-colors" style={{ color: 'rgba(255,255,255,0.5)' }}>{name}</a></li>
+                    <li key={name}>
+                      {href.startsWith('/') && !href.startsWith('/#')
+                        ? <Link to={href} className="text-sm hover:text-white transition-colors" style={{ color: 'rgba(255,255,255,0.5)', textDecoration:'none' }}>{name}</Link>
+                        : <a href={href} className="text-sm hover:text-white transition-colors" style={{ color: 'rgba(255,255,255,0.5)' }}>{name}</a>}
+                    </li>
                   ))}
                 </ul>
               </div>

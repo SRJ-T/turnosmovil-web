@@ -7,6 +7,8 @@ import Landing from './Landing';
 import SuccessPage from './Success';
 import Activar from './Activar';
 import Login from './Login';
+import PrivacyPolicy from './PrivacyPolicy';
+import TermsOfService from './TermsOfService';
 
 function AuthGuard({ session, children }: { session: Session | null; children: React.ReactNode }) {
   if (!session) return <Navigate to="/login" replace />;
@@ -36,6 +38,8 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/activar" element={<Activar />} />
+        <Route path="/privacidad" element={<PrivacyPolicy />} />
+        <Route path="/terminos" element={<TermsOfService />} />
         <Route path="/app" element={<Navigate to="/panel" replace />} />
         <Route path="/login" element={session ? <Navigate to="/panel" replace /> : <Login />} />
         <Route path="/panel/*" element={
