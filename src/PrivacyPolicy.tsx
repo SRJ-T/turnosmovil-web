@@ -70,15 +70,30 @@ export default function PrivacyPolicy() {
           </Section>
 
           <Section title="4. Servicios de terceros">
-            <p>Turnos Móvil utiliza los siguientes proveedores de confianza:</p>
+            <p>Turnos Móvil utiliza los siguientes proveedores de confianza. Al usar nuestro servicio, aceptas que tus datos puedan ser procesados por estos terceros conforme a sus respectivas políticas de privacidad:</p>
             <br />
             <p><strong style={{ color: B.white }}>Supabase (supabase.com):</strong> Base de datos y autenticación. Tus datos se almacenan en servidores seguros en la región us-west-2.</p>
+            <br />
+            <p><strong style={{ color: B.white }}>Stripe (stripe.com):</strong> Procesamiento de pagos y gestión de suscripciones. Stripe recibe los datos de facturación (nombre, correo, método de pago) necesarios para procesar tu suscripción. Nunca almacenamos datos de tarjetas de crédito en nuestros servidores. Consulta la <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer" style={{ color: B.blue }}>política de privacidad de Stripe</a>.</p>
             <br />
             <p><strong style={{ color: B.white }}>Firebase / Google (firebase.google.com):</strong> Notificaciones push (FCM). Google puede procesar identificadores de dispositivo para enrutar notificaciones.</p>
             <br />
             <p><strong style={{ color: B.white }}>Sentry (sentry.io):</strong> Monitoreo de errores. Los reportes de errores pueden incluir información técnica del dispositivo y trazas de código, sin datos personales identificables.</p>
             <br />
             <p><strong style={{ color: B.white }}>Resend (resend.com):</strong> Envío de correos de invitación a empleados.</p>
+          </Section>
+
+          <Section title="4A. Uso de Inteligencia Artificial">
+            <p>Turnos Móvil incluye un <strong style={{ color: B.white }}>Asistente de Inteligencia Artificial (IA)</strong> que te permite hacer preguntas sobre nómina, feriados, licencias y reportes.</p>
+            <br />
+            <p>Al usar el Asistente IA:</p>
+            <ul style={{ paddingLeft: 20, marginTop: 8 }}>
+              <li style={{ marginBottom: 8 }}>Las preguntas que escribes son enviadas a un proveedor externo de IA para generar respuestas.</li>
+              <li style={{ marginBottom: 8 }}>No incluyas información personal sensible (números de seguro social, contraseñas, datos bancarios) en tus consultas al asistente.</li>
+              <li style={{ marginBottom: 8 }}>Las consultas pueden ser usadas por el proveedor de IA para mejorar sus modelos, conforme a sus propios términos de uso.</li>
+              <li style={{ marginBottom: 8 }}>No almacenamos el historial de conversaciones del asistente IA más allá de la sesión activa.</li>
+            </ul>
+            <p>El uso del Asistente IA es opcional. Puedes usar Turnos Móvil sin interactuar con esta función.</p>
           </Section>
 
           <Section title="5. Seguridad de los datos">

@@ -455,45 +455,17 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── Testimonials ─────────────────────────────────────────────────── */}
+      {/* ── Be the first ─────────────────────────────────────────────────── */}
       <section className="py-24 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-sm font-black uppercase tracking-widest mb-3" style={{ color: B.green }}>Lo que dicen nuestros clientes</p>
-            <h2 className="text-3xl md:text-4xl font-black" style={{ color: B.slate }}>Negocios en Puerto Rico ya confían en Turnos Móvil.</h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6 mb-10">
-            {[
-              { name:'María González', biz:'Café Don Pepe',      img:'https://i.pravatar.cc/150?img=47', text:'Turnos Móvil nos ahorró horas cada semana. Ahora los horarios y la nómina son pan comido.' },
-              { name:'Juan Pérez',     biz:'Panadería La Unión', img:'https://i.pravatar.cc/150?img=11', text:'Los trimestrales automáticos son lo mejor. Nunca había sido tan fácil cumplir con la ley.' },
-              { name:'Laura Martínez', biz:'Barbería Fresh Cut', img:'https://i.pravatar.cc/150?img=32', text:'Mi equipo marca desde el celular y yo veo todo en tiempo real. Totalmente recomendado.' },
-            ].map((t, i) => (
-              <div key={i} className="flex flex-col p-7 rounded-2xl border" style={{ background: B.bg, borderColor: B.border }}>
-                <div className="flex gap-1 text-amber-400 mb-5">{[1,2,3,4,5].map(j=><Star key={j} size={15} fill="currentColor"/>)}</div>
-                <p className="text-sm leading-relaxed flex-1 mb-6" style={{ color: B.gray }}>"{t.text}"</p>
-                <div className="flex items-center gap-3">
-                  <img src={t.img} alt={t.name} className="size-11 rounded-full"/>
-                  <div>
-                    <p className="text-sm font-bold" style={{ color: B.slate }}>{t.name}</p>
-                    <p className="text-xs" style={{ color: B.gray }}>{t.biz}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 p-6 rounded-2xl" style={{ background: B.slate }}>
-            <div className="flex -space-x-3">
-              {['47','11','32','68'].map(n=><img key={n} src={`https://i.pravatar.cc/150?img=${n}`} className="size-11 rounded-full border-2" style={{ borderColor: B.slate }} alt="User"/>)}
-              <div className="size-11 rounded-full border-2 flex items-center justify-center text-xs font-bold text-white" style={{ background: B.navy, borderColor: B.slate }}>+</div>
-            </div>
-            <div className="text-center sm:text-left">
-              <div className="flex items-center justify-center sm:justify-start gap-2 mb-0.5">
-                <span className="text-2xl font-black text-white">4.9/5</span>
-                <div className="flex text-amber-400">{[1,2,3,4,5].map(i=><Star key={i} size={18} fill="currentColor"/>)}</div>
-              </div>
-              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>Calificación promedio de nuestros clientes</p>
-            </div>
-          </div>
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="text-sm font-black uppercase tracking-widest mb-3" style={{ color: B.green }}>Primeros usuarios</p>
+          <h2 className="text-3xl md:text-4xl font-black mb-5" style={{ color: B.slate }}>Sé parte de los primeros negocios en Puerto Rico que automatizan su nómina.</h2>
+          <p className="text-base mb-10" style={{ color: B.gray }}>Turnos Móvil está en acceso temprano. Empieza tu prueba gratuita de 14 días y cuéntanos tu experiencia.</p>
+          <a href="#pricing"
+            className="inline-block px-8 py-4 rounded-xl font-bold text-white text-base transition-all hover:opacity-90 shadow-lg"
+            style={{ background: B.blue, boxShadow: `0 4px 20px ${B.blue}44` }}>
+            Empezar gratis 14 días →
+          </a>
         </div>
       </section>
 
