@@ -11,16 +11,47 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Rate limiting — blocks after 5 failed attempts
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockedUntil, setLockedUntil] = useState<Date | null>(null);
+  const [lockSecsLeft, setLockSecsLeft] = useState(0);
+  const lockSchedule = [0, 0, 0, 0, 30, 60, 120, 300];
+
+  const isLocked = lockedUntil !== null && new Date() < lockedUntil;
+
+  const startLock = (secs: number) => {
+    const until = new Date(Date.now() + secs * 1000);
+    setLockedUntil(until);
+    setLockSecsLeft(secs);
+    const t = setInterval(() => {
+      const left = Math.ceil((until.getTime() - Date.now()) / 1000);
+      if (left <= 0) { clearInterval(t); setLockedUntil(null); setLockSecsLeft(0); setError(''); }
+      else setLockSecsLeft(left);
+    }, 1000);
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLocked) { setError(`Demasiados intentos. Espera ${lockSecsLeft} segundos.`); return; }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim() || !password) { setError('Completa todos los campos'); return; }
+    if (!emailRegex.test(email.trim())) { setError('Ingresa un correo válido'); return; }
+
     setLoading(true);
     setError('');
-    const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+    const { error: err } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    setLoading(false);
     if (err) {
-      setError('Credenciales incorrectas. Verifica tu correo y contraseña.');
-      setLoading(false);
+      const newAttempts = failedAttempts + 1;
+      setFailedAttempts(newAttempts);
+      const secs = newAttempts < lockSchedule.length ? lockSchedule[newAttempts] : 300;
+      if (secs > 0) startLock(secs);
+      // Generic message — never reveal if email exists or not
+      setError('Correo o contraseña incorrectos');
       return;
     }
+    setFailedAttempts(0);
     navigate('/app');
   };
 
@@ -79,11 +110,13 @@ export default function Login() {
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full h-12 bg-[#0f2167] hover:bg-[#0f2167]/90 disabled:opacity-60 text-white rounded-xl text-sm font-black uppercase tracking-wider transition-all shadow-lg shadow-[#0f2167]/20 flex items-center justify-center gap-2 mt-2"
+              disabled={loading || isLocked}
+              className="w-full h-12 bg-[#0f2167] hover:bg-[#0f2167]/90 disabled:opacity-50 text-white rounded-xl text-sm font-black uppercase tracking-wider transition-all shadow-lg shadow-[#0f2167]/20 flex items-center justify-center gap-2 mt-2"
             >
               {loading ? (
                 <span className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : isLocked ? (
+                `Espera ${lockSecsLeft}s`
               ) : (
                 <><LogIn size={18} /> Iniciar Sesión</>
               )}
