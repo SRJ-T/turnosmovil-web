@@ -182,11 +182,28 @@ export default function Landing() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [showComparison, setShowComparison] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState<'Starter'|'Empresarial'|'Elite'|'ProMax'|null>(null);
+  const [confirmPlan, setConfirmPlan] = useState<{id:'Starter'|'Empresarial'|'Elite'|'ProMax', name:string, price:string}|null>(null);
 
-  const handleSelectPlan = async (plan: 'Starter'|'Empresarial'|'Elite'|'ProMax') => {
+  const PLAN_PRICES: Record<string,string> = { Starter:'$29.99', Empresarial:'$49.99', Elite:'$69.99', ProMax:'$99.99' };
+  const PLAN_NAMES:  Record<string,string> = { Starter:'Básico', Empresarial:'Empresarial', Elite:'Elite', ProMax:'Pro' };
+
+  const handleSelectPlan = (plan: 'Starter'|'Empresarial'|'Elite'|'ProMax') => {
+    setConfirmPlan({ id: plan, name: PLAN_NAMES[plan], price: PLAN_PRICES[plan] });
+  };
+
+  const handleConfirmCheckout = async () => {
+    if (!confirmPlan) return;
+    const plan = confirmPlan.id;
+    setConfirmPlan(null);
     setLoadingPlan(plan);
     try {
-      const priceId = { Starter:'price_1TbiWe2Lx6mtbfcWEFr0DJuv', Empresarial:'price_1TbiXA2Lx6mtbfcWlb7aTxGm', Elite:'price_1TbiYl2Lx6mtbfcWnWXe5iCb', ProMax:'price_1TbiYl2Lx6mtbfcWnWXe5iCb' }[plan];
+      // NOTE: ProMax requires its own Stripe price ID — update price_1TbiYl... to the real Pro price ID
+      const priceId = {
+        Starter:     'price_1TbiWe2Lx6mtbfcWEFr0DJuv',
+        Empresarial: 'price_1TbiXA2Lx6mtbfcWlb7aTxGm',
+        Elite:       'price_1TbiYl2Lx6mtbfcWnWXe5iCb',
+        ProMax:      'price_1TbiYl2Lx6mtbfcWnWXe5iCb', // TODO: replace with real Pro price ID in Stripe
+      }[plan];
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout-session`, {
         method:'POST', headers:{'Content-Type':'application/json','apikey':import.meta.env.VITE_SUPABASE_ANON_KEY},
         body: JSON.stringify({ priceId, successUrl:`${window.location.origin}/success?session_id={CHECKOUT_SESSION_ID}`, cancelUrl:`${window.location.origin}/#pricing` }),
@@ -760,6 +777,42 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+
+      {/* ── Auto-renewal Disclosure Modal (Legal requirement) ─────────────── */}
+      {confirmPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
+            <h2 className="text-xl font-black mb-1" style={{ color: B.slate }}>Confirmar suscripción</h2>
+            <p className="text-sm mb-6" style={{ color: B.gray }}>Plan <strong>{confirmPlan.name}</strong></p>
+
+            <div className="rounded-xl p-4 mb-5 text-sm space-y-2" style={{ background: '#F0F9FF', border: '1px solid #BAE6FD', color: B.slate }}>
+              <p>✅ <strong>Prueba gratuita de 14 días</strong> — sin cargo hoy.</p>
+              <p>🔄 <strong>Renovación automática:</strong> Al terminar la prueba, el <strong>{(() => { const d = new Date(); d.setDate(d.getDate()+14); return d.toLocaleDateString('es-PR',{day:'numeric',month:'long',year:'numeric'}); })()}</strong>, se te cobrará <strong>{confirmPlan.price}/mes</strong> de forma recurrente hasta que canceles.</p>
+              <p>❌ <strong>Cancela cuando quieras</strong> antes de esa fecha sin costo alguno.</p>
+            </div>
+
+            <p className="text-xs mb-6" style={{ color: B.gray }}>
+              Al continuar aceptas nuestros{' '}
+              <a href="/terminos" target="_blank" className="underline" style={{ color: B.blue }}>Términos de Servicio</a>
+              {' '}y{' '}
+              <a href="/privacidad" target="_blank" className="underline" style={{ color: B.blue }}>Política de Privacidad</a>.
+            </p>
+
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmPlan(null)}
+                className="flex-1 py-3 rounded-xl font-bold text-sm border transition-all hover:bg-slate-50"
+                style={{ color: B.gray, borderColor: B.border }}>
+                Cancelar
+              </button>
+              <button onClick={handleConfirmCheckout}
+                className="flex-1 py-3 rounded-xl font-bold text-sm text-white transition-all hover:opacity-90"
+                style={{ background: B.blue }}>
+                Empezar prueba gratis →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

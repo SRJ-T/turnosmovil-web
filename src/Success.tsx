@@ -1,6 +1,12 @@
 import { motion } from 'motion/react';
-import { CheckCircle2, Download, ShieldCheck, Smartphone, Home } from 'lucide-react';
+import { CheckCircle2, Download, ShieldCheck, Smartphone, Home, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+function trialEndDate() {
+  const d = new Date();
+  d.setDate(d.getDate() + 14);
+  return d.toLocaleDateString('es-PR', { day: 'numeric', month: 'long', year: 'numeric' });
+}
 
 export default function SuccessPage() {
   return (
@@ -30,6 +36,28 @@ export default function SuccessPage() {
           </h1>
           <p className="text-slate-500 font-medium mt-3 max-w-md">
             Tu suscripción está lista. Te enviamos un correo electrónico de bienvenida con todos tus accesos.
+          </p>
+        </div>
+
+        {/* Auto-renewal disclosure — legally required */}
+        <div className="rounded-xl p-4 mb-8 text-sm space-y-1.5" style={{ background: '#FFF7ED', border: '1px solid #FED7AA' }}>
+          <p className="flex items-start gap-2 font-bold text-orange-800">
+            <AlertCircle className="size-4 shrink-0 mt-0.5" /> Información de tu suscripción
+          </p>
+          <p className="text-orange-700">
+            Tu prueba gratuita de 14 días termina el <strong>{trialEndDate()}</strong>.
+          </p>
+          <p className="text-orange-700">
+            A partir de esa fecha se realizará un cargo mensual automático a tu método de pago registrado en Stripe.
+          </p>
+          <p className="text-orange-700">
+            Para cancelar antes de que termine la prueba, visita{' '}
+            <a href="https://billing.stripe.com/p/login/test_00g00000000000" target="_blank" rel="noopener noreferrer"
+              className="underline font-semibold">
+              tu portal de facturación
+            </a>
+            {' '}o escríbenos a{' '}
+            <a href="mailto:soporte@turnosmovil.com" className="underline font-semibold">soporte@turnosmovil.com</a>.
           </p>
         </div>
 
