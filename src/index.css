@@ -66,9 +66,6 @@
 }
 
 @layer base {
-  html {
-    font-size: 150%;
-  }
   body {
     @apply bg-background text-on-surface antialiased;
   }

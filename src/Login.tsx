@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
@@ -74,7 +74,7 @@ export default function Login() {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="text-[15px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Correo Electrónico</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Correo Electrónico</label>
               <input
                 type="email"
                 required
@@ -86,7 +86,7 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="text-[15px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Contraseña</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Contraseña</label>
               <div className="relative">
                 <input
                   type={showPw ? 'text' : 'password'}
