@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { fetchEmployees, invalidateEmployees, EMP_COLS } from './lib/cache';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { Session } from '@supabase/supabase-js';
@@ -8,7 +9,7 @@ import {
   CheckCircle2, XCircle, ChevronLeft, ChevronRight, Clock,
   UserPlus, AlertTriangle, Trash2, Search, BarChart3,
   MinusCircle, LogOut, RefreshCw,
-  Send, Pencil, Palmtree, Umbrella, Wallet, Bot, Tag, Receipt
+  Send, Pencil, Palmtree, Wallet, Bot, Tag, Receipt
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase, diffHours } from './lib/supabase';
@@ -83,9 +84,9 @@ function StatusChip({status}:{status:string}) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 export default function Dashboard({session}:{session:Session}) {
-  const TAB_SLUG:Record<string,string>={dashboard:'',calendar:'horario',approvals:'horas',team:'personal',payroll:'nomina',reports:'reportes',feriados:'feriados',licencias:'licencias',gastos:'gastos',asistente:'asistente',settings:'configuracion'};
-  const SLUG_TAB:Record<string,string>={'':'dashboard',horario:'calendar',horas:'approvals',personal:'team',nomina:'payroll',reportes:'reports',feriados:'feriados',licencias:'licencias',gastos:'gastos',asistente:'asistente',configuracion:'settings'};
-  const TAB_LABEL:Record<string,string>={dashboard:'Dashboard',calendar:'Turnos',approvals:'Horas',team:'Personal',payroll:'Nómina',reports:'Reportes',feriados:'Días Feriados',licencias:'Licencias',gastos:'Gastos',asistente:'Asistente AI',settings:'Configuración'};
+  const TAB_SLUG:Record<string,string>={dashboard:'',calendar:'horario',approvals:'horas',team:'personal',payroll:'nomina',reports:'reportes',feriados:'feriados',gastos:'gastos',asistente:'asistente',settings:'configuracion'};
+  const SLUG_TAB:Record<string,string>={'':'dashboard',horario:'calendar',horas:'approvals',personal:'team',nomina:'payroll',reportes:'reports',feriados:'feriados',gastos:'gastos',asistente:'asistente',configuracion:'settings'};
+  const TAB_LABEL:Record<string,string>={dashboard:'Dashboard',calendar:'Turnos',approvals:'Horas',team:'Personal',payroll:'Nómina',reports:'Reportes',feriados:'Días Feriados',gastos:'Gastos',asistente:'Asistente AI',settings:'Configuración'};
   const initTab=(()=>{const parts=window.location.pathname.split('/');const slug=parts[2]??'';return SLUG_TAB[slug]??'dashboard';})();
   const [activeTab,setActiveTab] = useState(initTab);
   const [sidebarOpen,setSidebarOpen] = useState(false);
@@ -119,7 +120,6 @@ export default function Dashboard({session}:{session:Session}) {
         <NavItem icon={DollarSign}     label="Nómina"        active={activeTab==='payroll'}   onClick={()=>{navigate('payroll');setSidebarOpen(false)}} color={NAV.payroll}/>
         <NavItem icon={BarChart3}      label="Reportes"      active={activeTab==='reports'}   onClick={()=>{navigate('reports');setSidebarOpen(false)}} color={NAV.reports}/>
         <NavItem icon={Palmtree}       label="Días Feriados" active={activeTab==='feriados'}  onClick={()=>{navigate('feriados');setSidebarOpen(false)}} color='#0D9488'/>
-        <NavItem icon={Umbrella}       label="Licencias"     active={activeTab==='licencias'} onClick={()=>{navigate('licencias');setSidebarOpen(false)}} color={T.violet}/>
         <NavItem icon={Wallet}         label="Gastos"        active={activeTab==='gastos'}    onClick={()=>{navigate('gastos');setSidebarOpen(false)}} color={T.amber}/>
         <NavItem icon={Bot}            label="Asistente AI"  active={activeTab==='asistente'} onClick={()=>{navigate('asistente');setSidebarOpen(false)}} color={T.indigo}/>
         <NavItem icon={Settings}       label="Configuración" active={activeTab==='settings'}  onClick={()=>{navigate('settings');setSidebarOpen(false)}} color={NAV.settings}/>
@@ -166,7 +166,6 @@ export default function Dashboard({session}:{session:Session}) {
               {activeTab==='payroll'   && <PayrollView bizId={bizId}/>}
               {activeTab==='reports'   && <ReportsView bizId={bizId}/>}
               {activeTab==='feriados'  && <FeriadosView bizId={bizId}/>}
-              {activeTab==='licencias' && <LicenciasView bizId={bizId}/>}
               {activeTab==='gastos'    && <GastosView bizId={bizId}/>}
               {activeTab==='asistente' && <AsistenteView/>}
               {activeTab==='settings'  && <SettingsView bizId={bizId}/>}
@@ -193,16 +192,15 @@ function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string
       const days=weekDays(now);
       const weekStart=isoDate(days[0]); const weekEnd=isoDate(days[6]);
 
-      const [weekClockRes,pendingRes,empRes,todayShiftsRes]=await Promise.all([
-        supabase.from('clock_entries').select('*,profiles(*)').eq('business_id',bizId)
+      const [weekClockRes,pendingRes,employees,todayShiftsRes]=await Promise.all([
+        supabase.from('clock_entries').select(`id,employee_id,business_id,shift_id,clock_in,clock_out,status,break_minutes,rejection_note,approved_hours,profiles(${EMP_COLS})`).eq('business_id',bizId)
           .gte('clock_in',`${weekStart}T00:00:00`).lte('clock_in',`${weekEnd}T23:59:59`),
         supabase.from('clock_entries').select('id').eq('business_id',bizId).eq('status','pending'),
-        supabase.from('profiles').select('*').eq('business_id',bizId).eq('role','employee'),
-        supabase.from('shifts').select('*,profiles(*)').eq('business_id',bizId).eq('date',today),
+        fetchEmployees<Employee>(bizId),
+        supabase.from('shifts').select(`id,employee_id,business_id,date,start_time,end_time,status,break_minutes,profiles(${EMP_COLS})`).eq('business_id',bizId).eq('date',today),
       ]);
 
       const weekClocks:ClockEntry[]=((weekClockRes.data??[]) as any[]).map(e=>({...e,employee:e.profiles}));
-      const employees=(empRes.data??[]) as Employee[];
       const todayShifts=((todayShiftsRes.data??[]) as any[]).map(s=>({...s,employee:s.profiles}));
 
       // Weekly payroll
@@ -427,8 +425,8 @@ function TeamView({bizId}:{bizId:string}) {
 
   const load=useCallback(async()=>{
     setLoading(true);
-    const{data}=await supabase.from('profiles').select('*').eq('business_id',bizId).eq('role','employee').order('name');
-    setEmployees((data??[]) as Employee[]);
+    const data=await fetchEmployees<Employee>(bizId);
+    setEmployees([...data].sort((a,b)=>a.name.localeCompare(b.name)));
     setLoading(false);
   },[bizId]);
   useEffect(()=>{load();},[load]);
@@ -440,18 +438,20 @@ function TeamView({bizId}:{bizId:string}) {
     e.preventDefault(); setInviting(true);
     try {
       if(editEmp){await supabase.from('profiles').update({name:form.name,last_name:form.last_name,phone:form.phone,job_title:form.job_title,hourly_rate:parseFloat(form.hourly_rate),employee_color:form.employee_color}).eq('id',editEmp.id);}
-      else{const{data:{session}}=await supabase.auth.getSession();await fetch('https://ctdxqijdmpigqgktlwxb.supabase.co/functions/v1/invite-employee',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session?.access_token}`},body:JSON.stringify({name:form.name,last_name:form.last_name,email:form.email,phone:form.phone,job_title:form.job_title,hourly_rate:parseFloat(form.hourly_rate),employee_color:form.employee_color,send_invite:sendInvite})});}
-      setPageView('list'); await load();
+      else{const{data:{session}}=await supabase.auth.getSession();await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-employee`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session?.access_token}`},body:JSON.stringify({name:form.name,last_name:form.last_name,email:form.email,phone:form.phone,job_title:form.job_title,hourly_rate:parseFloat(form.hourly_rate),employee_color:form.employee_color,send_invite:sendInvite})});}
+      invalidateEmployees(bizId); setPageView('list'); await load();
     } finally{setInviting(false);}
   };
 
   const handleToggle=async(emp:Employee)=>{
     const ns=emp.status==='active'?'inactive':'active';
     await supabase.from('profiles').update({status:ns}).eq('id',emp.id);
+    invalidateEmployees(bizId);
     setEmployees(prev=>prev.map(e=>e.id===emp.id?{...e,status:ns}:e));
   };
   const handleDelete=async(id:string)=>{
     await supabase.from('profiles').delete().eq('id',id);
+    invalidateEmployees(bizId);
     setEmployees(prev=>prev.filter(e=>e.id!==id));
     setConfirmDeleteId(null);
   };
@@ -681,7 +681,7 @@ function TeamView({bizId}:{bizId:string}) {
                   <p className="text-[13px] font-semibold" style={{color:T.black}}>{emp.hourly_rate?`$${Number(emp.hourly_rate).toFixed(2)}/hr`:'—'}</p>
                   <div><StatusChip status={emp.status}/></div>
                   <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {emp.status==='pending'&&<button onClick={async()=>{const{data:{session}}=await supabase.auth.getSession();await fetch('https://ctdxqijdmpigqgktlwxb.supabase.co/functions/v1/invite-employee',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session?.access_token}`},body:JSON.stringify({employee_id:emp.id})});}} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{background:T.blueLt,color:T.blue}}><Send size={12}/>Reenviar</button>}
+                    {emp.status==='pending'&&<button onClick={async()=>{const{data:{session}}=await supabase.auth.getSession();await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-employee`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session?.access_token}`},body:JSON.stringify({employee_id:emp.id})});}} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{background:T.blueLt,color:T.blue}}><Send size={12}/>Reenviar</button>}
                     {emp.status==='active'&&<button onClick={()=>handleToggle(emp)} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{background:T.amberLt,color:T.amber}}><MinusCircle size={12}/>Desactivar</button>}
                     {emp.status==='inactive'&&<button onClick={()=>handleToggle(emp)} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{background:T.greenLt,color:T.green}}><CheckCircle2 size={12}/>Activar</button>}
                     <button onClick={()=>openEdit(emp)} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{background:T.indigoLt,color:T.indigo}}><Pencil size={12}/>Editar</button>
@@ -739,13 +739,13 @@ function TurnosView({bizId}:{bizId:string}) {
   const days=weekDays(weekAnchor);
 
   const load=useCallback(async()=>{
-    const[empRes,shiftRes,liveRes,queueRes]=await Promise.all([
-      supabase.from('profiles').select('*').eq('business_id',bizId).eq('role','employee').eq('status','active'),
-      supabase.from('shifts').select('*,profiles(*)').eq('business_id',bizId).gte('date',isoDate(days[0])).lte('date',isoDate(days[6])).order('start_time'),
-      supabase.from('clock_entries').select('*,profiles(*)').eq('business_id',bizId).is('clock_out',null),
-      supabase.from('clock_entries').select('*,profiles(*)').eq('business_id',bizId).not('clock_out','is',null).order('clock_in',{ascending:false}).limit(50),
+    const[employees,shiftRes,liveRes,queueRes]=await Promise.all([
+      fetchEmployees<Employee>(bizId,true),
+      supabase.from('shifts').select(`id,employee_id,business_id,date,start_time,end_time,status,break_minutes,profiles(${EMP_COLS})`).eq('business_id',bizId).gte('date',isoDate(days[0])).lte('date',isoDate(days[6])).order('start_time'),
+      supabase.from('clock_entries').select(`id,employee_id,business_id,shift_id,clock_in,clock_out,status,break_minutes,rejection_note,approved_hours,profiles(${EMP_COLS})`).eq('business_id',bizId).is('clock_out',null),
+      supabase.from('clock_entries').select(`id,employee_id,business_id,shift_id,clock_in,clock_out,status,break_minutes,rejection_note,approved_hours,profiles(${EMP_COLS})`).eq('business_id',bizId).not('clock_out','is',null).order('clock_in',{ascending:false}).limit(50),
     ]);
-    setEmployees((empRes.data??[]) as Employee[]);
+    setEmployees(employees);
     setShifts(((shiftRes.data??[]) as any[]).map(s=>({...s,employee:s.profiles})));
     setLiveEntries(((liveRes.data??[]) as any[]).map(e=>({...e,employee:e.profiles})));
     setQueueEntries(((queueRes.data??[]) as any[]).map(e=>({...e,employee:e.profiles})));
@@ -1182,8 +1182,8 @@ function ApprovalsView({bizId}:{bizId:string}) {
   const load=useCallback(async()=>{
     setLoading(true);
     const[closedRes,activeRes]=await Promise.all([
-      supabase.from('clock_entries').select('*,profiles(*)').eq('business_id',bizId).not('clock_out','is',null).order('clock_in',{ascending:false}).limit(300),
-      supabase.from('clock_entries').select('*,profiles(*)').eq('business_id',bizId).is('clock_out',null).order('clock_in',{ascending:false}),
+      supabase.from('clock_entries').select(`id,employee_id,business_id,shift_id,clock_in,clock_out,status,break_minutes,rejection_note,approved_hours,profiles(${EMP_COLS})`).eq('business_id',bizId).not('clock_out','is',null).order('clock_in',{ascending:false}).limit(300),
+      supabase.from('clock_entries').select(`id,employee_id,business_id,shift_id,clock_in,clock_out,status,break_minutes,rejection_note,approved_hours,profiles(${EMP_COLS})`).eq('business_id',bizId).is('clock_out',null).order('clock_in',{ascending:false}),
     ]);
     setEntries(((closedRes.data??[]) as any[]).map(e=>({...e,employee:e.profiles})));
     setActive(((activeRes.data??[]) as any[]).map(e=>({...e,employee:e.profiles})));
@@ -1578,11 +1578,10 @@ function PayrollView({bizId}:{bizId:string}) {
       setLoading(true);
       const now=new Date();
       const startDate=period==='week'?isoDate(weekDays(now)[0]):`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
-      const[empRes,entryRes]=await Promise.all([
-        supabase.from('profiles').select('*').eq('business_id',bizId).eq('role','employee').eq('status','active'),
+      const[emps,entryRes]=await Promise.all([
+        fetchEmployees<Employee>(bizId,true),
         supabase.from('clock_entries').select('employee_id,clock_in,clock_out').eq('business_id',bizId).eq('status','approved').not('clock_out','is',null).gte('clock_in',`${startDate}T00:00:00`),
       ]);
-      const emps=(empRes.data??[]) as Employee[];
       const hrMap:Record<string,number>={};
       for(const e of(entryRes.data??[])){hrMap[e.employee_id]=(hrMap[e.employee_id]??0)+diffHours(e.clock_in,e.clock_out);}
       const rows=emps.map(emp=>{
@@ -1831,11 +1830,10 @@ function HoursTab({bizId}:{bizId:string}) {
       else if(period==='month'){startDate=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;}
       else{const q=Math.floor(now.getMonth()/3);startDate=`${now.getFullYear()}-${String(q*3+1).padStart(2,'0')}-01`;}
 
-      const[empRes,entryRes]=await Promise.all([
-        supabase.from('profiles').select('*').eq('business_id',bizId).eq('role','employee'),
+      const[emps,entryRes]=await Promise.all([
+        fetchEmployees<Employee>(bizId),
         supabase.from('clock_entries').select('employee_id,clock_in,clock_out').eq('business_id',bizId).in('status',['approved','paid']).not('clock_out','is',null).gte('clock_in',`${startDate}T00:00:00`),
       ]);
-      const emps=(empRes.data??[]) as Employee[];
       const entries=entryRes.data??[];
       const hrMap:Record<string,{hours:number;entries:number}>={};
       for(const e of entries){if(!hrMap[e.employee_id])hrMap[e.employee_id]={hours:0,entries:0};hrMap[e.employee_id].hours+=diffHours(e.clock_in,e.clock_out);hrMap[e.employee_id].entries++;}
@@ -1974,13 +1972,12 @@ function QuarterlyTab({bizId}:{bizId:string}) {
     const qEndDay=new Date(year,qEndMonth,0).getDate();
     const qEnd=`${year}-${String(qEndMonth).padStart(2,'0')}-${String(qEndDay).padStart(2,'0')}`;
 
-    const[empRes,entryRes,bizRes]=await Promise.all([
-      supabase.from('profiles').select('*').eq('business_id',bizId).eq('role','employee'),
+    const[emps,entryRes,bizRes]=await Promise.all([
+      fetchEmployees<Employee>(bizId),
       supabase.from('clock_entries').select('employee_id,clock_in,clock_out,approved_hours').eq('business_id',bizId).in('status',['approved','paid']).not('clock_out','is',null).gte('clock_in',`${qStart}T00:00:00`).lte('clock_in',`${qEnd}T23:59:59`),
       supabase.from('businesses').select('name').eq('id',bizId).single(),
     ]);
     setBizName(bizRes.data?.name??'');
-    const emps=(empRes.data??[]) as Employee[];
     const entries=entryRes.data??[];
     const hrMap:Record<string,number>={};
     for(const e of entries){
@@ -2164,13 +2161,12 @@ function W2Tab({bizId}:{bizId:string}) {
 
   const generate=async()=>{
     setLoading(true);setGenerated(false);
-    const[empRes,entryRes,bizRes]=await Promise.all([
-      supabase.from('profiles').select('*').eq('business_id',bizId).eq('role','employee'),
+    const[emps,entryRes,bizRes]=await Promise.all([
+      fetchEmployees<Employee>(bizId),
       supabase.from('clock_entries').select('employee_id,clock_in,clock_out,approved_hours').eq('business_id',bizId).in('status',['approved','paid']).not('clock_out','is',null).gte('clock_in',`${year}-01-01T00:00:00`).lte('clock_in',`${year}-12-31T23:59:59`),
       supabase.from('businesses').select('name').eq('id',bizId).single(),
     ]);
     setBizName(bizRes.data?.name??'');
-    const emps=(empRes.data??[]) as Employee[];
     const entries=entryRes.data??[];
     const hrMap:Record<string,number>={};
     for(const e of entries){
@@ -2453,124 +2449,6 @@ function FeriadosView({bizId}:{bizId:string}) {
   );
 }
 
-// ─── LICENCIAS ────────────────────────────────────────────────────────────────
-function LicenciasView({bizId}:{bizId:string}) {
-  type LeaveReq={id:string;employee_id:string;type:string;start_date:string;end_date:string;hours_requested:number;approved_hours:number|null;status:string;notes:string|null;employee?:Employee};
-  const [tab,setTab]=useState<'pending'|'approved'|'rejected'>('pending');
-  const [reqs,setReqs]=useState<LeaveReq[]>([]);
-  const [emps,setEmps]=useState<Employee[]>([]);
-  const [loading,setLoading]=useState(true);
-  const [acting,setActing]=useState<string|null>(null);
-
-  const load=useCallback(async()=>{
-    setLoading(true);
-    const[lRes,eRes]=await Promise.all([
-      supabase.from('leave_requests').select('*').eq('business_id',bizId).order('created_at',{ascending:false}),
-      supabase.from('profiles').select('*').eq('business_id',bizId).eq('role','employee'),
-    ]);
-    const empList=(eRes.data??[]) as Employee[];
-    setEmps(empList);
-    const empMap=Object.fromEntries(empList.map(e=>[e.id,e]));
-    setReqs(((lRes.data??[]) as LeaveReq[]).map(r=>({...r,employee:empMap[r.employee_id]})));
-    setLoading(false);
-  },[bizId]);
-
-  useEffect(()=>{load();},[load]);
-
-  const filtered=reqs.filter(r=>r.status===tab);
-
-  const approve=async(r:LeaveReq)=>{
-    setActing(r.id);
-    await supabase.from('leave_requests').update({status:'approved',approved_hours:r.hours_requested}).eq('id',r.id);
-    await load();setActing(null);
-  };
-  const reject=async(r:LeaveReq)=>{
-    setActing(r.id);
-    await supabase.from('leave_requests').update({status:'rejected'}).eq('id',r.id);
-    await load();setActing(null);
-  };
-
-  const typeLabel:Record<string,{label:string;color:string;bg:string}>={
-    vacation:{label:'Vacaciones',color:T.blue,bg:T.blueLt},
-    sick:{label:'Enfermedad',color:T.violet,bg:T.violetLt},
-    personal:{label:'Personal',color:T.amber,bg:T.amberLt},
-  };
-
-  return(
-    <div>
-      <div className="px-6 pt-6 pb-0" style={{background:'white',borderBottom:`1px solid ${T.border}`}}>
-        <h1 className="text-xl font-bold mb-1" style={{color:T.black}}>Licencias</h1>
-        <p className="text-xs mb-4" style={{color:T.gray}}>Solicitudes de vacaciones, enfermedad y licencia personal</p>
-        <div className="flex gap-1.5">
-          {([['pending','Pendientes',T.amber],['approved','Aprobadas',T.green],['rejected','Rechazadas',T.red]] as const).map(([id,label,color])=>(
-            <button key={id} onClick={()=>setTab(id)}
-              className="h-9 px-4 rounded-t-xl text-[12px] font-semibold border-b-2 transition-all"
-              style={{background:tab===id?`${color}12`:'transparent',color:tab===id?color:T.gray,borderBottomColor:tab===id?color:'transparent'}}>
-              {label}
-              {id==='pending'&&reqs.filter(r=>r.status==='pending').length>0&&(
-                <span className="ml-1.5 text-[10px] font-black px-1.5 py-0.5 rounded-full" style={{background:T.amber,color:'white'}}>{reqs.filter(r=>r.status==='pending').length}</span>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="p-6 space-y-3">
-        {loading?<>{Array.from({length:3}).map((_,i)=><div key={i} className="h-24 rounded-2xl animate-pulse" style={{background:'white'}}/>)}</>
-        :filtered.length===0?(
-          <div className="rounded-2xl py-14 flex flex-col items-center" style={CARD}>
-            <Umbrella size={36} color={T.grayMid} className="mb-3"/>
-            <p className="text-sm font-semibold" style={{color:T.gray}}>No hay solicitudes {tab==='pending'?'pendientes':tab==='approved'?'aprobadas':'rechazadas'}</p>
-          </div>
-        ):(
-          filtered.map(r=>{
-            const tp=typeLabel[r.type]??{label:r.type,color:T.gray,bg:T.grayLt};
-            const emp=r.employee;
-            const color=emp?empColor(emp,emps.findIndex(e=>e.id===emp.id)):T.gray;
-            return(
-              <div key={r.id} className="rounded-2xl p-5" style={CARD}>
-                <div className="flex items-start gap-4">
-                  <div className="size-10 rounded-full flex items-center justify-center text-[12px] font-bold text-white shrink-0" style={{background:color}}>
-                    {emp?empInitials(emp):'?'}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[14px] font-bold" style={{color:T.black}}>{emp?empName(emp):'Empleado'}</span>
-                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{background:tp.bg,color:tp.color}}>{tp.label}</span>
-                    </div>
-                    <p className="text-[12px] mt-0.5" style={{color:T.gray}}>
-                      {r.start_date} → {r.end_date} · {r.hours_requested}h solicitadas
-                    </p>
-                    {r.notes&&<p className="text-[12px] mt-1 italic" style={{color:T.gray}}>"{r.notes}"</p>}
-                  </div>
-                  {tab==='pending'&&(
-                    <div className="flex gap-2 shrink-0">
-                      <button onClick={()=>approve(r)} disabled={acting===r.id}
-                        className="h-8 px-3 rounded-lg text-[12px] font-bold text-white" style={{background:T.green}}>
-                        {acting===r.id?'...':'Aprobar'}
-                      </button>
-                      <button onClick={()=>reject(r)} disabled={acting===r.id}
-                        className="h-8 px-3 rounded-lg text-[12px] font-bold" style={{background:T.redLt,color:T.red}}>
-                        {acting===r.id?'...':'Rechazar'}
-                      </button>
-                    </div>
-                  )}
-                  {tab==='approved'&&(
-                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0" style={{background:T.greenLt,color:T.green}}>✓ {r.approved_hours??r.hours_requested}h aprobadas</span>
-                  )}
-                  {tab==='rejected'&&(
-                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0" style={{background:T.redLt,color:T.red}}>✗ Rechazada</span>
-                  )}
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-    </div>
-  );
-}
-
 // ─── GASTOS ───────────────────────────────────────────────────────────────────
 function GastosView({bizId}:{bizId:string}) {
   type Expense={id:string;description:string;amount:number;category:string;date:string;notes:string|null;created_at:string};
@@ -2584,7 +2462,7 @@ function GastosView({bizId}:{bizId:string}) {
 
   const load=useCallback(async()=>{
     setLoading(true);
-    const{data}=await supabase.from('expenses').select('*').eq('business_id',bizId).order('date',{ascending:false});
+    const{data}=await supabase.from('expenses').select('id,description,amount,category,date,notes,created_at').eq('business_id',bizId).order('date',{ascending:false});
     setExpenses((data??[]) as Expense[]);
     setLoading(false);
   },[bizId]);
@@ -2739,7 +2617,7 @@ function AsistenteView() {
     if(has(q,'feriado','holiday','festivo','paga feriado','ley 180'))
       return'En Puerto Rico la Ley 180 establece que el pago de días feriados **no es obligatorio** — es decisión del patrono.\n\nPara configurarlo:\n- Ve a **Días Feriados** en el menú\n- Activa el toggle y selecciona qué días pagas\n- Elige la tasa: 1x, 1.5x o 2x\n- Los feriados se calculan automáticamente en la nómina';
     if(has(q,'licencia','vacacion','enfermedad','leave','aprobar licencia'))
-      return'Para gestionar licencias:\n1. Ve a **Licencias** en el menú lateral\n2. Verás las solicitudes en tabs: Pendientes / Aprobadas / Rechazadas\n3. Pulsa **Aprobar** o **Rechazar** en cada solicitud\n4. Las vacaciones aprobadas se contemplan automáticamente en la nómina del período';
+      return'Las solicitudes de licencias y vacaciones se manejan directamente con el empleado. Puedes ver las horas trabajadas en **Horas** y procesarlas en **Nómina** una vez acordadas.';
     if(has(q,'trimestral','suri','dtrh','sinot','formulario','quarterly'))
       return'Para generar el reporte trimestral:\n1. Ve a **Reportes** → tab **Trimestrales**\n2. Selecciona el año y el trimestre (T1–T4)\n3. Pulsa **Generar Reporte**\n4. El sistema calcula salarios brutos, SS (6.2%) y Medicare (1.45%) por empleado\n5. Descarga el PDF con el botón **Descargar PDF**';
     if(has(q,'499r','retencion','withholding'))
@@ -2795,7 +2673,7 @@ function AsistenteView() {
                 <Bot size={28} style={{color:T.indigo}}/>
               </div>
               <p className="text-[15px] font-bold" style={{color:T.black}}>¿En qué puedo ayudarte?</p>
-              <p className="text-[13px] mt-1" style={{color:T.gray}}>Pregúntame sobre nómina, feriados, licencias o reportes</p>
+              <p className="text-[13px] mt-1" style={{color:T.gray}}>Pregúntame sobre nómina, feriados, gastos o reportes</p>
             </div>
             <div className="flex flex-wrap gap-2 justify-center">
               {SUGGESTIONS.map(s=>(
