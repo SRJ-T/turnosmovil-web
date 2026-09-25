@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+﻿import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchEmployees, invalidateEmployees, EMP_COLS } from './lib/cache';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -75,7 +75,7 @@ function StatusChip({status}:{status:string}) {
   };
   const s=map[status]??{bg:T.grayLt,fg:T.gray,label:status};
   return (
-    <span className="flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0" style={{background:s.bg,color:s.fg}}>
+    <span className="flex items-center gap-1.5 text-[14px] font-semibold px-2.5 py-1 rounded-full shrink-0" style={{background:s.bg,color:s.fg}}>
       <span className={`w-1.5 h-1.5 rounded-full ${(status==='active'||status==='pending')?'animate-pulse':''}`} style={{background:s.fg}}/>
       {s.label}
     </span>
@@ -107,7 +107,7 @@ export default function Dashboard({session}:{session:Session}) {
       <div className="px-4 pt-5 pb-4 flex items-center justify-between" style={{borderBottom:`1px solid rgba(255,255,255,0.08)`}}>
         <div className="flex items-center gap-2.5">
           <div className="size-8 rounded-lg flex items-center justify-center text-sm font-black" style={{background:T.white,color:SB}}>T</div>
-          <div><p className="font-semibold text-white text-[13px] leading-tight">Turnos Móvil</p><p className="text-[9px] font-medium mt-0.5" style={{color:`rgba(255,255,255,0.35)`}}>Business Portal</p></div>
+          <div><p className="font-semibold text-white text-[16px] leading-tight">Turnos Móvil</p><p className="text-[11px] font-medium mt-0.5" style={{color:`rgba(255,255,255,0.35)`}}>Business Portal</p></div>
         </div>
         <button onClick={()=>setSidebarOpen(false)} className="lg:hidden p-1.5 rounded-lg" style={{color:`rgba(255,255,255,0.4)`}}><X size={18}/></button>
       </div>
@@ -116,7 +116,7 @@ export default function Dashboard({session}:{session:Session}) {
         <NavItem icon={CalendarIcon}   label="Turnos"        active={activeTab==='calendar'}  onClick={()=>{navigate('calendar');setSidebarOpen(false)}} color={NAV.calendar}/>
         <NavItem icon={ClipboardCheck} label="Horas"         active={activeTab==='approvals'} onClick={()=>{navigate('approvals');setSidebarOpen(false)}} color={NAV.approvals}/>
         <NavItem icon={Users}          label="Personal"      active={activeTab==='team'}      onClick={()=>{navigate('team');setSidebarOpen(false)}} color={NAV.team}/>
-        <div className="pt-3 pb-1 px-2"><p className="text-[9px] font-semibold uppercase tracking-widest" style={{color:`rgba(255,255,255,0.25)`}}>Gestión</p></div>
+        <div className="pt-3 pb-1 px-2"><p className="text-[11px] font-semibold uppercase tracking-widest" style={{color:`rgba(255,255,255,0.25)`}}>Gestión</p></div>
         <NavItem icon={DollarSign}     label="Nómina"        active={activeTab==='payroll'}   onClick={()=>{navigate('payroll');setSidebarOpen(false)}} color={NAV.payroll}/>
         <NavItem icon={BarChart3}      label="Reportes"      active={activeTab==='reports'}   onClick={()=>{navigate('reports');setSidebarOpen(false)}} color={NAV.reports}/>
         <NavItem icon={Palmtree}       label="Días Feriados" active={activeTab==='feriados'}  onClick={()=>{navigate('feriados');setSidebarOpen(false)}} color='#0D9488'/>
@@ -127,11 +127,11 @@ export default function Dashboard({session}:{session:Session}) {
       <div className="p-3" style={{borderTop:`1px solid rgba(255,255,255,0.08)`}}>
         <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl mb-1" style={{background:`rgba(255,255,255,0.06)`}}>
           <div className="size-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style={{background:T.indigo,color:T.white}}>{ownerName?ownerName[0].toUpperCase():'?'}</div>
-          <div className="flex-1 min-w-0"><p className="text-[12px] font-medium text-white truncate">{ownerName||'Dueño'}</p><p className="text-[9px] truncate" style={{color:`rgba(255,255,255,0.35)`}}>Administrador</p></div>
+          <div className="flex-1 min-w-0"><p className="text-[15px] font-medium text-white truncate">{ownerName||'Dueño'}</p><p className="text-[11px] truncate" style={{color:`rgba(255,255,255,0.35)`}}>Administrador</p></div>
         </div>
         <button onClick={()=>supabase.auth.signOut()} className="w-full flex items-center gap-2.5 px-2 py-2 rounded-xl hover:opacity-80">
           <div className="size-7 rounded-lg flex items-center justify-center shrink-0" style={{background:`${T.red}22`}}><LogOut size={13} color={T.red}/></div>
-          <span className="text-[12px] font-medium" style={{color:T.red}}>Cerrar Sesión</span>
+          <span className="text-[15px] font-medium" style={{color:T.red}}>Cerrar Sesión</span>
         </button>
       </div>
     </div>
@@ -149,7 +149,7 @@ export default function Dashboard({session}:{session:Session}) {
       <main className="flex-1 lg:ml-60 flex flex-col min-h-screen">
         <header className="h-14 flex items-center justify-between px-5 sticky top-0 z-20" style={{background:T.white,borderBottom:`1px solid ${T.border}`}}>
           <button onClick={()=>setSidebarOpen(true)} className="lg:hidden p-2 rounded-xl" style={{color:T.gray}}><Menu size={22}/></button>
-          <h1 className="text-[18px] font-black" style={{color:T.black}}>{TAB_LABEL[activeTab]??'Turnos Móvil'}</h1>
+          <h1 className="text-[23px] font-black" style={{color:T.black}}>{TAB_LABEL[activeTab]??'Turnos Móvil'}</h1>
           <button className="p-2 rounded-xl" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.gray}}><Bell size={18}/></button>
         </header>
         <div className="flex-1 overflow-y-auto" style={{background:T.bg}}>
@@ -269,7 +269,7 @@ function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string
         {/* Weekly Payroll */}
         <div className="rounded-2xl p-5" style={CARD}>
           <div className="flex items-start justify-between mb-3">
-            <p className="text-[11px] font-bold tracking-widest uppercase" style={{color:T.gray}}>Nómina Semanal</p>
+            <p className="text-[14px] font-bold tracking-widest uppercase" style={{color:T.gray}}>Nómina Semanal</p>
             <div className="size-8 rounded-lg flex items-center justify-center" style={{background:'#EEF2FF'}}>
               <DollarSign size={15} color={T.indigo}/>
             </div>
@@ -277,13 +277,13 @@ function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string
           {loading?<div className="h-8 rounded-lg animate-pulse mb-2" style={{background:T.grayLt}}/>:(
             <p className="text-3xl font-black mb-1" style={{color:T.black}}>${weekPayroll.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})}</p>
           )}
-          <p className="text-[11px]" style={{color:T.grayMid}}>Total acumulado esta semana</p>
+          <p className="text-[14px]" style={{color:T.grayMid}}>Total acumulado esta semana</p>
         </div>
 
         {/* Pending Approvals */}
         <div className="rounded-2xl p-5" style={{...CARD,border:`1px solid ${T.amber}40`}}>
           <div className="flex items-start justify-between mb-3">
-            <p className="text-[11px] font-bold tracking-widest uppercase" style={{color:T.gray}}>Aprobaciones Pendientes</p>
+            <p className="text-[14px] font-bold tracking-widest uppercase" style={{color:T.gray}}>Aprobaciones Pendientes</p>
             <div className="size-8 rounded-lg flex items-center justify-center" style={{background:T.amberLt}}>
               <ClipboardCheck size={15} color={T.amber}/>
             </div>
@@ -291,7 +291,7 @@ function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string
           {loading?<div className="h-8 rounded-lg animate-pulse mb-2" style={{background:T.grayLt}}/>:(
             <p className="text-3xl font-black mb-1" style={{color:T.black}}>{pendingCount}</p>
           )}
-          <button onClick={()=>setActiveTab('approvals')} className="text-[11px] font-semibold flex items-center gap-1" style={{color:T.amber,background:'none',border:'none',cursor:'pointer',padding:0}}>
+          <button onClick={()=>setActiveTab('approvals')} className="text-[14px] font-semibold flex items-center gap-1" style={{color:T.amber,background:'none',border:'none',cursor:'pointer',padding:0}}>
             Requiere acción →
           </button>
         </div>
@@ -299,7 +299,7 @@ function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string
         {/* Active Staff */}
         <div className="rounded-2xl p-5" style={CARD}>
           <div className="flex items-start justify-between mb-3">
-            <p className="text-[11px] font-bold tracking-widest uppercase" style={{color:T.gray}}>Personal Activo</p>
+            <p className="text-[14px] font-bold tracking-widest uppercase" style={{color:T.gray}}>Personal Activo</p>
             <div className="size-8 rounded-lg flex items-center justify-center" style={{background:T.greenLt}}>
               <Users size={15} color={T.green}/>
             </div>
@@ -310,7 +310,7 @@ function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string
           <div className="h-2 rounded-full overflow-hidden" style={{background:T.grayLt}}>
             <div className="h-full rounded-full transition-all duration-700" style={{width:`${totalStaff>0?activeStaff/totalStaff*100:0}%`,background:T.green}}/>
           </div>
-          <p className="text-[11px] mt-1.5" style={{color:T.grayMid}}>{totalStaff>0&&activeStaff===totalStaff?'Cobertura óptima':'Empleados activos'}</p>
+          <p className="text-[14px] mt-1.5" style={{color:T.grayMid}}>{totalStaff>0&&activeStaff===totalStaff?'Cobertura óptima':'Empleados activos'}</p>
         </div>
       </div>
 
@@ -320,8 +320,8 @@ function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string
         {/* Recent Activity */}
         <div className="lg:col-span-2 rounded-2xl overflow-hidden" style={CARD}>
           <div className="flex items-center justify-between px-5 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
-            <span className="text-[14px] font-bold" style={{color:T.black}}>Actividad Reciente</span>
-            <button onClick={()=>setActiveTab('approvals')} className="text-[12px] font-semibold flex items-center gap-1" style={{color:T.blue,background:'none',border:'none',cursor:'pointer'}}>
+            <span className="text-[18px] font-bold" style={{color:T.black}}>Actividad Reciente</span>
+            <button onClick={()=>setActiveTab('approvals')} className="text-[15px] font-semibold flex items-center gap-1" style={{color:T.blue,background:'none',border:'none',cursor:'pointer'}}>
               Ver historial →
             </button>
           </div>
@@ -330,13 +330,13 @@ function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string
           ):recentActivity.length===0?(
             <div className="flex flex-col items-center justify-center py-14 gap-2">
               <Clock size={32} color={T.grayMid}/>
-              <p className="text-[13px]" style={{color:T.gray}}>Sin actividad hoy</p>
+              <p className="text-[16px]" style={{color:T.gray}}>Sin actividad hoy</p>
             </div>
           ):(
             <div>
               <div className="grid px-5 py-2.5" style={{gridTemplateColumns:'2fr 2fr 1fr 1fr',borderBottom:`1px solid ${T.border}`}}>
                 {['Empleado','Evento','Hora','Estado'].map(h=>(
-                  <span key={h} className="text-[11px] font-bold uppercase tracking-wide" style={{color:T.grayMid}}>{h}</span>
+                  <span key={h} className="text-[14px] font-bold uppercase tracking-wide" style={{color:T.grayMid}}>{h}</span>
                 ))}
               </div>
               {recentActivity.map((row,i)=>{
@@ -344,12 +344,12 @@ function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string
                 return(
                   <div key={i} className="grid items-center px-5 py-3" style={{gridTemplateColumns:'2fr 2fr 1fr 1fr',borderBottom:i<recentActivity.length-1?`1px solid ${T.bg}`:'none'}}>
                     <div className="flex items-center gap-2.5">
-                      <div className="size-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{background:row.color}}>{row.initials}</div>
-                      <span className="text-[13px] font-semibold truncate" style={{color:T.black}}>{row.name}</span>
+                      <div className="size-8 rounded-full flex items-center justify-center text-[14px] font-bold text-white shrink-0" style={{background:row.color}}>{row.initials}</div>
+                      <span className="text-[16px] font-semibold truncate" style={{color:T.black}}>{row.name}</span>
                     </div>
-                    <span className="text-[12px]" style={{color:T.gray}}>{row.event}</span>
-                    <span className="text-[12px] font-semibold" style={{color:T.black}}>{row.time}</span>
-                    <span className="inline-flex text-[11px] font-semibold px-2.5 py-1 rounded-full w-fit" style={{background:bg,color:fg}}>{row.status}</span>
+                    <span className="text-[15px]" style={{color:T.gray}}>{row.event}</span>
+                    <span className="text-[15px] font-semibold" style={{color:T.black}}>{row.time}</span>
+                    <span className="inline-flex text-[14px] font-semibold px-2.5 py-1 rounded-full w-fit" style={{background:bg,color:fg}}>{row.status}</span>
                   </div>
                 );
               })}
@@ -361,7 +361,7 @@ function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string
         <div className="space-y-4">
           {/* Quick Actions */}
           <div className="rounded-2xl p-5" style={{...CARD,background:SB}}>
-            <p className="text-[13px] font-bold text-white mb-4">Acciones Rápidas</p>
+            <p className="text-[16px] font-bold text-white mb-4">Acciones Rápidas</p>
             <div className="grid grid-cols-2 gap-3">
               {[
                 {icon:Send,    label:'Publicar\nTurno',    tab:'calendar'},
@@ -375,7 +375,7 @@ function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string
                   <div className="size-9 rounded-xl flex items-center justify-center" style={{background:'rgba(255,255,255,0.15)'}}>
                     <Icon size={16} color="white"/>
                   </div>
-                  <span className="text-[11px] font-semibold text-white text-center leading-tight whitespace-pre-line">{label}</span>
+                  <span className="text-[14px] font-semibold text-white text-center leading-tight whitespace-pre-line">{label}</span>
                 </button>
               ))}
             </div>
@@ -387,9 +387,9 @@ function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string
               <div className="size-6 rounded-full flex items-center justify-center" style={{background:T.amberLt}}>
                 <AlertTriangle size={12} color={T.amber}/>
               </div>
-              <span className="text-[13px] font-bold" style={{color:T.black}}>Insight del Día</span>
+              <span className="text-[16px] font-bold" style={{color:T.black}}>Insight del Día</span>
             </div>
-            <p className="text-[12px] leading-relaxed mb-4" style={{color:T.gray}}>
+            <p className="text-[15px] leading-relaxed mb-4" style={{color:T.gray}}>
               {pendingCount>0
                 ? <>Tienes <strong style={{color:T.black}}>{pendingCount} horas pendientes</strong> de aprobación. Revísalas para mantener la nómina al día.</>
                 : activeStaff===0
@@ -398,7 +398,7 @@ function DashboardView({bizId,setActiveTab}:{bizId:string;setActiveTab:(t:string
               }
             </p>
             <button onClick={()=>setActiveTab(pendingCount>0?'approvals':'team')}
-              className="w-full py-2.5 rounded-xl text-[12px] font-semibold transition-all hover:opacity-80"
+              className="w-full py-2.5 rounded-xl text-[15px] font-semibold transition-all hover:opacity-80"
               style={{background:T.grayLt,color:T.black,border:`1px solid ${T.border}`,cursor:'pointer'}}>
               {pendingCount>0?'Revisar ahora':'Ver personal'}
             </button>
@@ -471,19 +471,19 @@ function TeamView({bizId}:{bizId:string}) {
     <motion.div initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} className="p-5 lg:p-6 max-w-screen-xl mx-auto w-full">
       {/* Breadcrumb + actions */}
       <div className="flex items-center justify-between mb-1">
-        <nav className="flex items-center gap-1.5 text-[12px]" style={{color:T.grayMid}}>
+        <nav className="flex items-center gap-1.5 text-[15px]" style={{color:T.grayMid}}>
           <button onClick={()=>setPageView('list')} className="hover:underline" style={{color:T.blue}}>Personal</button>
           <span>›</span>
           <span style={{color:T.black}}>{editEmp?'Editar Empleado':'Añadir Empleado'}</span>
         </nav>
         <div className="flex items-center gap-2">
-          <button onClick={()=>setPageView('list')} className="h-10 px-5 rounded-xl text-[13px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.black,background:T.white}}>Cancelar</button>
-          <button form="emp-form" type="submit" disabled={inviting} className="h-10 px-5 rounded-xl text-[13px] font-bold text-white flex items-center gap-2" style={{background:SB2,opacity:inviting?0.6:1}}>
+          <button onClick={()=>setPageView('list')} className="h-10 px-5 rounded-xl text-[16px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.black,background:T.white}}>Cancelar</button>
+          <button form="emp-form" type="submit" disabled={inviting} className="h-10 px-5 rounded-xl text-[16px] font-bold text-white flex items-center gap-2" style={{background:SB2,opacity:inviting?0.6:1}}>
             {inviting?<span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>:<>{editEmp?<Pencil size={14}/>:<Send size={14}/>}{editEmp?'Guardar cambios':'Guardar Empleado'}</>}
           </button>
         </div>
       </div>
-      <p className="text-[12px] mb-5" style={{color:T.grayMid}}>{editEmp?'Actualiza la información del empleado.':'Crea un nuevo perfil y configura los parámetros de empleo.'}</p>
+      <p className="text-[15px] mb-5" style={{color:T.grayMid}}>{editEmp?'Actualiza la información del empleado.':'Crea un nuevo perfil y configura los parámetros de empleo.'}</p>
 
       <form id="emp-form" onSubmit={handleSubmit}>
         <div className="flex gap-5 items-start">
@@ -493,26 +493,26 @@ function TeamView({bizId}:{bizId:string}) {
             <div className="rounded-2xl p-5" style={CARD}>
               <div className="flex items-center gap-2 mb-4 pb-3" style={{borderBottom:`1px solid ${T.border}`}}>
                 <div className="size-7 rounded-lg flex items-center justify-center" style={{background:T.blueLt}}><UserPlus size={13} color={T.blue}/></div>
-                <span className="text-[13px] font-bold" style={{color:T.black}}>Información Personal</span>
+                <span className="text-[16px] font-bold" style={{color:T.black}}>Información Personal</span>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {([['name','Nombre','p. ej. Michael'],['last_name','Apellido','p. ej. Scott']] as const).map(([f,label,ph])=>(
                   <div key={f}>
-                    <label className="text-[11px] font-bold block mb-1.5" style={{color:T.black}}>{label}</label>
-                    <input required type="text" placeholder={ph} value={form[f]} onChange={e=>setForm(p=>({...p,[f]:e.target.value}))} className="w-full h-10 rounded-xl px-3 text-[13px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+                    <label className="text-[14px] font-bold block mb-1.5" style={{color:T.black}}>{label}</label>
+                    <input required type="text" placeholder={ph} value={form[f]} onChange={e=>setForm(p=>({...p,[f]:e.target.value}))} className="w-full h-10 rounded-xl px-3 text-[16px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
                   </div>
                 ))}
               </div>
               <div className="grid grid-cols-2 gap-3 mt-3">
                 {!editEmp&&(
                   <div>
-                    <label className="text-[11px] font-bold block mb-1.5" style={{color:T.black}}>Correo electrónico</label>
-                    <input required type="email" placeholder="michael.s@company.com" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} className="w-full h-10 rounded-xl px-3 text-[13px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+                    <label className="text-[14px] font-bold block mb-1.5" style={{color:T.black}}>Correo electrónico</label>
+                    <input required type="email" placeholder="michael.s@company.com" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))} className="w-full h-10 rounded-xl px-3 text-[16px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
                   </div>
                 )}
                 <div>
-                  <label className="text-[11px] font-bold block mb-1.5" style={{color:T.black}}>Teléfono</label>
-                  <input type="tel" placeholder="+1 (555) 000-0000" value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} className="w-full h-10 rounded-xl px-3 text-[13px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+                  <label className="text-[14px] font-bold block mb-1.5" style={{color:T.black}}>Teléfono</label>
+                  <input type="tel" placeholder="+1 (555) 000-0000" value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} className="w-full h-10 rounded-xl px-3 text-[16px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
                 </div>
               </div>
             </div>
@@ -521,25 +521,25 @@ function TeamView({bizId}:{bizId:string}) {
             <div className="rounded-2xl p-5" style={CARD}>
               <div className="flex items-center gap-2 mb-4 pb-3" style={{borderBottom:`1px solid ${T.border}`}}>
                 <div className="size-7 rounded-lg flex items-center justify-center" style={{background:T.greenLt}}><DollarSign size={13} color={T.green}/></div>
-                <span className="text-[13px] font-bold" style={{color:T.black}}>Detalles del Puesto</span>
+                <span className="text-[16px] font-bold" style={{color:T.black}}>Detalles del Puesto</span>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="text-[11px] font-bold block mb-1.5" style={{color:T.black}}>Puesto / Rol</label>
-                  <select value={form.job_title} onChange={e=>setForm(p=>({...p,job_title:e.target.value}))} className="w-full h-10 rounded-xl px-3 text-[13px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:form.job_title?T.black:T.grayMid,outline:'none'}}>
+                  <label className="text-[14px] font-bold block mb-1.5" style={{color:T.black}}>Puesto / Rol</label>
+                  <select value={form.job_title} onChange={e=>setForm(p=>({...p,job_title:e.target.value}))} className="w-full h-10 rounded-xl px-3 text-[16px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:form.job_title?T.black:T.grayMid,outline:'none'}}>
                     <option value="">Selecciona…</option>{JOB_TITLES.map(j=><option key={j} value={j}>{j}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold block mb-1.5" style={{color:T.black}}>Pago por Hora (USD)</label>
+                  <label className="text-[14px] font-bold block mb-1.5" style={{color:T.black}}>Pago por Hora (USD)</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[13px] font-bold" style={{color:T.grayMid}}>$</span>
-                    <input required type="number" step="0.01" placeholder="25.00" value={form.hourly_rate} onChange={e=>setForm(p=>({...p,hourly_rate:e.target.value}))} className="w-full h-10 rounded-xl pl-6 pr-3 text-[13px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[16px] font-bold" style={{color:T.grayMid}}>$</span>
+                    <input required type="number" step="0.01" placeholder="25.00" value={form.hourly_rate} onChange={e=>setForm(p=>({...p,hourly_rate:e.target.value}))} className="w-full h-10 rounded-xl pl-6 pr-3 text-[16px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
                   </div>
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold block mb-1.5" style={{color:T.black}}>Fecha de Inicio</label>
-                  <input type="date" value={form.start_date} onChange={e=>setForm(p=>({...p,start_date:e.target.value}))} className="w-full h-10 rounded-xl px-3 text-[13px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+                  <label className="text-[14px] font-bold block mb-1.5" style={{color:T.black}}>Fecha de Inicio</label>
+                  <input type="date" value={form.start_date} onChange={e=>setForm(p=>({...p,start_date:e.target.value}))} className="w-full h-10 rounded-xl px-3 text-[16px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
                 </div>
               </div>
             </div>
@@ -551,13 +551,13 @@ function TeamView({bizId}:{bizId:string}) {
             <div className="rounded-2xl p-4 flex flex-col items-center gap-3" style={CARD}>
               <div className="size-20 rounded-full flex items-center justify-center text-2xl font-black text-white" style={{background:previewColor}}>{previewInitials}</div>
               <div className="text-center">
-                <p className="text-[12px] font-bold" style={{color:T.black}}>Vista Previa</p>
-                <p className="text-[11px] mt-0.5" style={{color:T.grayMid}}>Color del empleado</p>
+                <p className="text-[15px] font-bold" style={{color:T.black}}>Vista Previa</p>
+                <p className="text-[14px] mt-0.5" style={{color:T.grayMid}}>Color del empleado</p>
               </div>
               <div className="flex flex-wrap justify-center gap-2 w-full">
                 {EMP_COLORS.map(c=>(
                   <button key={c} type="button" onClick={()=>setForm(p=>({...p,employee_color:c}))} className="size-7 rounded-full flex items-center justify-center transition-transform active:scale-90" style={{background:c,border:form.employee_color===c?`3px solid ${T.black}`:'3px solid transparent',boxShadow:form.employee_color===c?`0 0 0 2px white,0 0 0 3px ${c}60`:'none'}}>
-                    {form.employee_color===c&&<span className="text-white text-[10px] font-bold">✓</span>}
+                    {form.employee_color===c&&<span className="text-white text-[13px] font-bold">✓</span>}
                   </button>
                 ))}
               </div>
@@ -567,14 +567,14 @@ function TeamView({bizId}:{bizId:string}) {
             <div className="rounded-2xl p-4 space-y-3" style={CARD}>
               <div className="flex items-center gap-2 pb-2" style={{borderBottom:`1px solid ${T.border}`}}>
                 <div className="size-6 rounded-md flex items-center justify-center" style={{background:T.indigoLt}}><Settings size={11} color={T.indigo}/></div>
-                <span className="text-[12px] font-bold" style={{color:T.black}}>Configuración</span>
+                <span className="text-[15px] font-bold" style={{color:T.black}}>Configuración</span>
               </div>
               {/* Send Invitation toggle */}
               {!editEmp&&(
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-[12px] font-semibold" style={{color:T.black}}>Enviar Invitación</p>
-                    <p className="text-[10px]" style={{color:T.grayMid}}>Notificar por email</p>
+                    <p className="text-[15px] font-semibold" style={{color:T.black}}>Enviar Invitación</p>
+                    <p className="text-[13px]" style={{color:T.grayMid}}>Notificar por email</p>
                   </div>
                   <button type="button" onClick={()=>setSendInvite(p=>!p)} className="relative shrink-0 w-10 h-6 rounded-full transition-colors" style={{background:sendInvite?T.green:T.grayMid}}>
                     <span className="absolute top-1 left-1 size-4 rounded-full bg-white transition-transform" style={{transform:sendInvite?'translateX(16px)':'translateX(0)'}}/>
@@ -584,8 +584,8 @@ function TeamView({bizId}:{bizId:string}) {
               {/* Allow Overtime toggle */}
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="text-[12px] font-semibold" style={{color:T.black}}>Permitir Overtime</p>
-                  <p className="text-[10px]" style={{color:T.grayMid}}>Cálculo de OT</p>
+                  <p className="text-[15px] font-semibold" style={{color:T.black}}>Permitir Overtime</p>
+                  <p className="text-[13px]" style={{color:T.grayMid}}>Cálculo de OT</p>
                 </div>
                 <button type="button" onClick={()=>setAllowOvertime(p=>!p)} className="relative shrink-0 w-10 h-6 rounded-full transition-colors" style={{background:allowOvertime?T.green:T.grayMid}}>
                   <span className="absolute top-1 left-1 size-4 rounded-full bg-white transition-transform" style={{transform:allowOvertime?'translateX(16px)':'translateX(0)'}}/>
@@ -594,7 +594,7 @@ function TeamView({bizId}:{bizId:string}) {
               {!editEmp&&(
                 <div className="rounded-xl p-2.5 flex items-start gap-2 mt-1" style={{background:T.blueLt}}>
                   <span className="shrink-0 mt-0.5" style={{color:T.blue}}>ℹ</span>
-                  <p className="text-[10px] leading-relaxed" style={{color:T.blue}}>El empleado recibirá una contraseña temporal válida por 48 horas.</p>
+                  <p className="text-[13px] leading-relaxed" style={{color:T.blue}}>El empleado recibirá una contraseña temporal válida por 48 horas.</p>
                 </div>
               )}
             </div>
@@ -615,13 +615,13 @@ function TeamView({bizId}:{bizId:string}) {
           </div>
           <div className="flex gap-2">
             <button onClick={load} className="size-10 rounded-xl flex items-center justify-center" style={{background:T.bg,border:`1px solid ${T.border}`}}><RefreshCw size={16} color={T.gray}/></button>
-            <button onClick={openAdd} className="h-10 px-4 rounded-xl flex items-center gap-2 text-[13px] font-bold text-white" style={{background:T.green}}><UserPlus size={15}/> Añadir Empleado</button>
+            <button onClick={openAdd} className="h-10 px-4 rounded-xl flex items-center gap-2 text-[16px] font-bold text-white" style={{background:T.green}}><UserPlus size={15}/> Añadir Empleado</button>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={14} color={T.grayMid}/>
-            <input type="text" placeholder="Buscar miembro…" value={search} onChange={e=>setSearch(e.target.value)} className="w-full h-9 pl-9 pr-3 rounded-xl text-[13px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+            <input type="text" placeholder="Buscar miembro…" value={search} onChange={e=>setSearch(e.target.value)} className="w-full h-9 pl-9 pr-3 rounded-xl text-[16px]" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
           </div>
           <div className="flex gap-1">
             {(['all','active','pending','inactive'] as const).map(f=>{
@@ -629,7 +629,7 @@ function TeamView({bizId}:{bizId:string}) {
               const fgMap={all:T.blue,active:T.green,pending:T.amber,inactive:T.grayMid};
               const sel=filter===f;
               return(
-                <button key={f} onClick={()=>setFilter(f)} className="h-9 px-3 rounded-xl text-[12px] font-semibold transition-all" style={{background:sel?T.black:'transparent',color:sel?T.white:T.gray,border:`1px solid ${sel?T.black:T.border}`}}>
+                <button key={f} onClick={()=>setFilter(f)} className="h-9 px-3 rounded-xl text-[15px] font-semibold transition-all" style={{background:sel?T.black:'transparent',color:sel?T.white:T.gray,border:`1px solid ${sel?T.black:T.border}`}}>
                   {labels[f]} <span style={{color:sel?'rgba(255,255,255,0.55)':fgMap[f]}}>({counts[f]})</span>
                 </button>
               );
@@ -655,14 +655,14 @@ function TeamView({bizId}:{bizId:string}) {
         ):filtered.length===0?(
           <div className="rounded-2xl py-16 flex flex-col items-center" style={CARD}>
             <div className="size-14 rounded-2xl flex items-center justify-center mb-3" style={{background:T.blueLt}}><Users size={28} color={T.blue}/></div>
-            <p className="text-[14px] font-bold" style={{color:T.black}}>Sin empleados</p>
+            <p className="text-[18px] font-bold" style={{color:T.black}}>Sin empleados</p>
             <p className="text-xs mt-1" style={{color:T.gray}}>{search?'Intenta otra búsqueda':'Invita a tu primer empleado'}</p>
           </div>
         ):(
           <div className="rounded-2xl overflow-hidden" style={CARD}>
             <div className="grid px-5 py-3" style={{gridTemplateColumns:'2.5fr 1.5fr 1.2fr 1fr 1fr auto',background:T.bg,borderBottom:`1px solid ${T.border}`}}>
               {['Empleado','Puesto','Contacto','Salario/hr','Estado',''].map((h,i)=>(
-                <span key={i} className="text-[11px] font-bold uppercase tracking-wide" style={{color:T.grayMid}}>{h}</span>
+                <span key={i} className="text-[14px] font-bold uppercase tracking-wide" style={{color:T.grayMid}}>{h}</span>
               ))}
             </div>
             {filtered.map((emp,i)=>{
@@ -670,22 +670,22 @@ function TeamView({bizId}:{bizId:string}) {
               return(
                 <motion.div key={emp.id} layout initial={{opacity:0}} animate={{opacity:emp.status==='inactive'?0.5:1}} className="group grid px-5 py-3.5 items-center transition-colors hover:bg-[#FAFAFA]" style={{gridTemplateColumns:'2.5fr 1.5fr 1.2fr 1fr 1fr auto',borderBottom:i<filtered.length-1?`1px solid ${T.border}`:'none'}}>
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="size-9 rounded-full flex items-center justify-center text-[13px] font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
+                    <div className="size-9 rounded-full flex items-center justify-center text-[16px] font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
                     <div className="min-w-0">
-                      <p className="text-[13px] font-semibold truncate leading-tight" style={{color:T.black}}>{empName(emp)}</p>
-                      <p className="text-[11px] truncate" style={{color:T.grayMid}}>{emp.email}</p>
+                      <p className="text-[16px] font-semibold truncate leading-tight" style={{color:T.black}}>{empName(emp)}</p>
+                      <p className="text-[14px] truncate" style={{color:T.grayMid}}>{emp.email}</p>
                     </div>
                   </div>
-                  <div>{emp.job_title?<span className="text-[11px] font-semibold px-2.5 py-1 rounded-full" style={{background:`${color}18`,color}}>{emp.job_title}</span>:<span className="text-[11px]" style={{color:T.grayMid}}>—</span>}</div>
-                  <p className="text-[12px] truncate" style={{color:T.gray}}>{emp.phone||'—'}</p>
-                  <p className="text-[13px] font-semibold" style={{color:T.black}}>{emp.hourly_rate?`$${Number(emp.hourly_rate).toFixed(2)}/hr`:'—'}</p>
+                  <div>{emp.job_title?<span className="text-[14px] font-semibold px-2.5 py-1 rounded-full" style={{background:`${color}18`,color}}>{emp.job_title}</span>:<span className="text-[14px]" style={{color:T.grayMid}}>—</span>}</div>
+                  <p className="text-[15px] truncate" style={{color:T.gray}}>{emp.phone||'—'}</p>
+                  <p className="text-[16px] font-semibold" style={{color:T.black}}>{emp.hourly_rate?`$${Number(emp.hourly_rate).toFixed(2)}/hr`:'—'}</p>
                   <div><StatusChip status={emp.status}/></div>
                   <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {emp.status==='pending'&&<button onClick={async()=>{const{data:{session}}=await supabase.auth.getSession();await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-employee`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session?.access_token}`},body:JSON.stringify({employee_id:emp.id})});}} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{background:T.blueLt,color:T.blue}}><Send size={12}/>Reenviar</button>}
-                    {emp.status==='active'&&<button onClick={()=>handleToggle(emp)} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{background:T.amberLt,color:T.amber}}><MinusCircle size={12}/>Desactivar</button>}
-                    {emp.status==='inactive'&&<button onClick={()=>handleToggle(emp)} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{background:T.greenLt,color:T.green}}><CheckCircle2 size={12}/>Activar</button>}
-                    <button onClick={()=>openEdit(emp)} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{background:T.indigoLt,color:T.indigo}}><Pencil size={12}/>Editar</button>
-                    <button onClick={()=>setConfirmDeleteId(emp.id)} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{background:T.redLt,color:T.red}}><Trash2 size={12}/>Eliminar</button>
+                    {emp.status==='pending'&&<button onClick={async()=>{const{data:{session}}=await supabase.auth.getSession();await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-employee`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session?.access_token}`},body:JSON.stringify({employee_id:emp.id})});}} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[15px] font-semibold" style={{background:T.blueLt,color:T.blue}}><Send size={12}/>Reenviar</button>}
+                    {emp.status==='active'&&<button onClick={()=>handleToggle(emp)} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[15px] font-semibold" style={{background:T.amberLt,color:T.amber}}><MinusCircle size={12}/>Desactivar</button>}
+                    {emp.status==='inactive'&&<button onClick={()=>handleToggle(emp)} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[15px] font-semibold" style={{background:T.greenLt,color:T.green}}><CheckCircle2 size={12}/>Activar</button>}
+                    <button onClick={()=>openEdit(emp)} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[15px] font-semibold" style={{background:T.indigoLt,color:T.indigo}}><Pencil size={12}/>Editar</button>
+                    <button onClick={()=>setConfirmDeleteId(emp.id)} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[15px] font-semibold" style={{background:T.redLt,color:T.red}}><Trash2 size={12}/>Eliminar</button>
                   </div>
                 </motion.div>
               );
@@ -698,7 +698,7 @@ function TeamView({bizId}:{bizId:string}) {
         {confirmDeleteId&&(()=>{const emp=employees.find(e=>e.id===confirmDeleteId);return(
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6" style={{background:'#00000066'}} onClick={()=>setConfirmDeleteId(null)}>
             <motion.div initial={{scale:0.95,opacity:0}} animate={{scale:1,opacity:1}} exit={{scale:0.95,opacity:0}} className="w-full max-w-sm rounded-3xl overflow-hidden" style={{background:T.white}} onClick={e=>e.stopPropagation()}>
-              <div className="px-5 py-4 flex items-center gap-3" style={{background:T.red}}><Trash2 size={20} color="white"/><span className="text-white font-bold text-[15px]">{empName(emp)}</span></div>
+              <div className="px-5 py-4 flex items-center gap-3" style={{background:T.red}}><Trash2 size={20} color="white"/><span className="text-white font-bold text-[19px]">{empName(emp)}</span></div>
               <div className="p-5 space-y-3">
                 <div className="p-3 rounded-xl flex items-start gap-2" style={{background:T.greenLt}}><CheckCircle2 size={16} color={T.green} className="shrink-0 mt-0.5"/><p className="text-xs" style={{color:T.green}}>El historial de nómina se conserva.</p></div>
                 <div className="p-3 rounded-xl flex items-start gap-2" style={{background:T.redLt}}><AlertTriangle size={16} color={T.red} className="shrink-0 mt-0.5"/><p className="text-xs" style={{color:T.red}}>Este empleado perderá acceso de inmediato.</p></div>
@@ -796,10 +796,10 @@ function TurnosView({bizId}:{bizId:string}) {
         <div className="flex items-center gap-4">
           <div className="flex-1 flex justify-center">
             <div className="flex rounded-2xl overflow-hidden" style={{border:`1px solid ${T.border}`,background:T.white}}>
-              <button onClick={()=>setCalTab('turnos')} className="h-9 px-12 text-[13px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='turnos'?'#2563EB':T.white,color:calTab==='turnos'?'#fff':T.gray}}>
+              <button onClick={()=>setCalTab('turnos')} className="h-9 px-12 text-[16px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='turnos'?'#2563EB':T.white,color:calTab==='turnos'?'#fff':T.gray}}>
                 <CalendarIcon size={14}/> Turnos
               </button>
-              <button onClick={()=>setCalTab('envivo')} className="h-9 px-12 text-[13px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='envivo'?'#DC2626':T.white,color:calTab==='envivo'?'#fff':T.gray}}>
+              <button onClick={()=>setCalTab('envivo')} className="h-9 px-12 text-[16px] font-bold flex items-center gap-2 transition-all" style={{background:calTab==='envivo'?'#DC2626':T.white,color:calTab==='envivo'?'#fff':T.gray}}>
                 {liveEntries.length>0&&<span className="relative flex size-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"/><span className="relative inline-flex rounded-full size-2 bg-red-500"/></span>}
                 En Vivo{liveEntries.length>0?` (${liveEntries.length})`:''}
               </button>
@@ -818,7 +818,7 @@ function TurnosView({bizId}:{bizId:string}) {
         </div>
         {/* Row 2: date nav */}
         <div className="flex items-center gap-2 mt-2.5">
-          <div className="px-4 py-1.5 rounded-xl text-[14px] font-bold" style={{background:T.white,border:`1px solid ${T.border}`,color:T.black}}>
+          <div className="px-4 py-1.5 rounded-xl text-[18px] font-bold" style={{background:T.white,border:`1px solid ${T.border}`,color:T.black}}>
             {days[0].toLocaleDateString('es-PR',{day:'numeric',month:'short'})} – {days[6].toLocaleDateString('es-PR',{day:'numeric',month:'short',year:'numeric'})}
           </div>
           <button onClick={()=>setWeekAnchor(d=>{const n=new Date(d);n.setDate(n.getDate()-7);return n;})} className="size-8 rounded-xl flex items-center justify-center" style={{background:SB2}}><ChevronLeft size={14} color="#fff"/></button>
@@ -833,14 +833,14 @@ function TurnosView({bizId}:{bizId:string}) {
               <div key={iso} className="flex flex-col items-center justify-center py-1.5 cursor-pointer transition-all"
                 style={{borderRight:`1px solid ${T.border}`,background:isSel?T.black:T.white,borderRadius:isSel?'8px':'0',minWidth:isSel?100:undefined}}
                 onClick={()=>setSelectedDate(iso)}>
-                <span className="text-[9px] font-bold uppercase tracking-wider" style={{color:isSel?'rgba(255,255,255,0.5)':T.grayMid}}>{DAY_ES[d.getDay()]}</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider" style={{color:isSel?'rgba(255,255,255,0.5)':T.grayMid}}>{DAY_ES[d.getDay()]}</span>
                 <div className="flex items-center gap-1">
                   <div className="size-6 rounded-full flex items-center justify-center" style={{background:isSel?'rgba(255,255,255,0.18)':isToday?SB2:'transparent'}}>
-                    <span className="text-[13px] font-black" style={{color:isSel?'#fff':isToday?'#fff':T.black}}>{d.getDate()}</span>
+                    <span className="text-[16px] font-black" style={{color:isSel?'#fff':isToday?'#fff':T.black}}>{d.getDate()}</span>
                   </div>
-                  {isSel&&<span className="text-[10px] font-semibold" style={{color:'rgba(255,255,255,0.7)'}}>{d.toLocaleDateString('es-PR',{month:'short'})}</span>}
+                  {isSel&&<span className="text-[13px] font-semibold" style={{color:'rgba(255,255,255,0.7)'}}>{d.toLocaleDateString('es-PR',{month:'short'})}</span>}
                 </div>
-                {count>0&&<span className="text-[9px] font-semibold" style={{color:isSel?'rgba(255,255,255,0.65)':T.green}}>{count} turno{count!==1?'s':''}</span>}
+                {count>0&&<span className="text-[11px] font-semibold" style={{color:isSel?'rgba(255,255,255,0.65)':T.green}}>{count} turno{count!==1?'s':''}</span>}
               </div>
             );
           })}
@@ -854,12 +854,12 @@ function TurnosView({bizId}:{bizId:string}) {
         <div className="rounded-2xl p-5" style={{background:'#FFF5F5',border:'1px solid #FECACA',minHeight:200}}>
           <div className="flex items-center gap-2 mb-4">
             <span className="relative flex size-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"/><span className="relative inline-flex rounded-full size-3 bg-red-500"/></span>
-            <span className="text-[15px] font-bold" style={{color:'#DC2626'}}>Trabajando Ahora — {liveEntries.length} activo{liveEntries.length!==1?'s':''}</span>
+            <span className="text-[19px] font-bold" style={{color:'#DC2626'}}>Trabajando Ahora — {liveEntries.length} activo{liveEntries.length!==1?'s':''}</span>
           </div>
           {liveEntries.length===0?(
             <div className="flex flex-col items-center justify-center py-12 gap-2">
               <CheckCircle2 size={36} color="#FCA5A5"/>
-              <p className="text-[13px] font-semibold" style={{color:'#EF4444'}}>Ningún empleado está trabajando ahora</p>
+              <p className="text-[16px] font-semibold" style={{color:'#EF4444'}}>Ningún empleado está trabajando ahora</p>
             </div>
           ):(
             <div className="grid gap-3" style={{gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))'}}>
@@ -871,11 +871,11 @@ function TurnosView({bizId}:{bizId:string}) {
                   <div key={e.id} className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{background:'#fff',border:'1px solid #FECACA'}}>
                     <div className="size-10 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
                     <div className="min-w-0">
-                      <p className="text-[13px] font-bold truncate" style={{color:'#111'}}>{empName(emp)}</p>
-                      <p className="text-[11px]" style={{color:T.grayMid}}>Entró {ci.toLocaleTimeString('es-PR',{hour:'numeric',minute:'2-digit',hour12:true})}</p>
-                      <p className="text-[11px] font-bold" style={{color:'#16A34A'}}>{Math.floor(elMin/60)>0?`${Math.floor(elMin/60)}h `:''}${elMin%60}m trabajando</p>
+                      <p className="text-[16px] font-bold truncate" style={{color:'#111'}}>{empName(emp)}</p>
+                      <p className="text-[14px]" style={{color:T.grayMid}}>Entró {ci.toLocaleTimeString('es-PR',{hour:'numeric',minute:'2-digit',hour12:true})}</p>
+                      <p className="text-[14px] font-bold" style={{color:'#16A34A'}}>{Math.floor(elMin/60)>0?`${Math.floor(elMin/60)}h `:''}${elMin%60}m trabajando</p>
                     </div>
-                    <span className="text-[9px] font-bold px-2 py-1 rounded-full ml-auto shrink-0" style={{background:'#DC2626',color:'#fff'}}>LIVE</span>
+                    <span className="text-[11px] font-bold px-2 py-1 rounded-full ml-auto shrink-0" style={{background:'#DC2626',color:'#fff'}}>LIVE</span>
                   </div>
                 );
               })}
@@ -921,7 +921,7 @@ function TurnosView({bizId}:{bizId:string}) {
                   <div className="relative" style={{width:totalW,height:36}}>
                     {hours.map(h=>(
                       <div key={h} className="absolute top-0 bottom-0 flex items-center justify-center" style={{left:((h-minH)*HOUR_W),width:HOUR_W,borderRight:`1px solid ${T.border}`}}>
-                        <span className="text-[11px] font-semibold" style={{color:T.grayMid}}>{fmtHLabel(h)}</span>
+                        <span className="text-[14px] font-semibold" style={{color:T.grayMid}}>{fmtHLabel(h)}</span>
                       </div>
                     ))}
                   </div>
@@ -945,8 +945,8 @@ function TurnosView({bizId}:{bizId:string}) {
                       <div className="flex items-center gap-2.5 px-4 shrink-0" style={{width:EMP_COL,minWidth:EMP_COL,borderRight:`1px solid ${T.border}`,position:'sticky',left:0,background:T.white,zIndex:1}}>
                         <div className="size-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
                         <div className="min-w-0">
-                          <p className="text-[12px] font-bold truncate" style={{color:T.black}}>{empName(emp)}</p>
-                          <p className="text-[10px]" style={{color:T.grayMid}}>{hrsStr}</p>
+                          <p className="text-[15px] font-bold truncate" style={{color:T.black}}>{empName(emp)}</p>
+                          <p className="text-[13px]" style={{color:T.grayMid}}>{hrsStr}</p>
                         </div>
                       </div>
                       {/* Grid + shift bars */}
@@ -965,8 +965,8 @@ function TurnosView({bizId}:{bizId:string}) {
                           return(
                             <div key={s.id} onClick={()=>openEdit(s)} className="absolute rounded-xl cursor-pointer overflow-hidden flex flex-col justify-center px-3"
                               style={{left,width:width-4,top:8,bottom:8,background:T.green}}>
-                              <p className="text-[11px] font-bold text-white truncate">{fmtTime(s.start_time)}–{fmtTime(s.end_time)}</p>
-                              <p className="text-[10px] text-white truncate" style={{opacity:0.85}}>{role||'Sin puesto'}</p>
+                              <p className="text-[14px] font-bold text-white truncate">{fmtTime(s.start_time)}–{fmtTime(s.end_time)}</p>
+                              <p className="text-[13px] text-white truncate" style={{opacity:0.85}}>{role||'Sin puesto'}</p>
                             </div>
                           );
                         })}
@@ -983,12 +983,12 @@ function TurnosView({bizId}:{bizId:string}) {
       {/* Cola de Aprobaciones */}
       <div className="rounded-2xl overflow-hidden" style={CARD}>
         <div className="flex items-center justify-between px-5 py-4" style={{borderBottom:`1px solid ${T.border}`}}>
-          <p className="text-[14px] font-bold" style={{color:T.black}}>Cola de Aprobaciones</p>
+          <p className="text-[18px] font-bold" style={{color:T.black}}>Cola de Aprobaciones</p>
           <div className="flex gap-1 p-1 rounded-xl" style={{background:T.bg,border:`1px solid ${T.border}`}}>
-            <button onClick={()=>setQueueTab('active')} className="px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-all" style={{background:queueTab==='active'?T.green:'transparent',color:queueTab==='active'?'#fff':T.gray}}>
+            <button onClick={()=>setQueueTab('active')} className="px-4 py-1.5 rounded-lg text-[15px] font-semibold transition-all" style={{background:queueTab==='active'?T.green:'transparent',color:queueTab==='active'?'#fff':T.gray}}>
               Activos/Pendientes
             </button>
-            <button onClick={()=>setQueueTab('rejected')} className="px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-all" style={{background:queueTab==='rejected'?T.red:'transparent',color:queueTab==='rejected'?'#fff':T.gray}}>
+            <button onClick={()=>setQueueTab('rejected')} className="px-4 py-1.5 rounded-lg text-[15px] font-semibold transition-all" style={{background:queueTab==='rejected'?T.red:'transparent',color:queueTab==='rejected'?'#fff':T.gray}}>
               Rechazados
             </button>
           </div>
@@ -996,7 +996,7 @@ function TurnosView({bizId}:{bizId:string}) {
         <div>
           <div className="grid px-5 py-2.5" style={{gridTemplateColumns:'2fr 2fr 1.5fr 1.2fr 1fr',borderBottom:`1px solid ${T.border}`,background:T.bg}}>
             {['Empleado','Fecha y Hora','Posición','Estado','Acciones'].map(h=>(
-              <span key={h} className="text-[11px] font-bold uppercase tracking-wide" style={{color:T.grayMid}}>{h}</span>
+              <span key={h} className="text-[14px] font-bold uppercase tracking-wide" style={{color:T.grayMid}}>{h}</span>
             ))}
           </div>
           {(()=>{
@@ -1010,7 +1010,7 @@ function TurnosView({bizId}:{bizId:string}) {
             if(list.length===0) return(
               <div className="py-12 flex flex-col items-center gap-2">
                 <CheckCircle2 size={32} color={T.green}/>
-                <p className="text-[13px] font-semibold" style={{color:T.gray}}>{queueTab==='active'?'Sin marcaciones activas o pendientes':'Sin marcaciones rechazadas'}</p>
+                <p className="text-[16px] font-semibold" style={{color:T.gray}}>{queueTab==='active'?'Sin marcaciones activas o pendientes':'Sin marcaciones rechazadas'}</p>
               </div>
             );
             return list.map((e,i)=>{
@@ -1029,21 +1029,21 @@ function TurnosView({bizId}:{bizId:string}) {
               return(
                 <div key={e.id} className="grid items-center px-5 py-3" style={{gridTemplateColumns:'2fr 2fr 1.5fr 1.2fr 1fr',borderBottom:`1px solid ${T.bg}`}}>
                   <div className="flex items-center gap-2.5">
-                    <div className="size-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
+                    <div className="size-8 rounded-full flex items-center justify-center text-[14px] font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
                     <div>
-                      <p className="text-[13px] font-semibold" style={{color:T.black}}>{empName(emp)}</p>
-                      <p className="text-[10px]" style={{color:T.grayMid}}>{emp?.job_title??'—'}</p>
+                      <p className="text-[16px] font-semibold" style={{color:T.black}}>{empName(emp)}</p>
+                      <p className="text-[13px]" style={{color:T.grayMid}}>{emp?.job_title??'—'}</p>
                     </div>
                   </div>
                   <div>
-                    <p className="text-[12px] font-medium" style={{color:T.black}}>{ci.toLocaleDateString('es-PR',{day:'numeric',month:'short',year:'numeric'})}</p>
-                    <p className="text-[10px]" style={{color:T.grayMid}}>
+                    <p className="text-[15px] font-medium" style={{color:T.black}}>{ci.toLocaleDateString('es-PR',{day:'numeric',month:'short',year:'numeric'})}</p>
+                    <p className="text-[13px]" style={{color:T.grayMid}}>
                       {ci.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true})}
                       {co&&` – ${co.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true})}`}
                     </p>
                   </div>
-                  <span className="text-[12px]" style={{color:T.gray}}>{emp?.job_title??'—'}</span>
-                  <span className="inline-flex text-[10px] font-bold px-2 py-1 rounded-full w-fit" style={{background:statusInfo.bg,color:statusInfo.fg}}>{statusInfo.label}</span>
+                  <span className="text-[15px]" style={{color:T.gray}}>{emp?.job_title??'—'}</span>
+                  <span className="inline-flex text-[13px] font-bold px-2 py-1 rounded-full w-fit" style={{background:statusInfo.bg,color:statusInfo.fg}}>{statusInfo.label}</span>
                   <div className="flex items-center gap-1.5">
                     {(isLive||e.status==='pending')&&(
                       <>
@@ -1106,7 +1106,7 @@ function TurnosView({bizId}:{bizId:string}) {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-xs font-bold" style={{color:T.black}}>Empleados</label>
-                    <button type="button" onClick={()=>setBulkEmps(bulkEmps.length===employees.length?[]:employees.map(e=>e.id))} className="text-[11px] font-semibold" style={{color:T.blue}}>{bulkEmps.length===employees.length?'Deseleccionar todos':'Seleccionar todos'}</button>
+                    <button type="button" onClick={()=>setBulkEmps(bulkEmps.length===employees.length?[]:employees.map(e=>e.id))} className="text-[14px] font-semibold" style={{color:T.blue}}>{bulkEmps.length===employees.length?'Deseleccionar todos':'Seleccionar todos'}</button>
                   </div>
                   <div className="space-y-1.5">
                     {employees.map((emp,i)=>{
@@ -1114,8 +1114,8 @@ function TurnosView({bizId}:{bizId:string}) {
                       return(
                         <button key={emp.id} type="button" onClick={()=>setBulkEmps(prev=>sel?prev.filter(id=>id!==emp.id):[...prev,emp.id])} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left" style={{background:sel?`${color}15`:T.bg,border:`1.5px solid ${sel?color:T.border}`}}>
                           <div className="size-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{background:color}}>{empInitials(emp)}</div>
-                          <div className="flex-1 min-w-0"><p className="text-[13px] font-semibold truncate" style={{color:T.black}}>{empName(emp)}</p><p className="text-[11px]" style={{color:T.gray}}>{emp.job_title??'—'}</p></div>
-                          <div className="size-5 rounded-md border-2 flex items-center justify-center shrink-0" style={{background:sel?color:'transparent',borderColor:sel?color:T.border}}>{sel&&<span className="text-white text-[10px] font-bold">✓</span>}</div>
+                          <div className="flex-1 min-w-0"><p className="text-[16px] font-semibold truncate" style={{color:T.black}}>{empName(emp)}</p><p className="text-[14px]" style={{color:T.gray}}>{emp.job_title??'—'}</p></div>
+                          <div className="size-5 rounded-md border-2 flex items-center justify-center shrink-0" style={{background:sel?color:'transparent',borderColor:sel?color:T.border}}>{sel&&<span className="text-white text-[13px] font-bold">✓</span>}</div>
                         </button>
                       );
                     })}
@@ -1129,7 +1129,7 @@ function TurnosView({bizId}:{bizId:string}) {
                       const sel=bulkDays.includes(i);
                       return(
                         <button key={i} type="button" onClick={()=>setBulkDays(prev=>sel?prev.filter(x=>x!==i):[...prev,i].sort())} className="flex flex-col items-center py-2.5 rounded-xl transition-all" style={{background:sel?T.blue:T.bg,border:`1px solid ${sel?T.blue:T.border}`}}>
-                          <span className="text-[9px] font-bold" style={{color:sel?'rgba(255,255,255,0.7)':T.gray}}>{DAY_ES[d.getDay()]}</span>
+                          <span className="text-[11px] font-bold" style={{color:sel?'rgba(255,255,255,0.7)':T.gray}}>{DAY_ES[d.getDay()]}</span>
                           <span className="text-sm font-bold mt-0.5" style={{color:sel?T.white:T.black}}>{d.getDate()}</span>
                         </button>
                       );
@@ -1242,16 +1242,16 @@ function ApprovalsView({bizId}:{bizId:string}) {
 
       {/* Tab header bar — like Nómina */}
       <div className="flex items-center justify-between">
-        <button onClick={load} className="h-9 px-5 rounded-xl text-[13px] font-bold text-white flex items-center gap-2" style={{background:T.green}}>
+        <button onClick={load} className="h-9 px-5 rounded-xl text-[16px] font-bold text-white flex items-center gap-2" style={{background:T.green}}>
           <RefreshCw size={14}/>Actualizar datos
         </button>
         <div className="flex rounded-xl overflow-hidden" style={{border:`1px solid ${T.border}`}}>
           {tabs.map(({key,label,count,color})=>{
             const sel=tab===key;
             return(
-              <button key={key} onClick={()=>setTab(key)} className="h-9 px-5 text-[13px] font-bold transition-all flex items-center gap-1.5" style={{background:sel?color:T.white,color:sel?T.white:T.gray}}>
+              <button key={key} onClick={()=>setTab(key)} className="h-9 px-5 text-[16px] font-bold transition-all flex items-center gap-1.5" style={{background:sel?color:T.white,color:sel?T.white:T.gray}}>
                 {label}
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{background:sel?'rgba(255,255,255,0.25)':T.border,color:sel?T.white:T.gray}}>{count}</span>
+                <span className="text-[13px] px-1.5 py-0.5 rounded-full font-bold" style={{background:sel?'rgba(255,255,255,0.25)':T.border,color:sel?T.white:T.gray}}>{count}</span>
               </button>
             );
           })}
@@ -1262,37 +1262,37 @@ function ApprovalsView({bizId}:{bizId:string}) {
       <div className="grid grid-cols-3 gap-4">
         <div className="rounded-2xl p-4" style={CARD}>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-[11px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>Pendientes</p>
+            <p className="text-[14px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>Pendientes</p>
             <div className="size-8 rounded-lg flex items-center justify-center" style={{background:T.amberLt}}><AlertTriangle size={14} color={T.amber}/></div>
           </div>
           {loading?<div className="h-7 w-8 rounded animate-pulse" style={{background:T.grayLt}}/>:(
-            <p className="text-[26px] font-black leading-tight" style={{color:T.black}}>{pending.length}</p>
+            <p className="text-[33px] font-black leading-tight" style={{color:T.black}}>{pending.length}</p>
           )}
-          <p className="text-[11px] mt-1" style={{color:pending.length>0?T.amber:T.grayMid}}>{pending.length>0?'Requiere acción':'Al día'}</p>
+          <p className="text-[14px] mt-1" style={{color:pending.length>0?T.amber:T.grayMid}}>{pending.length>0?'Requiere acción':'Al día'}</p>
         </div>
 
         <div className="rounded-2xl p-4" style={CARD}>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-[11px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>Activos ahora</p>
+            <p className="text-[14px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>Activos ahora</p>
             <div className="size-8 rounded-lg flex items-center justify-center" style={{background:T.redLt}}>
               <span className="size-2.5 rounded-full animate-pulse" style={{background:T.red}}/>
             </div>
           </div>
           {loading?<div className="h-7 w-8 rounded animate-pulse" style={{background:T.grayLt}}/>:(
-            <p className="text-[26px] font-black leading-tight" style={{color:T.black}}>{active.length}</p>
+            <p className="text-[33px] font-black leading-tight" style={{color:T.black}}>{active.length}</p>
           )}
-          <p className="text-[11px] mt-1" style={{color:T.grayMid}}>{active.length>0?'En turno':'Nadie activo'}</p>
+          <p className="text-[14px] mt-1" style={{color:T.grayMid}}>{active.length>0?'En turno':'Nadie activo'}</p>
         </div>
 
         <div className="rounded-2xl p-4" style={CARD}>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-[11px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>Aprobadas</p>
+            <p className="text-[14px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>Aprobadas</p>
             <div className="size-8 rounded-lg flex items-center justify-center" style={{background:T.greenLt}}><CheckCircle2 size={14} color={T.green}/></div>
           </div>
           {loading?<div className="h-7 w-16 rounded animate-pulse" style={{background:T.grayLt}}/>:(
-            <p className="text-[26px] font-black leading-tight" style={{color:T.black}}>{fmtHours(approvedHrs)}</p>
+            <p className="text-[33px] font-black leading-tight" style={{color:T.black}}>{fmtHours(approvedHrs)}</p>
           )}
-          <p className="text-[11px] mt-1" style={{color:T.grayMid}}>{history.length} marcaciones</p>
+          <p className="text-[14px] mt-1" style={{color:T.grayMid}}>{history.length} marcaciones</p>
         </div>
 
       </div>
@@ -1311,7 +1311,7 @@ function ApprovalsView({bizId}:{bizId:string}) {
                     const rows=visibleList.map(e=>`${empName(e.employee)},${new Date(e.clock_in.replace(/\+00(:\d{2})?$/,'+00:00').replace(' ','T')).toLocaleDateString('es-PR')},${diffHours(e.clock_in,e.clock_out??'').toFixed(1)},${e.status}`).join('\n');
                     const blob=new Blob([header+rows],{type:'text/csv'});
                     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='historial_horas.csv';a.click();
-                  }} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.green,background:T.greenLt}}>
+                  }} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[15px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.green,background:T.greenLt}}>
                     <BarChart3 size={12}/>Export Excel
                   </button>
                   <button onClick={()=>{
@@ -1331,12 +1331,12 @@ function ApprovalsView({bizId}:{bizId:string}) {
                         diffHours(e.clock_in,e.clock_out??'').toFixed(1)+'h',
                         e.status==='approved'?'Aprobado':e.status==='rejected'?'Rechazado':'Pendiente',
                       ]),
-                      headStyles:{fillColor:[15,31,92],textColor:[255,255,255] as [number,number,number],fontSize:9,fontStyle:'bold'},
-                      bodyStyles:{fontSize:9},
+                      headStyles:{fillColor:[15,31,92],textColor:[255,255,255] as [number,number,number],fontSize:11,fontStyle:'bold'},
+                      bodyStyles:{fontSize:11},
                       alternateRowStyles:{fillColor:[245,245,247]},
                     });
                     doc.save('historial_horas.pdf');
-                  }} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.red,background:T.redLt}}>
+                  }} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[15px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.red,background:T.redLt}}>
                     <ClipboardCheck size={12}/>Export PDF
                   </button>
                 </>
@@ -1353,8 +1353,8 @@ function ApprovalsView({bizId}:{bizId:string}) {
           {tab==='pending'&&pending.length>0&&(
             <div className="flex items-center gap-3 mx-4 my-3 px-4 py-2.5 rounded-xl" style={{background:T.amberLt,border:`1px solid ${T.amber}33`}}>
               <AlertTriangle size={14} color={T.amber}/>
-              <p className="text-[12px] font-semibold flex-1" style={{color:T.amber}}>{pending.length} marcación{pending.length!==1?'es':''} por aprobar</p>
-              <button onClick={()=>setShowApproveAll(true)} className="px-3 py-1 rounded-lg text-[11px] font-bold text-white" style={{background:T.green}}>Aprobar todo</button>
+              <p className="text-[15px] font-semibold flex-1" style={{color:T.amber}}>{pending.length} marcación{pending.length!==1?'es':''} por aprobar</p>
+              <button onClick={()=>setShowApproveAll(true)} className="px-3 py-1 rounded-lg text-[14px] font-bold text-white" style={{background:T.green}}>Aprobar todo</button>
             </div>
           )}
 
@@ -1363,7 +1363,7 @@ function ApprovalsView({bizId}:{bizId:string}) {
           ):visibleList.length===0?(
             <div className="flex flex-col items-center justify-center py-16 gap-2">
               <CheckCircle2 size={40} color={T.green}/>
-              <p className="text-[14px] font-bold" style={{color:T.black}}>
+              <p className="text-[18px] font-bold" style={{color:T.black}}>
                 {tab==='pending'?'¡Todo al día!':tab==='rejected'?'Sin rechazados':'Sin historial'}
               </p>
             </div>
@@ -1371,7 +1371,7 @@ function ApprovalsView({bizId}:{bizId:string}) {
             <div>
               <div className="grid px-5 py-2.5" style={{gridTemplateColumns:'2fr 1.5fr 1fr 1fr 1fr',borderBottom:`1px solid ${T.border}`}}>
                 {['Empleado','Fecha','Horas','Estado','Acciones'].map(h=>(
-                  <span key={h} className="text-[11px] font-bold uppercase tracking-wide" style={{color:T.grayMid}}>{h}</span>
+                  <span key={h} className="text-[14px] font-bold uppercase tracking-wide" style={{color:T.grayMid}}>{h}</span>
                 ))}
               </div>
               {visibleList.map((entry,i)=>{
@@ -1384,15 +1384,15 @@ function ApprovalsView({bizId}:{bizId:string}) {
                 return(
                   <div key={entry.id} className="grid items-center px-5 py-3" style={{gridTemplateColumns:'2fr 1.5fr 1fr 1fr 1fr',borderBottom:i<visibleList.length-1?`1px solid ${T.bg}`:'none'}}>
                     <div className="flex items-center gap-2.5">
-                      <div className="size-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{background:color}}>{empInitials(entry.employee)}</div>
-                      <span className="text-[13px] font-semibold truncate" style={{color:T.black}}>{empName(entry.employee)}</span>
+                      <div className="size-8 rounded-full flex items-center justify-center text-[14px] font-bold text-white shrink-0" style={{background:color}}>{empInitials(entry.employee)}</div>
+                      <span className="text-[16px] font-semibold truncate" style={{color:T.black}}>{empName(entry.employee)}</span>
                     </div>
                     <div>
-                      <p className="text-[12px] font-medium" style={{color:T.black}}>{fmtDate(entry.clock_in)}</p>
-                      <p className="text-[10px]" style={{color:T.gray}}>{fmtDt(entry.clock_in)}{entry.clock_out&&` – ${fmtDt(entry.clock_out)}`}</p>
+                      <p className="text-[15px] font-medium" style={{color:T.black}}>{fmtDate(entry.clock_in)}</p>
+                      <p className="text-[13px]" style={{color:T.gray}}>{fmtDt(entry.clock_in)}{entry.clock_out&&` – ${fmtDt(entry.clock_out)}`}</p>
                     </div>
-                    <span className="text-[13px] font-bold" style={{color:T.black}}>{fmtHours(hrs)}</span>
-                    <span className="inline-flex text-[11px] font-semibold px-2 py-1 rounded-full w-fit" style={{background:si.bg,color:si.fg}}>{si.label}</span>
+                    <span className="text-[16px] font-bold" style={{color:T.black}}>{fmtHours(hrs)}</span>
+                    <span className="inline-flex text-[14px] font-semibold px-2 py-1 rounded-full w-fit" style={{background:si.bg,color:si.fg}}>{si.label}</span>
                     <div className="flex items-center gap-1.5">
                       {tab==='pending'&&!isLive&&(
                         <>
@@ -1415,8 +1415,8 @@ function ApprovalsView({bizId}:{bizId:string}) {
 
           {/* Progress rings */}
           <div className="rounded-2xl p-4" style={CARD}>
-            <p className="text-[13px] font-bold mb-0.5" style={{color:T.black}}>Progreso Semanal</p>
-            <p className="text-[10px] mb-4" style={{color:T.grayMid}}>Meta: 40 hrs por empleado</p>
+            <p className="text-[16px] font-bold mb-0.5" style={{color:T.black}}>Progreso Semanal</p>
+            <p className="text-[13px] mb-4" style={{color:T.grayMid}}>Meta: 40 hrs por empleado</p>
             {(()=>{
               const empMap:Record<string,{name:string;color:string;hours:number}>={};
               for(const e of [...history,...pending]){
@@ -1425,7 +1425,7 @@ function ApprovalsView({bizId}:{bizId:string}) {
                 empMap[id].hours+=diffHours(e.clock_in,e.clock_out??'');
               }
               const emps=Object.values(empMap).slice(0,4);
-              if(emps.length===0) return <p className="text-[12px] text-center py-4" style={{color:T.grayMid}}>Sin datos esta semana</p>;
+              if(emps.length===0) return <p className="text-[15px] text-center py-4" style={{color:T.grayMid}}>Sin datos esta semana</p>;
               const R=32; const C=2*Math.PI*R;
               return(
                 <div className="flex flex-wrap justify-center gap-4">
@@ -1444,8 +1444,8 @@ function ApprovalsView({bizId}:{bizId:string}) {
                           <text x="38" y="35" textAnchor="middle" fontSize="11" fontWeight="600" fill={T.black}>{hours<1?'0':hours.toFixed(0)}h</text>
                           <text x="38" y="48" textAnchor="middle" fontSize="9" fill={T.grayMid}>{Math.round(pct*100)}%</text>
                         </svg>
-                        <div className="size-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white" style={{background:color}}>{initials}</div>
-                        <span className="text-[10px] font-semibold text-center max-w-[64px] leading-tight" style={{color:T.black}}>{name.split(' ')[0]}</span>
+                        <div className="size-6 rounded-full flex items-center justify-center text-[11px] font-bold text-white" style={{background:color}}>{initials}</div>
+                        <span className="text-[13px] font-semibold text-center max-w-[64px] leading-tight" style={{color:T.black}}>{name.split(' ')[0]}</span>
                       </div>
                     );
                   })}
@@ -1456,8 +1456,8 @@ function ApprovalsView({bizId}:{bizId:string}) {
 
           {/* Day timeline */}
           <div className="rounded-2xl p-4" style={CARD}>
-            <p className="text-[13px] font-bold mb-0.5" style={{color:T.black}}>Timeline de Hoy</p>
-            <p className="text-[10px] mb-3" style={{color:T.grayMid}}>{new Date().toLocaleDateString('es-PR',{weekday:'long',day:'numeric',month:'short'})}</p>
+            <p className="text-[16px] font-bold mb-0.5" style={{color:T.black}}>Timeline de Hoy</p>
+            <p className="text-[13px] mb-3" style={{color:T.grayMid}}>{new Date().toLocaleDateString('es-PR',{weekday:'long',day:'numeric',month:'short'})}</p>
             {(()=>{
               const todayIso=isoDate(new Date());
               const todayEntries=[...history,...pending].filter(e=>e.clock_in.slice(0,10)===todayIso||isoDate(new Date(e.clock_in.replace(/\+00(:\d{2})?$/,'+00:00').replace(' ','T')))===todayIso);
@@ -1472,13 +1472,13 @@ function ApprovalsView({bizId}:{bizId:string}) {
               const hours=['7am','10am','1pm','4pm','7pm','10pm'];
               if(empIds.length===0) return(
                 <div className="py-6 text-center">
-                  <p className="text-[12px]" style={{color:T.grayMid}}>Sin marcaciones hoy</p>
+                  <p className="text-[15px]" style={{color:T.grayMid}}>Sin marcaciones hoy</p>
                 </div>
               );
               return(
                 <div>
                   <div className="flex justify-between mb-2 pl-8">
-                    {hours.map(h=><span key={h} className="text-[9px]" style={{color:T.grayMid}}>{h}</span>)}
+                    {hours.map(h=><span key={h} className="text-[11px]" style={{color:T.grayMid}}>{h}</span>)}
                   </div>
                   <div className="space-y-2.5">
                     {empIds.map((eid,idx)=>{
@@ -1488,7 +1488,7 @@ function ApprovalsView({bizId}:{bizId:string}) {
                       const empSegments=todayEntries.filter(e=>e.employee_id===eid);
                       return(
                         <div key={eid} className="flex items-center gap-2">
-                          <div className="size-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0" style={{background:color,minWidth:24}}>{initials}</div>
+                          <div className="size-6 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{background:color,minWidth:24}}>{initials}</div>
                           <div className="flex-1 relative h-5 rounded-full overflow-hidden" style={{background:T.grayLt}}>
                             {empSegments.map((seg,si)=>{
                               if(!seg.clock_out) return null;
@@ -1519,7 +1519,7 @@ function ApprovalsView({bizId}:{bizId:string}) {
                 <CheckCircle2 size={28} color={T.green}/>
               </div>
               <p className="text-base font-bold mb-2" style={{color:'#0f1f5c'}}>Aprobar todas las marcaciones</p>
-              <p className="text-[13px] mb-6" style={{color:T.gray}}>Se aprobarán <strong>{pending.length}</strong> marcación{pending.length!==1?'es':''} pendiente{pending.length!==1?'s':''}. Esta acción no se puede deshacer.</p>
+              <p className="text-[16px] mb-6" style={{color:T.gray}}>Se aprobarán <strong>{pending.length}</strong> marcación{pending.length!==1?'es':''} pendiente{pending.length!==1?'s':''}. Esta acción no se puede deshacer.</p>
               <div className="flex gap-3">
                 <button onClick={()=>setShowApproveAll(false)} className="flex-1 h-11 rounded-2xl text-sm font-semibold" style={{background:T.bg,color:T.gray}}>Cancelar</button>
                 <button onClick={async()=>{setShowApproveAll(false);await handleApproveAll(pending.map(e=>e.id));}} className="flex-1 h-11 rounded-2xl text-sm font-bold text-white" style={{background:T.green}}>Aprobar todo</button>
@@ -1614,10 +1614,10 @@ function PayrollView({bizId}:{bizId:string}) {
       {/* Top row: period + tabs + procesar */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <p className="text-[11px] font-semibold" style={{color:T.grayMid}}>Ciclo de pago actual: <span style={{color:T.black}}>{periodLabel}</span></p>
+          <p className="text-[14px] font-semibold" style={{color:T.grayMid}}>Ciclo de pago actual: <span style={{color:T.black}}>{periodLabel}</span></p>
           <div className="flex items-center gap-1 mt-2">
             {(['week','month'] as const).map(p=>(
-              <button key={p} onClick={()=>setPeriod(p)} className="h-8 px-4 rounded-xl text-[12px] font-bold transition-all" style={{background:period===p?SB2:'transparent',color:period===p?'#fff':T.gray,border:`1px solid ${period===p?SB2:T.border}`}}>
+              <button key={p} onClick={()=>setPeriod(p)} className="h-8 px-4 rounded-xl text-[15px] font-bold transition-all" style={{background:period===p?SB2:'transparent',color:period===p?'#fff':T.gray,border:`1px solid ${period===p?SB2:T.border}`}}>
                 {p==='week'?'Esta Semana':'Este Mes'}
               </button>
             ))}
@@ -1626,12 +1626,12 @@ function PayrollView({bizId}:{bizId:string}) {
         <div className="flex items-center gap-2">
           <div className="flex rounded-xl overflow-hidden" style={{border:`1px solid ${T.border}`}}>
             {(['nomina','historial'] as const).map(t=>(
-              <button key={t} onClick={()=>setPayTab(t)} className="h-9 px-5 text-[13px] font-bold transition-all" style={{background:payTab===t?T.amber:T.white,color:payTab===t?'#fff':T.gray}}>
+              <button key={t} onClick={()=>setPayTab(t)} className="h-9 px-5 text-[16px] font-bold transition-all" style={{background:payTab===t?T.amber:T.white,color:payTab===t?'#fff':T.gray}}>
                 {t==='nomina'?'Nómina':'Historial'}
               </button>
             ))}
           </div>
-          <button onClick={()=>setProcessed(true)} className="h-9 px-5 rounded-xl text-[13px] font-bold text-white flex items-center gap-2" style={{background:processed?T.green:SB2}}>
+          <button onClick={()=>setProcessed(true)} className="h-9 px-5 rounded-xl text-[16px] font-bold text-white flex items-center gap-2" style={{background:processed?T.green:SB2}}>
             {processed?<><CheckCircle2 size={14}/>Procesada</>:<><DollarSign size={14}/>Procesar Nómina</>}
           </button>
         </div>
@@ -1641,27 +1641,27 @@ function PayrollView({bizId}:{bizId:string}) {
       <div className="grid grid-cols-3 gap-4">
         <div className="rounded-2xl p-4" style={CARD}>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-[11px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>Total a Pagar</p>
+            <p className="text-[14px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>Total a Pagar</p>
             <div className="size-8 rounded-lg flex items-center justify-center" style={{background:T.blueLt}}><DollarSign size={14} color={T.blue}/></div>
           </div>
-          <p className="text-[26px] font-black font-mono" style={{color:T.black}}>{loading?'—':`$${totals.net.toFixed(2)}`}</p>
-          {data.length>0&&<p className="text-[11px] mt-1" style={{color:T.green}}>↑ {data.length} empleado{data.length!==1?'s':''} activos</p>}
+          <p className="text-[33px] font-black font-mono" style={{color:T.black}}>{loading?'—':`$${totals.net.toFixed(2)}`}</p>
+          {data.length>0&&<p className="text-[14px] mt-1" style={{color:T.green}}>↑ {data.length} empleado{data.length!==1?'s':''} activos</p>}
         </div>
         <div className="rounded-2xl p-4" style={CARD}>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-[11px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>Empleados Activos</p>
+            <p className="text-[14px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>Empleados Activos</p>
             <div className="size-8 rounded-lg flex items-center justify-center" style={{background:T.greenLt}}><Users size={14} color={T.green}/></div>
           </div>
-          <p className="text-[26px] font-black" style={{color:T.black}}>{loading?'—':data.length}</p>
-          {data.length>0&&<p className="text-[11px] mt-1" style={{color:T.grayMid}}>con horas aprobadas</p>}
+          <p className="text-[33px] font-black" style={{color:T.black}}>{loading?'—':data.length}</p>
+          {data.length>0&&<p className="text-[14px] mt-1" style={{color:T.grayMid}}>con horas aprobadas</p>}
         </div>
         <div className="rounded-2xl p-4" style={CARD}>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-[11px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>Estado</p>
+            <p className="text-[14px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>Estado</p>
             <div className="size-8 rounded-lg flex items-center justify-center" style={{background:processed?T.greenLt:T.amberLt}}><ClipboardCheck size={14} color={processed?T.green:T.amber}/></div>
           </div>
-          <p className="text-[20px] font-black" style={{color:processed?T.green:T.amber}}>{processed?'Procesada':'Pendiente'}</p>
-          <p className="text-[11px] mt-1" style={{color:T.grayMid}}>{processed?'Nómina completada':'Requiere aprobación'}</p>
+          <p className="text-[25px] font-black" style={{color:processed?T.green:T.amber}}>{processed?'Procesada':'Pendiente'}</p>
+          <p className="text-[14px] mt-1" style={{color:T.grayMid}}>{processed?'Nómina completada':'Requiere aprobación'}</p>
         </div>
       </div>
 
@@ -1669,11 +1669,11 @@ function PayrollView({bizId}:{bizId:string}) {
       <div className="rounded-2xl overflow-hidden" style={CARD}>
         <div className="flex items-center justify-between px-5 py-3.5" style={{borderBottom:`1px solid ${T.border}`}}>
           <div className="flex items-center gap-2">
-            <p className="text-[14px] font-bold" style={{color:T.black}}>Listado de Empleados</p>
-            <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full" style={{background:T.blueLt,color:T.blue}}>{periodLabel}</span>
+            <p className="text-[18px] font-bold" style={{color:T.black}}>Listado de Empleados</p>
+            <span className="text-[14px] font-semibold px-2.5 py-1 rounded-full" style={{background:T.blueLt,color:T.blue}}>{periodLabel}</span>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={exportCSV} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.green,background:T.greenLt}}>
+            <button onClick={exportCSV} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[15px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.green,background:T.greenLt}}>
               <BarChart3 size={12}/>Export Excel
             </button>
             <button onClick={()=>{
@@ -1696,13 +1696,13 @@ function PayrollView({bizId}:{bizId:string}) {
                   processed?'VALIDADO':'PENDIENTE',
                 ]),
                 foot:[['Total','','',data.reduce((a,r)=>a+r.hours,0).toFixed(1)+'h','$'+totals.gross.toFixed(2),'','$'+totals.net.toFixed(2),'']],
-                headStyles:{fillColor:[15,31,92],textColor:[255,255,255] as [number,number,number],fontSize:9,fontStyle:'bold'},
-                footStyles:{fillColor:[15,31,92],textColor:[255,255,255] as [number,number,number],fontSize:9,fontStyle:'bold'},
-                bodyStyles:{fontSize:9},
+                headStyles:{fillColor:[15,31,92],textColor:[255,255,255] as [number,number,number],fontSize:11,fontStyle:'bold'},
+                footStyles:{fillColor:[15,31,92],textColor:[255,255,255] as [number,number,number],fontSize:11,fontStyle:'bold'},
+                bodyStyles:{fontSize:11},
                 alternateRowStyles:{fillColor:[245,245,247]},
               });
               doc.save(`nomina_${periodLabel.replace(/\s/g,'_')}.pdf`);
-            }} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[12px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.red,background:T.redLt}}>
+            }} className="h-8 px-3 rounded-xl flex items-center gap-1.5 text-[15px] font-semibold" style={{border:`1px solid ${T.border}`,color:T.red,background:T.redLt}}>
               <ClipboardCheck size={12}/>Export PDF
             </button>
           </div>
@@ -1711,7 +1711,7 @@ function PayrollView({bizId}:{bizId:string}) {
         {/* Table header */}
         <div className="grid px-5 py-2.5" style={{gridTemplateColumns:'2fr 1.2fr 0.8fr 1.2fr 1.2fr 1fr',background:T.bg,borderBottom:`1px solid ${T.border}`}}>
           {['Empleado','Departamento','Horas','Base / Extras','Total a Pagar','Estado'].map((h,i)=>(
-            <span key={i} className="text-[10px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>{h}</span>
+            <span key={i} className="text-[13px] font-bold uppercase tracking-wider" style={{color:T.grayMid}}>{h}</span>
           ))}
         </div>
 
@@ -1725,7 +1725,7 @@ function PayrollView({bizId}:{bizId:string}) {
         ):data.length===0?(
           <div className="py-16 flex flex-col items-center gap-2">
             <DollarSign size={36} color={T.grayMid}/>
-            <p className="text-[13px] font-semibold" style={{color:T.gray}}>No hay horas aprobadas en este período</p>
+            <p className="text-[16px] font-semibold" style={{color:T.gray}}>No hay horas aprobadas en este período</p>
           </div>
         ):(
           <>
@@ -1737,25 +1737,25 @@ function PayrollView({bizId}:{bizId:string}) {
               return(
                 <div key={row.emp.id} className="grid px-5 py-3.5 items-center hover:bg-[#FAFAFA] transition-colors" style={{gridTemplateColumns:'2fr 1.2fr 0.8fr 1.2fr 1.2fr 1fr',borderBottom:i<data.length-1?`1px solid ${T.border}`:'none'}}>
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="size-9 rounded-full flex items-center justify-center text-[12px] font-bold text-white shrink-0" style={{background:color}}>{empInitials(row.emp)}</div>
+                    <div className="size-9 rounded-full flex items-center justify-center text-[15px] font-bold text-white shrink-0" style={{background:color}}>{empInitials(row.emp)}</div>
                     <div className="min-w-0">
-                      <p className="text-[13px] font-semibold truncate" style={{color:T.black}}>{empName(row.emp)}</p>
-                      <p className="text-[10px]" style={{color:T.grayMid}}>ID: TM-{row.emp.id.slice(0,4).toUpperCase()}</p>
+                      <p className="text-[16px] font-semibold truncate" style={{color:T.black}}>{empName(row.emp)}</p>
+                      <p className="text-[13px]" style={{color:T.grayMid}}>ID: TM-{row.emp.id.slice(0,4).toUpperCase()}</p>
                     </div>
                   </div>
-                  <div>{row.emp.job_title?<span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{background:`${color}18`,color}}>{row.emp.job_title}</span>:<span style={{color:T.grayMid}}>—</span>}</div>
+                  <div>{row.emp.job_title?<span className="text-[14px] font-semibold px-2 py-0.5 rounded-full" style={{background:`${color}18`,color}}>{row.emp.job_title}</span>:<span style={{color:T.grayMid}}>—</span>}</div>
                   <div>
-                    <p className="text-[13px] font-bold" style={{color:T.black}}>{(row.hours+row.overtime).toFixed(1)}</p>
-                    <p className="text-[10px]" style={{color:T.grayMid}}>hrs</p>
+                    <p className="text-[16px] font-bold" style={{color:T.black}}>{(row.hours+row.overtime).toFixed(1)}</p>
+                    <p className="text-[13px]" style={{color:T.grayMid}}>hrs</p>
                   </div>
                   <div>
-                    <p className="text-[13px] font-semibold" style={{color:T.black}}>${base.toFixed(2)}</p>
-                    {hasOT&&<p className="text-[10px] font-semibold" style={{color:T.amber}}>+ ${extras.toFixed(2)} extras</p>}
-                    {!hasOT&&<p className="text-[10px]" style={{color:T.grayMid}}>$0.00 extras</p>}
+                    <p className="text-[16px] font-semibold" style={{color:T.black}}>${base.toFixed(2)}</p>
+                    {hasOT&&<p className="text-[13px] font-semibold" style={{color:T.amber}}>+ ${extras.toFixed(2)} extras</p>}
+                    {!hasOT&&<p className="text-[13px]" style={{color:T.grayMid}}>$0.00 extras</p>}
                   </div>
-                  <p className="text-[15px] font-black font-mono" style={{color:T.blue}}>${row.net.toFixed(2)}</p>
+                  <p className="text-[19px] font-black font-mono" style={{color:T.blue}}>${row.net.toFixed(2)}</p>
                   <div>
-                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-full" style={{background:processed?T.greenLt:T.amberLt,color:processed?T.green:T.amber}}>
+                    <span className="text-[14px] font-bold px-2.5 py-1 rounded-full" style={{background:processed?T.greenLt:T.amberLt,color:processed?T.green:T.amber}}>
                       {processed?'VALIDADO':'PENDIENTE'}
                     </span>
                   </div>
@@ -1764,11 +1764,11 @@ function PayrollView({bizId}:{bizId:string}) {
             })}
             {/* Totals row */}
             <div className="grid px-5 py-3.5 items-center" style={{gridTemplateColumns:'2fr 1.2fr 0.8fr 1.2fr 1.2fr 1fr',background:SB2}}>
-              <p className="text-[13px] font-bold text-white">Total — {data.length} empleado{data.length!==1?'s':''}</p>
+              <p className="text-[16px] font-bold text-white">Total — {data.length} empleado{data.length!==1?'s':''}</p>
               <div/>
-              <p className="text-[13px] font-bold text-white">{fmtHours(data.reduce((s,r)=>s+r.hours+r.overtime,0))}</p>
-              <p className="text-[13px] font-bold text-white">${totals.gross.toFixed(2)}</p>
-              <p className="text-[15px] font-black font-mono" style={{color:'#93C5FD'}}>${totals.net.toFixed(2)}</p>
+              <p className="text-[16px] font-bold text-white">{fmtHours(data.reduce((s,r)=>s+r.hours+r.overtime,0))}</p>
+              <p className="text-[16px] font-bold text-white">${totals.gross.toFixed(2)}</p>
+              <p className="text-[19px] font-black font-mono" style={{color:'#93C5FD'}}>${totals.net.toFixed(2)}</p>
               <div/>
             </div>
           </>
@@ -1796,7 +1796,7 @@ function ReportsView({bizId}:{bizId:string}) {
         <div className="flex gap-1.5">
           {REPORT_TABS.map(([id,label,color])=>(
             <button key={id} onClick={()=>setReportTab(id as any)}
-              className="h-9 px-4 rounded-t-xl text-[12px] font-semibold transition-all border-b-2"
+              className="h-9 px-4 rounded-t-xl text-[15px] font-semibold transition-all border-b-2"
               style={{
                 background:reportTab===id?`${color}12`:'transparent',
                 color:reportTab===id?color:T.gray,
@@ -1874,10 +1874,10 @@ function HoursTab({bizId}:{bizId:string}) {
         <div className="flex items-center justify-between mb-3">
           <div className="flex gap-1.5">
             {([['week','Esta semana'],['month','Este mes'],['quarter','Este trimestre']] as const).map(([p,l])=>(
-              <button key={p} onClick={()=>setPeriod(p)} className="h-9 px-4 rounded-xl text-[12px] font-semibold transition-all" style={{background:period===p?T.black:'transparent',color:period===p?T.white:T.gray,border:`1px solid ${period===p?T.black:T.border}`}}>{l}</button>
+              <button key={p} onClick={()=>setPeriod(p)} className="h-9 px-4 rounded-xl text-[15px] font-semibold transition-all" style={{background:period===p?T.black:'transparent',color:period===p?T.white:T.gray,border:`1px solid ${period===p?T.black:T.border}`}}>{l}</button>
             ))}
           </div>
-          <button onClick={exportCSV} disabled={rows.length===0} className="h-9 px-4 rounded-xl flex items-center gap-2 text-[12px] font-bold text-white" style={{background:T.green,opacity:rows.length===0?0.5:1}}><Download size={14}/>Exportar CSV</button>
+          <button onClick={exportCSV} disabled={rows.length===0} className="h-9 px-4 rounded-xl flex items-center gap-2 text-[15px] font-bold text-white" style={{background:T.green,opacity:rows.length===0?0.5:1}}><Download size={14}/>Exportar CSV</button>
         </div>
       </div>
       <div className="p-6 space-y-5">
@@ -1891,7 +1891,7 @@ function HoursTab({bizId}:{bizId:string}) {
                 {label:'Promedio/persona',value:fmtHours(rows.length>0?totalHours/rows.length:0),color:T.indigo,bg:T.indigoLt,Icon:BarChart3},
               ] as const).map(({label,value,color,bg,Icon})=>(
                 <div key={label} className="rounded-2xl p-4" style={{background:bg}}>
-                  <div className="flex items-center gap-2 mb-2"><Icon size={14} style={{color}}/><span className="text-[10px] font-bold uppercase tracking-wide" style={{color:`${color}99`}}>{label}</span></div>
+                  <div className="flex items-center gap-2 mb-2"><Icon size={14} style={{color}}/><span className="text-[13px] font-bold uppercase tracking-wide" style={{color:`${color}99`}}>{label}</span></div>
                   <p className="text-2xl font-black" style={{color}}>{value}</p>
                 </div>
               ))}
@@ -1901,8 +1901,8 @@ function HoursTab({bizId}:{bizId:string}) {
             ):(
               <div className="rounded-2xl overflow-hidden" style={CARD}>
                 <div className="px-5 py-4 flex items-center justify-between" style={{borderBottom:`1px solid ${T.border}`}}>
-                  <span className="text-[13px] font-bold" style={{color:T.black}}>Horas por empleado</span>
-                  <span className="text-[11px]" style={{color:T.gray}}>{rows.length} empleado{rows.length!==1?'s':''}</span>
+                  <span className="text-[16px] font-bold" style={{color:T.black}}>Horas por empleado</span>
+                  <span className="text-[14px]" style={{color:T.gray}}>{rows.length} empleado{rows.length!==1?'s':''}</span>
                 </div>
                 <div className="p-5 space-y-4">
                   {rows.map((r,i)=>{
@@ -1911,13 +1911,13 @@ function HoursTab({bizId}:{bizId:string}) {
                       <div key={r.emp.id}>
                         <div className="flex items-center justify-between mb-1.5">
                           <div className="flex items-center gap-2">
-                            <div className="size-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{background:color}}>{empInitials(r.emp)}</div>
-                            <span className="text-[13px] font-semibold" style={{color:T.black}}>{empName(r.emp)}</span>
-                            {r.overtime>0&&<span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{background:T.amberLt,color:T.amber}}>OT +{fmtHours(r.overtime)}</span>}
+                            <div className="size-7 rounded-full flex items-center justify-center text-[13px] font-bold text-white shrink-0" style={{background:color}}>{empInitials(r.emp)}</div>
+                            <span className="text-[16px] font-semibold" style={{color:T.black}}>{empName(r.emp)}</span>
+                            {r.overtime>0&&<span className="text-[13px] font-bold px-2 py-0.5 rounded-full" style={{background:T.amberLt,color:T.amber}}>OT +{fmtHours(r.overtime)}</span>}
                           </div>
                           <div className="text-right flex items-baseline gap-2">
-                            <span className="text-[13px] font-bold" style={{color:T.black}}>{fmtHours(r.hours)}</span>
-                            <span className="text-[11px]" style={{color:T.gray}}>${r.cost.toFixed(0)}</span>
+                            <span className="text-[16px] font-bold" style={{color:T.black}}>{fmtHours(r.hours)}</span>
+                            <span className="text-[14px]" style={{color:T.gray}}>${r.cost.toFixed(0)}</span>
                           </div>
                         </div>
                         <div className="h-2 rounded-full overflow-hidden" style={{background:T.grayLt}}>
@@ -1931,8 +1931,8 @@ function HoursTab({bizId}:{bizId:string}) {
             )}
             <div className="rounded-2xl p-5" style={CARD}>
               <div className="flex items-center justify-between mb-4">
-                <span className="text-[13px] font-bold" style={{color:T.black}}>Tendencia semanal (últimas 8 semanas)</span>
-                <span className="text-[13px] font-bold" style={{color:T.indigo}}>{fmtHours(weeklyTrend[weeklyTrend.length-1]?.hrs??0)} esta semana</span>
+                <span className="text-[16px] font-bold" style={{color:T.black}}>Tendencia semanal (últimas 8 semanas)</span>
+                <span className="text-[16px] font-bold" style={{color:T.indigo}}>{fmtHours(weeklyTrend[weeklyTrend.length-1]?.hrs??0)} esta semana</span>
               </div>
               <div className="flex items-end gap-1.5 h-24">
                 {weeklyTrend.map((w,i)=>{
@@ -1940,7 +1940,7 @@ function HoursTab({bizId}:{bizId:string}) {
                   return(
                     <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
                       <div className="w-full rounded-t-md transition-all" style={{height:`${Math.max(w.hrs/trendMax*100,4)}%`,background:isLast?T.indigo:`${T.indigo}55`}}/>
-                      <span className="text-[9px] font-semibold" style={{color:isLast?T.indigo:T.grayMid}}>{w.label}</span>
+                      <span className="text-[11px] font-semibold" style={{color:isLast?T.indigo:T.grayMid}}>{w.label}</span>
                     </div>
                   );
                 })}
@@ -2019,8 +2019,8 @@ function QuarterlyTab({bizId}:{bizId:string}) {
         ...rows.map(r=>[empName(r.emp),`$${r.wages.toFixed(2)}`,`$${r.ssEmp.toFixed(2)}`,`$${r.medEmp.toFixed(2)}`,`$${r.ssEr.toFixed(2)}`,`$${r.medEr.toFixed(2)}`]),
         ['TOTAL',`$${totalWages.toFixed(2)}`,`$${totalSsEmp.toFixed(2)}`,`$${totalMedEmp.toFixed(2)}`,`$${totalSsEr.toFixed(2)}`,`$${totalMedEr.toFixed(2)}`],
       ],
-      headStyles:{fillColor:c.navy as [number,number,number],fontStyle:'bold',fontSize:8},
-      bodyStyles:{fontSize:8},
+      headStyles:{fillColor:c.navy as [number,number,number],fontStyle:'bold',fontSize:10},
+      bodyStyles:{fontSize:10},
       alternateRowStyles:{fillColor:[248,250,252] as [number,number,number]},
       footStyles:{fillColor:[22,163,74] as [number,number,number],textColor:[255,255,255] as [number,number,number],fontStyle:'bold'},
     });
@@ -2035,19 +2035,19 @@ function QuarterlyTab({bizId}:{bizId:string}) {
     <div className="p-6 space-y-5">
       {/* Selector */}
       <div className="rounded-2xl p-5" style={CARD}>
-        <p className="text-[13px] font-bold mb-4" style={{color:T.black}}>Selecciona el período</p>
+        <p className="text-[16px] font-bold mb-4" style={{color:T.black}}>Selecciona el período</p>
         <div className="flex flex-wrap gap-3 items-end">
           <div>
-            <label className="text-[11px] font-bold block mb-1.5 uppercase tracking-wide" style={{color:T.gray}}>Año</label>
+            <label className="text-[14px] font-bold block mb-1.5 uppercase tracking-wide" style={{color:T.gray}}>Año</label>
             <select value={year} onChange={e=>setYear(+e.target.value)} className="h-10 px-3 rounded-xl text-sm font-semibold" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}>
               {[now.getFullYear(),now.getFullYear()-1,now.getFullYear()-2].map(y=><option key={y} value={y}>{y}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-[11px] font-bold block mb-1.5 uppercase tracking-wide" style={{color:T.gray}}>Trimestre</label>
+            <label className="text-[14px] font-bold block mb-1.5 uppercase tracking-wide" style={{color:T.gray}}>Trimestre</label>
             <div className="flex gap-1.5">
               {[1,2,3,4].map(q=>(
-                <button key={q} onClick={()=>setQuarter(q)} className="h-10 px-4 rounded-xl text-sm font-bold transition-all" style={{background:quarter===q?T.violet:T.bg,color:quarter===q?'white':T.gray,border:`1px solid ${quarter===q?T.violet:T.border}`}}>T{q} <span className="text-[10px] opacity-70">{qMonths[q]}</span></button>
+                <button key={q} onClick={()=>setQuarter(q)} className="h-10 px-4 rounded-xl text-sm font-bold transition-all" style={{background:quarter===q?T.violet:T.bg,color:quarter===q?'white':T.gray,border:`1px solid ${quarter===q?T.violet:T.border}`}}>T{q} <span className="text-[13px] opacity-70">{qMonths[q]}</span></button>
               ))}
             </div>
           </div>
@@ -2065,8 +2065,8 @@ function QuarterlyTab({bizId}:{bizId:string}) {
           {label:'Base salarial SS 2025',desc:'$160,200 anual / $40,050 por trimestre',color:T.green,bg:T.greenLt},
         ].map(c=>(
           <div key={c.label} className="rounded-xl p-4" style={{background:c.bg}}>
-            <p className="text-[12px] font-bold" style={{color:c.color}}>{c.label}</p>
-            <p className="text-[11px] mt-0.5" style={{color:`${c.color}99`}}>{c.desc}</p>
+            <p className="text-[15px] font-bold" style={{color:c.color}}>{c.label}</p>
+            <p className="text-[14px] mt-0.5" style={{color:`${c.color}99`}}>{c.desc}</p>
           </div>
         ))}
       </div>
@@ -2077,10 +2077,10 @@ function QuarterlyTab({bizId}:{bizId:string}) {
           <div className="rounded-2xl p-5" style={{...CARD,borderLeft:`4px solid ${T.violet}`}}>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-[15px] font-bold" style={{color:T.black}}>T{quarter} {year} — {qMonths[quarter]}</p>
-                <p className="text-[12px]" style={{color:T.gray}}>{rows.length} empleado{rows.length!==1?'s':''} con salarios este trimestre</p>
+                <p className="text-[19px] font-bold" style={{color:T.black}}>T{quarter} {year} — {qMonths[quarter]}</p>
+                <p className="text-[15px]" style={{color:T.gray}}>{rows.length} empleado{rows.length!==1?'s':''} con salarios este trimestre</p>
               </div>
-              <button onClick={exportPDF} className="h-9 px-4 rounded-xl text-[12px] font-bold text-white flex items-center gap-2" style={{background:T.violet}}><Download size={13}/>Descargar PDF</button>
+              <button onClick={exportPDF} className="h-9 px-4 rounded-xl text-[15px] font-bold text-white flex items-center gap-2" style={{background:T.violet}}><Download size={13}/>Descargar PDF</button>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
@@ -2090,8 +2090,8 @@ function QuarterlyTab({bizId}:{bizId:string}) {
                 {label:'Total FICA (Emp+Patrono)',value:`$${totalTaxes.toFixed(2)}`,color:T.violet},
               ].map(s=>(
                 <div key={s.label} className="rounded-xl p-3" style={{background:T.bg}}>
-                  <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{color:T.gray}}>{s.label}</p>
-                  <p className="text-[18px] font-black" style={{color:s.color}}>{s.value}</p>
+                  <p className="text-[13px] font-bold uppercase tracking-wide mb-1" style={{color:T.gray}}>{s.label}</p>
+                  <p className="text-[23px] font-black" style={{color:s.color}}>{s.value}</p>
                 </div>
               ))}
             </div>
@@ -2110,7 +2110,7 @@ function QuarterlyTab({bizId}:{bizId:string}) {
                   <thead>
                     <tr style={{background:T.violet}}>
                       {['Empleado','Puesto','Salarios Brutos','SS Emp 6.2%','Med Emp 1.45%','SS Patrono 6.2%','Med Patrono 1.45%'].map(h=>(
-                        <th key={h} className="px-4 py-3 text-left text-[11px] font-bold text-white uppercase tracking-wide">{h}</th>
+                        <th key={h} className="px-4 py-3 text-left text-[14px] font-bold text-white uppercase tracking-wide">{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -2119,25 +2119,25 @@ function QuarterlyTab({bizId}:{bizId:string}) {
                       <tr key={r.emp.id} style={{background:i%2===0?'white':T.bg,borderBottom:`1px solid ${T.border}`}}>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <div className="size-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{background:empColor(r.emp,i)}}>{empInitials(r.emp)}</div>
-                            <span className="text-[13px] font-semibold" style={{color:T.black}}>{empName(r.emp)}</span>
+                            <div className="size-7 rounded-full flex items-center justify-center text-[13px] font-bold text-white shrink-0" style={{background:empColor(r.emp,i)}}>{empInitials(r.emp)}</div>
+                            <span className="text-[16px] font-semibold" style={{color:T.black}}>{empName(r.emp)}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-[12px]" style={{color:T.gray}}>{r.emp.job_title??'—'}</td>
-                        <td className="px-4 py-3 text-[13px] font-bold" style={{color:T.black}}>${r.wages.toFixed(2)}</td>
-                        <td className="px-4 py-3 text-[12px]" style={{color:T.indigo}}>${r.ssEmp.toFixed(2)}</td>
-                        <td className="px-4 py-3 text-[12px]" style={{color:T.blue}}>${r.medEmp.toFixed(2)}</td>
-                        <td className="px-4 py-3 text-[12px]" style={{color:T.violet}}>${r.ssEr.toFixed(2)}</td>
-                        <td className="px-4 py-3 text-[12px]" style={{color:T.violet}}>${r.medEr.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-[15px]" style={{color:T.gray}}>{r.emp.job_title??'—'}</td>
+                        <td className="px-4 py-3 text-[16px] font-bold" style={{color:T.black}}>${r.wages.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-[15px]" style={{color:T.indigo}}>${r.ssEmp.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-[15px]" style={{color:T.blue}}>${r.medEmp.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-[15px]" style={{color:T.violet}}>${r.ssEr.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-[15px]" style={{color:T.violet}}>${r.medEr.toFixed(2)}</td>
                       </tr>
                     ))}
                     <tr style={{background:T.violet}}>
-                      <td colSpan={2} className="px-4 py-3 text-[12px] font-bold text-white">TOTALES</td>
-                      <td className="px-4 py-3 text-[13px] font-black text-white">${totalWages.toFixed(2)}</td>
-                      <td className="px-4 py-3 text-[12px] font-bold text-white">${totalSsEmp.toFixed(2)}</td>
-                      <td className="px-4 py-3 text-[12px] font-bold text-white">${totalMedEmp.toFixed(2)}</td>
-                      <td className="px-4 py-3 text-[12px] font-bold text-white">${totalSsEr.toFixed(2)}</td>
-                      <td className="px-4 py-3 text-[12px] font-bold text-white">${totalMedEr.toFixed(2)}</td>
+                      <td colSpan={2} className="px-4 py-3 text-[15px] font-bold text-white">TOTALES</td>
+                      <td className="px-4 py-3 text-[16px] font-black text-white">${totalWages.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-[15px] font-bold text-white">${totalSsEmp.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-[15px] font-bold text-white">${totalMedEmp.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-[15px] font-bold text-white">${totalSsEr.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-[15px] font-bold text-white">${totalMedEr.toFixed(2)}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -2243,10 +2243,10 @@ function W2Tab({bizId}:{bizId:string}) {
     <div className="p-6 space-y-5">
       {/* Selector */}
       <div className="rounded-2xl p-5" style={CARD}>
-        <p className="text-[13px] font-bold mb-4" style={{color:T.black}}>Selecciona el año fiscal</p>
+        <p className="text-[16px] font-bold mb-4" style={{color:T.black}}>Selecciona el año fiscal</p>
         <div className="flex flex-wrap gap-3 items-end">
           <div>
-            <label className="text-[11px] font-bold block mb-1.5 uppercase tracking-wide" style={{color:T.gray}}>Año</label>
+            <label className="text-[14px] font-bold block mb-1.5 uppercase tracking-wide" style={{color:T.gray}}>Año</label>
             <div className="flex gap-1.5">
               {[now.getFullYear()-1,now.getFullYear()-2,now.getFullYear()-3].map(y=>(
                 <button key={y} onClick={()=>setYear(y)} className="h-10 px-4 rounded-xl text-sm font-bold transition-all" style={{background:year===y?T.blue:T.bg,color:year===y?'white':T.gray,border:`1px solid ${year===y?T.blue:T.border}`}}>{y}</button>
@@ -2262,7 +2262,7 @@ function W2Tab({bizId}:{bizId:string}) {
       {/* Notice */}
       <div className="rounded-xl p-4 flex gap-3" style={{background:T.amberLt,border:`1px solid ${T.amber}33`}}>
         <AlertTriangle size={16} color={T.amber} className="shrink-0 mt-0.5"/>
-        <p className="text-[12px]" style={{color:T.amber}}>Los valores de retención federal son estimados (12% tasa plana de referencia). La retención federal real depende de las elecciones W-4 de cada empleado. Coordine con su CPA para los W2 oficiales.</p>
+        <p className="text-[15px]" style={{color:T.amber}}>Los valores de retención federal son estimados (12% tasa plana de referencia). La retención federal real depende de las elecciones W-4 de cada empleado. Coordine con su CPA para los W2 oficiales.</p>
       </div>
 
       {generated&&(
@@ -2271,10 +2271,10 @@ function W2Tab({bizId}:{bizId:string}) {
           <div className="rounded-2xl p-5" style={{...CARD,borderLeft:`4px solid ${T.blue}`}}>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-[15px] font-bold" style={{color:T.black}}>W2 — Año Fiscal {year}</p>
-                <p className="text-[12px]" style={{color:T.gray}}>{rows.length} empleado{rows.length!==1?'s':''} · Total salarios: ${totalWages.toFixed(2)}</p>
+                <p className="text-[19px] font-bold" style={{color:T.black}}>W2 — Año Fiscal {year}</p>
+                <p className="text-[15px]" style={{color:T.gray}}>{rows.length} empleado{rows.length!==1?'s':''} · Total salarios: ${totalWages.toFixed(2)}</p>
               </div>
-              {rows.length>0&&<button onClick={exportPDF} className="h-9 px-4 rounded-xl text-[12px] font-bold text-white flex items-center gap-2" style={{background:T.blue}}><Download size={13}/>Descargar PDF</button>}
+              {rows.length>0&&<button onClick={exportPDF} className="h-9 px-4 rounded-xl text-[15px] font-bold text-white flex items-center gap-2" style={{background:T.blue}}><Download size={13}/>Descargar PDF</button>}
             </div>
           </div>
 
@@ -2289,12 +2289,12 @@ function W2Tab({bizId}:{bizId:string}) {
               {rows.map((r,i)=>(
                 <div key={r.emp.id} className="rounded-2xl overflow-hidden" style={CARD}>
                   <div className="px-5 py-3 flex items-center gap-3" style={{background:T.bg,borderBottom:`1px solid ${T.border}`}}>
-                    <div className="size-9 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{background:empColor(r.emp,i)}}>{empInitials(r.emp)}</div>
+                    <div className="size-9 rounded-full flex items-center justify-center text-[14px] font-bold text-white shrink-0" style={{background:empColor(r.emp,i)}}>{empInitials(r.emp)}</div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-bold truncate" style={{color:T.black}}>{empName(r.emp)}</p>
-                      <p className="text-[11px]" style={{color:T.gray}}>{r.emp.job_title??r.emp.email}</p>
+                      <p className="text-[16px] font-bold truncate" style={{color:T.black}}>{empName(r.emp)}</p>
+                      <p className="text-[14px]" style={{color:T.gray}}>{r.emp.job_title??r.emp.email}</p>
                     </div>
-                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{background:T.blueLt,color:T.blue}}>W2 · {year}</span>
+                    <span className="text-[13px] font-bold px-2.5 py-1 rounded-full" style={{background:T.blueLt,color:T.blue}}>W2 · {year}</span>
                   </div>
                   <div className="p-4 grid grid-cols-2 gap-2">
                     {[
@@ -2306,8 +2306,8 @@ function W2Tab({bizId}:{bizId:string}) {
                       {n:'Box 6 — Medicare Tax',v:`$${r.medW.toFixed(2)}`,c:T.blue},
                     ].map(b=>(
                       <div key={b.n} className="rounded-lg p-2.5" style={{background:T.bg}}>
-                        <p className="text-[9px] font-bold uppercase tracking-wide mb-0.5" style={{color:T.grayMid}}>{b.n}</p>
-                        <p className="text-[14px] font-black" style={{color:b.c}}>{b.v}</p>
+                        <p className="text-[11px] font-bold uppercase tracking-wide mb-0.5" style={{color:T.grayMid}}>{b.n}</p>
+                        <p className="text-[18px] font-black" style={{color:b.c}}>{b.v}</p>
                       </div>
                     ))}
                   </div>
@@ -2382,8 +2382,8 @@ function FeriadosView({bizId}:{bizId:string}) {
       <div className="rounded-2xl p-5" style={CARD}>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[15px] font-bold" style={{color:T.black}}>Pago de Días Feriados</p>
-            <p className="text-[12px] mt-0.5" style={{color:T.gray}}>Ley 180 de Puerto Rico — el pago de feriados no es obligatorio, es decisión del patrono.</p>
+            <p className="text-[19px] font-bold" style={{color:T.black}}>Pago de Días Feriados</p>
+            <p className="text-[15px] mt-0.5" style={{color:T.gray}}>Ley 180 de Puerto Rico — el pago de feriados no es obligatorio, es decisión del patrono.</p>
           </div>
           <button onClick={()=>setPaysHolidays(p=>!p)}
             className="relative w-12 h-6 rounded-full transition-all"
@@ -2397,7 +2397,7 @@ function FeriadosView({bizId}:{bizId:string}) {
       {paysHolidays&&(<>
         {/* Rate */}
         <div className="rounded-2xl p-5" style={CARD}>
-          <p className="text-[13px] font-bold mb-3" style={{color:T.black}}>Tasa de pago por feriado</p>
+          <p className="text-[16px] font-bold mb-3" style={{color:T.black}}>Tasa de pago por feriado</p>
           <div className="flex gap-3">
             {([1,1.5,2] as const).map(r=>(
               <button key={r} onClick={()=>setRate(r)}
@@ -2413,12 +2413,12 @@ function FeriadosView({bizId}:{bizId:string}) {
         <div className="rounded-2xl overflow-hidden" style={CARD}>
           <div className="px-5 py-4 flex items-center justify-between" style={{borderBottom:`1px solid ${T.border}`}}>
             <div>
-              <span className="text-[13px] font-bold" style={{color:T.black}}>Días feriados de PR</span>
-              <span className="ml-2 text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{background:'#CCFBF1',color:'#0D9488'}}>{paidKeys.size} seleccionados</span>
+              <span className="text-[16px] font-bold" style={{color:T.black}}>Días feriados de PR</span>
+              <span className="ml-2 text-[14px] font-semibold px-2 py-0.5 rounded-full" style={{background:'#CCFBF1',color:'#0D9488'}}>{paidKeys.size} seleccionados</span>
             </div>
             <div className="flex gap-2">
-              <button onClick={selectAll} className="text-[11px] font-bold px-3 py-1.5 rounded-lg" style={{background:'#CCFBF1',color:'#0D9488'}}>Todos</button>
-              <button onClick={selectNone} className="text-[11px] font-bold px-3 py-1.5 rounded-lg" style={{background:T.grayLt,color:T.gray}}>Ninguno</button>
+              <button onClick={selectAll} className="text-[14px] font-bold px-3 py-1.5 rounded-lg" style={{background:'#CCFBF1',color:'#0D9488'}}>Todos</button>
+              <button onClick={selectNone} className="text-[14px] font-bold px-3 py-1.5 rounded-lg" style={{background:T.grayLt,color:T.gray}}>Ninguno</button>
             </div>
           </div>
           <div className="divide-y" style={{borderColor:T.border}}>
@@ -2431,8 +2431,8 @@ function FeriadosView({bizId}:{bizId:string}) {
                     style={{background:checked?'#0D9488':'white',borderColor:checked?'#0D9488':T.border}}>
                     {checked&&<CheckCircle2 size={12} color="white" fill="white"/>}
                   </div>
-                  <span className="flex-1 text-[13px] font-semibold" style={{color:T.black}}>{h.name}</span>
-                  <span className="text-[11px]" style={{color:T.gray}}>{h.date}</span>
+                  <span className="flex-1 text-[16px] font-semibold" style={{color:T.black}}>{h.name}</span>
+                  <span className="text-[14px]" style={{color:T.gray}}>{h.date}</span>
                 </button>
               );
             })}
@@ -2441,7 +2441,7 @@ function FeriadosView({bizId}:{bizId:string}) {
       </>)}
 
       <button onClick={save} disabled={saving}
-        className="w-full h-11 rounded-xl font-bold text-white text-[14px] flex items-center justify-center gap-2"
+        className="w-full h-11 rounded-xl font-bold text-white text-[18px] flex items-center justify-center gap-2"
         style={{background:'#0D9488',opacity:saving?0.7:1}}>
         {saved?<><CheckCircle2 size={16}/>Guardado</> : saving?'Guardando...':'Guardar cambios'}
       </button>
@@ -2495,7 +2495,7 @@ function GastosView({bizId}:{bizId:string}) {
           <h1 className="text-xl font-bold" style={{color:T.black}}>Gastos del Negocio</h1>
           <p className="text-xs mt-0.5" style={{color:T.gray}}>Registra y controla los gastos de tu operación</p>
         </div>
-        <button onClick={()=>setShowForm(p=>!p)} className="h-10 px-4 rounded-xl text-[13px] font-bold text-white flex items-center gap-2" style={{background:T.amber}}>
+        <button onClick={()=>setShowForm(p=>!p)} className="h-10 px-4 rounded-xl text-[16px] font-bold text-white flex items-center gap-2" style={{background:T.amber}}>
           <Plus size={15}/>Nuevo gasto
         </button>
       </div>
@@ -2504,16 +2504,16 @@ function GastosView({bizId}:{bizId:string}) {
         {/* Summary */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="rounded-2xl p-4" style={{background:T.amberLt}}>
-            <p className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{color:`${T.amber}99`}}>Total gastos</p>
+            <p className="text-[13px] font-bold uppercase tracking-wide mb-2" style={{color:`${T.amber}99`}}>Total gastos</p>
             <p className="text-2xl font-black" style={{color:T.amber}}>${total.toFixed(2)}</p>
           </div>
           <div className="rounded-2xl p-4" style={{background:T.grayLt}}>
-            <p className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{color:T.gray}}>Registros</p>
+            <p className="text-[13px] font-bold uppercase tracking-wide mb-2" style={{color:T.gray}}>Registros</p>
             <p className="text-2xl font-black" style={{color:T.black}}>{expenses.length}</p>
           </div>
           {Object.entries(byCategory).slice(0,2).map(([cat,amt])=>(
             <div key={cat} className="rounded-2xl p-4" style={{background:`${CAT_COLORS[cat]??T.gray}18`}}>
-              <p className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{color:`${CAT_COLORS[cat]??T.gray}99`}}>{cat}</p>
+              <p className="text-[13px] font-bold uppercase tracking-wide mb-2" style={{color:`${CAT_COLORS[cat]??T.gray}99`}}>{cat}</p>
               <p className="text-2xl font-black" style={{color:CAT_COLORS[cat]??T.gray}}>${amt.toFixed(2)}</p>
             </div>
           ))}
@@ -2522,31 +2522,31 @@ function GastosView({bizId}:{bizId:string}) {
         {/* Form */}
         {showForm&&(
           <form onSubmit={save} className="rounded-2xl p-5 space-y-4" style={CARD}>
-            <p className="text-[13px] font-bold" style={{color:T.black}}>Nuevo gasto</p>
+            <p className="text-[16px] font-bold" style={{color:T.black}}>Nuevo gasto</p>
             <div className="grid md:grid-cols-2 gap-3">
               <div>
-                <label className="text-[11px] font-bold block mb-1" style={{color:T.gray}}>Descripción *</label>
+                <label className="text-[14px] font-bold block mb-1" style={{color:T.gray}}>Descripción *</label>
                 <input required value={form.description} onChange={e=>setForm(p=>({...p,description:e.target.value}))} placeholder="Ej: Electricidad mayo"
                   className="w-full h-10 px-3 rounded-xl text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
               </div>
               <div>
-                <label className="text-[11px] font-bold block mb-1" style={{color:T.gray}}>Monto ($) *</label>
+                <label className="text-[14px] font-bold block mb-1" style={{color:T.gray}}>Monto ($) *</label>
                 <input required type="number" step="0.01" min="0" value={form.amount} onChange={e=>setForm(p=>({...p,amount:e.target.value}))} placeholder="0.00"
                   className="w-full h-10 px-3 rounded-xl text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
               </div>
               <div>
-                <label className="text-[11px] font-bold block mb-1" style={{color:T.gray}}>Categoría</label>
+                <label className="text-[14px] font-bold block mb-1" style={{color:T.gray}}>Categoría</label>
                 <select value={form.category} onChange={e=>setForm(p=>({...p,category:e.target.value}))} className="w-full h-10 px-3 rounded-xl text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}>
                   {CATS.map(c=><option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-[11px] font-bold block mb-1" style={{color:T.gray}}>Fecha</label>
+                <label className="text-[14px] font-bold block mb-1" style={{color:T.gray}}>Fecha</label>
                 <input type="date" value={form.date} onChange={e=>setForm(p=>({...p,date:e.target.value}))} className="w-full h-10 px-3 rounded-xl text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
               </div>
             </div>
             <div>
-              <label className="text-[11px] font-bold block mb-1" style={{color:T.gray}}>Notas (opcional)</label>
+              <label className="text-[14px] font-bold block mb-1" style={{color:T.gray}}>Notas (opcional)</label>
               <input value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))} placeholder="Detalles adicionales..."
                 className="w-full h-10 px-3 rounded-xl text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
             </div>
@@ -2576,13 +2576,13 @@ function GastosView({bizId}:{bizId:string}) {
                       <Tag size={16} style={{color:cc}}/>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-semibold" style={{color:T.black}}>{e.description}</p>
+                      <p className="text-[16px] font-semibold" style={{color:T.black}}>{e.description}</p>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{background:`${cc}18`,color:cc}}>{e.category}</span>
-                        <span className="text-[11px]" style={{color:T.gray}}>{e.date}</span>
+                        <span className="text-[13px] font-bold px-2 py-0.5 rounded-full" style={{background:`${cc}18`,color:cc}}>{e.category}</span>
+                        <span className="text-[14px]" style={{color:T.gray}}>{e.date}</span>
                       </div>
                     </div>
-                    <p className="text-[15px] font-black shrink-0" style={{color:T.black}}>${e.amount.toFixed(2)}</p>
+                    <p className="text-[19px] font-black shrink-0" style={{color:T.black}}>${e.amount.toFixed(2)}</p>
                     <button onClick={()=>del(e.id)} disabled={deleting===e.id} className="p-1.5 rounded-lg hover:opacity-80" style={{color:T.red}}>
                       <Trash2 size={14}/>
                     </button>
@@ -2659,8 +2659,8 @@ function AsistenteView() {
           <Bot size={20} style={{color:T.indigo}}/>
         </div>
         <div>
-          <p className="text-[14px] font-bold" style={{color:T.black}}>Asistente AI</p>
-          <p className="text-[11px]" style={{color:T.green}}>● En línea</p>
+          <p className="text-[18px] font-bold" style={{color:T.black}}>Asistente AI</p>
+          <p className="text-[14px]" style={{color:T.green}}>● En línea</p>
         </div>
       </div>
 
@@ -2672,13 +2672,13 @@ function AsistenteView() {
               <div className="size-16 rounded-2xl mx-auto flex items-center justify-center mb-3" style={{background:T.indigoLt}}>
                 <Bot size={28} style={{color:T.indigo}}/>
               </div>
-              <p className="text-[15px] font-bold" style={{color:T.black}}>¿En qué puedo ayudarte?</p>
-              <p className="text-[13px] mt-1" style={{color:T.gray}}>Pregúntame sobre nómina, feriados, gastos o reportes</p>
+              <p className="text-[19px] font-bold" style={{color:T.black}}>¿En qué puedo ayudarte?</p>
+              <p className="text-[16px] mt-1" style={{color:T.gray}}>Pregúntame sobre nómina, feriados, gastos o reportes</p>
             </div>
             <div className="flex flex-wrap gap-2 justify-center">
               {SUGGESTIONS.map(s=>(
                 <button key={s} onClick={()=>{setInput(s);setTimeout(()=>document.getElementById('ai-input')?.focus(),0);}}
-                  className="px-3 py-2 rounded-xl text-[12px] font-semibold transition-all hover:opacity-80"
+                  className="px-3 py-2 rounded-xl text-[15px] font-semibold transition-all hover:opacity-80"
                   style={{background:T.indigoLt,color:T.indigo}}>
                   {s}
                 </button>
@@ -2689,7 +2689,7 @@ function AsistenteView() {
         {msgs.map((m,i)=>(
           <div key={i} className={`flex ${m.role==='user'?'justify-end':'justify-start'} gap-3`}>
             {m.role==='assistant'&&<div className="size-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background:T.indigoLt}}><Bot size={14} style={{color:T.indigo}}/></div>}
-            <div className="max-w-[75%] rounded-2xl px-4 py-3 text-[13px] leading-relaxed"
+            <div className="max-w-[75%] rounded-2xl px-4 py-3 text-[16px] leading-relaxed"
               style={{background:m.role==='user'?T.indigo:'white',color:m.role==='user'?'white':T.black,
                 border:m.role==='assistant'?`1px solid ${T.border}`:'none'}}>
               {renderText(m.text)}
@@ -2751,7 +2751,7 @@ function SettingsView({bizId}:{bizId:string}) {
 
             {/* Negocio */}
             <div className="rounded-2xl p-5 space-y-4" style={CARD}>
-              <p className="text-[13px] font-bold pb-1" style={{color:T.black,borderBottom:`1px solid ${T.border}`}}>Información del negocio</p>
+              <p className="text-[16px] font-bold pb-1" style={{color:T.black,borderBottom:`1px solid ${T.border}`}}>Información del negocio</p>
               <Field label="Nombre del negocio">
                 <input type="text" value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} className="w-full h-11 rounded-xl px-3 text-sm" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
               </Field>
@@ -2764,7 +2764,7 @@ function SettingsView({bizId}:{bizId:string}) {
 
             {/* Nómina */}
             <div className="rounded-2xl p-5 space-y-4" style={CARD}>
-              <p className="text-[13px] font-bold pb-1" style={{color:T.black,borderBottom:`1px solid ${T.border}`}}>Reglas de nómina</p>
+              <p className="text-[16px] font-bold pb-1" style={{color:T.black,borderBottom:`1px solid ${T.border}`}}>Reglas de nómina</p>
               <Field label="Período de pago">
                 <div className="grid grid-cols-4 gap-2">
                   {[{v:'weekly',l:'Semanal'},{v:'biweekly',l:'Quincenal'},{v:'semimonthly',l:'Semi-mensual'},{v:'monthly',l:'Mensual'}].map(({v,l})=>(
@@ -2775,7 +2775,7 @@ function SettingsView({bizId}:{bizId:string}) {
               <Field label="Overtime — después de cuántas horas semanales">
                 <div className="flex items-center gap-3">
                   <input type="number" min={1} max={80} value={form.overtime_weekly_hrs} onChange={e=>setForm(p=>({...p,overtime_weekly_hrs:Number(e.target.value)}))} className="w-24 h-11 rounded-xl px-3 text-sm text-center font-bold" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
-                  <div><p className="text-sm font-semibold" style={{color:T.black}}>horas por semana</p><p className="text-[11px]" style={{color:T.grayMid}}>Las horas adicionales se pagan a 1.5×</p></div>
+                  <div><p className="text-sm font-semibold" style={{color:T.black}}>horas por semana</p><p className="text-[14px]" style={{color:T.grayMid}}>Las horas adicionales se pagan a 1.5×</p></div>
                 </div>
               </Field>
             </div>
@@ -2783,14 +2783,14 @@ function SettingsView({bizId}:{bizId:string}) {
             {/* Geocerca */}
             <div className="rounded-2xl p-5 space-y-4" style={CARD}>
               <div className="flex items-center justify-between pb-1" style={{borderBottom:`1px solid ${T.border}`}}>
-                <p className="text-[13px] font-bold" style={{color:T.black}}>Geocerca (Geofence)</p>
-                <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold" style={{background:T.indigoLt,color:T.indigo}}>App móvil</span>
+                <p className="text-[16px] font-bold" style={{color:T.black}}>Geocerca (Geofence)</p>
+                <span className="text-[14px] px-2.5 py-1 rounded-full font-semibold" style={{background:T.indigoLt,color:T.indigo}}>App móvil</span>
               </div>
               <p className="text-xs" style={{color:T.gray}}>Radio desde la ubicación del negocio donde los empleados pueden ponchar.</p>
               <Field label="Radio permitido">
                 <div className="flex items-center gap-3">
                   <input type="number" min={50} max={5000} step={50} value={form.geofence_radius_meters} onChange={e=>setForm(p=>({...p,geofence_radius_meters:Number(e.target.value)}))} className="w-24 h-11 rounded-xl px-3 text-sm text-center font-bold" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
-                  <div><p className="text-sm font-semibold" style={{color:T.black}}>metros</p><p className="text-[11px]" style={{color:T.grayMid}}>Recomendado: 100–300m</p></div>
+                  <div><p className="text-sm font-semibold" style={{color:T.black}}>metros</p><p className="text-[14px]" style={{color:T.grayMid}}>Recomendado: 100–300m</p></div>
                 </div>
                 <div className="mt-3 h-2 rounded-full overflow-hidden" style={{background:T.grayLt}}>
                   <div className="h-full rounded-full transition-all" style={{width:`${Math.min(form.geofence_radius_meters/5000*100,100)}%`,background:T.indigo}}/>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -191,7 +191,7 @@ export default function Activar() {
 
           {/* Hint */}
           <div className="flex items-center gap-1.5 mb-4">
-            <span className={password.length >= 8 ? 'text-green-600' : 'text-slate-400'} style={{fontSize:13}}>
+            <span className={password.length >= 8 ? 'text-green-600' : 'text-slate-400'} style={{fontSize:16}}>
               {password.length >= 8 ? '✅' : '⭕'}
             </span>
             <span className={`text-xs ${password.length >= 8 ? 'text-green-600' : 'text-slate-400'}`}>

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 
 const B = {
   bg:      '#0A0F1C',
@@ -14,9 +14,9 @@ function Logo() {
   return (
     <Link to="/" className="flex items-center gap-2.5 no-underline">
       <div style={{ width:32, height:32, background:'#2563EB', borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center' }}>
-        <span style={{ color:'#fff', fontSize:16 }}>📅</span>
+        <span style={{ color:'#fff', fontSize:20 }}>📅</span>
       </div>
-      <span style={{ color:'#fff', fontWeight:800, fontSize:18, letterSpacing:'-0.3px' }}>Turnos Móvil</span>
+      <span style={{ color:'#fff', fontWeight:800, fontSize:23, letterSpacing:'-0.3px' }}>Turnos Móvil</span>
     </Link>
   );
 }
@@ -28,19 +28,19 @@ export default function TermsOfService() {
       <nav style={{ borderBottom: `1px solid ${B.border}`, padding: '0 24px' }}>
         <div style={{ maxWidth: 800, margin: '0 auto', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Logo />
-          <Link to="/" style={{ color: B.muted, fontSize: 14, textDecoration: 'none' }}>← Volver al inicio</Link>
+          <Link to="/" style={{ color: B.muted, fontSize: 18, textDecoration: 'none' }}>← Volver al inicio</Link>
         </div>
       </nav>
 
       {/* Content */}
       <main style={{ maxWidth: 800, margin: '0 auto', padding: '48px 24px 80px' }}>
         <div style={{ marginBottom: 40 }}>
-          <p style={{ color: B.blue, fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>Legal</p>
-          <h1 style={{ fontSize: 36, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.2 }}>Términos de Servicio</h1>
-          <p style={{ color: B.muted, fontSize: 14 }}>Última actualización: 20 de agosto de 2026</p>
+          <p style={{ color: B.blue, fontSize: 15, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>Legal</p>
+          <h1 style={{ fontSize: 45, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.2 }}>Términos de Servicio</h1>
+          <p style={{ color: B.muted, fontSize: 18 }}>Última actualización: 20 de agosto de 2026</p>
         </div>
 
-        <div style={{ color: B.muted, fontSize: 15, lineHeight: 1.8 }}>
+        <div style={{ color: B.muted, fontSize: 19, lineHeight: 1.8 }}>
 
           <Section title="1. Aceptación de los Términos">
             <p>Al registrarte o usar Turnos Móvil ("el Servicio"), aceptas estos Términos de Servicio en su totalidad. Si no estás de acuerdo con alguna parte, no debes usar el Servicio.</p>
@@ -131,7 +131,7 @@ export default function TermsOfService() {
 
       {/* Footer */}
       <footer style={{ borderTop: `1px solid ${B.border}`, padding: '24px', textAlign: 'center' }}>
-        <p style={{ color: B.dim, fontSize: 13 }}>
+        <p style={{ color: B.dim, fontSize: 16 }}>
           © {new Date().getFullYear()} Turnos Móvil · <Link to="/privacidad" style={{ color: B.muted, textDecoration: 'none' }}>Privacidad</Link> · <Link to="/terminos" style={{ color: B.muted, textDecoration: 'none' }}>Términos</Link>
         </p>
       </footer>
@@ -142,7 +142,7 @@ export default function TermsOfService() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={{ marginBottom: 36 }}>
-      <h2 style={{ color: '#FFFFFF', fontSize: 18, fontWeight: 700, marginBottom: 12, marginTop: 0 }}>{title}</h2>
+      <h2 style={{ color: '#FFFFFF', fontSize: 23, fontWeight: 700, marginBottom: 12, marginTop: 0 }}>{title}</h2>
       {children}
     </div>
   );

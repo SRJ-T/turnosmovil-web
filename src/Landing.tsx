@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import {
@@ -71,7 +71,7 @@ function WebDashPreview() {
       {/* Chrome bar */}
       <div className="h-10 flex items-center px-4 gap-2" style={{ background: '#FFFFFF', borderBottom: '1px solid #E2E8F0' }}>
         <div className="flex gap-1.5"><div className="size-3 rounded-full bg-red-400"/><div className="size-3 rounded-full bg-amber-400"/><div className="size-3 rounded-full bg-green-400"/></div>
-        <div className="flex-1 mx-4 h-6 rounded-full flex items-center px-3 gap-1.5 text-[10px] text-slate-400" style={{ background: '#F1F5F9' }}>
+        <div className="flex-1 mx-4 h-6 rounded-full flex items-center px-3 gap-1.5 text-[13px] text-slate-400" style={{ background: '#F1F5F9' }}>
           <Globe size={10}/> turnosmovil.com/app
         </div>
       </div>
@@ -93,12 +93,12 @@ function WebDashPreview() {
         <div className="flex-1 p-3 space-y-2 overflow-hidden">
           {/* Header gradient */}
           <div className="rounded-xl p-3" style={{ background: 'linear-gradient(135deg, #064E3B, #1D4ED8)' }}>
-            <p className="text-[9px] text-green-300 font-bold uppercase tracking-widest mb-1">Dashboard</p>
+            <p className="text-[11px] text-green-300 font-bold uppercase tracking-widest mb-1">Dashboard</p>
             <div className="grid grid-cols-4 gap-1.5">
               {[['3','En turno','#1D9E75'],['2','Sin ponchar','#D97706'],['8','Turnos hoy','#2563EB'],['1','Pendientes','#DC2626']].map(([v,l,c])=>(
                 <div key={l} className="rounded-xl p-2 flex items-center gap-1.5" style={{ background: '#F2F2F4' }}>
                   <span className="text-sm font-black leading-none" style={{ color: c }}>{v}</span>
-                  <span className="text-[7px] leading-tight" style={{ color: `${c}99` }}>{l}</span>
+                  <span className="text-[9px] leading-tight" style={{ color: `${c}99` }}>{l}</span>
                 </div>
               ))}
             </div>
@@ -106,8 +106,8 @@ function WebDashPreview() {
           {/* Monthly bar */}
           <div className="rounded-xl p-2.5" style={{ background: '#FFFFFF', border: '1px solid #E8E8E8' }}>
             <div className="flex justify-between items-center mb-1.5">
-              <span className="text-[8px] font-semibold text-slate-600">Horas aprobadas este mes</span>
-              <span className="text-[8px] font-bold text-blue-600">68%</span>
+              <span className="text-[10px] font-semibold text-slate-600">Horas aprobadas este mes</span>
+              <span className="text-[10px] font-bold text-blue-600">68%</span>
             </div>
             <div className="h-1.5 rounded-full" style={{ background: '#DBEAFE' }}>
               <div className="h-full rounded-full w-2/3" style={{ background: '#2563EB' }} />
@@ -117,14 +117,14 @@ function WebDashPreview() {
           <div className="rounded-xl overflow-hidden" style={{ background: '#FFFFFF', border: '1px solid #E8E8E8' }}>
             {[['JR','Juan Rivera','Cajero','#6366F1','active'],['MC','María Castro','Mesera','#0D9488','active'],['LP','Luis Pérez','Cocinero','#16A34A','inactive']].map(([init,name,pos,clr,st],i)=>(
               <div key={i} className="flex items-center gap-2 px-2.5 py-1.5" style={{ borderBottom: i<2?'1px solid #F0EEE8':'none' }}>
-                <div className="size-6 rounded-lg flex items-center justify-center text-[8px] font-bold text-white shrink-0" style={{ background: clr }}>{init}</div>
+                <div className="size-6 rounded-lg flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ background: clr }}>{init}</div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[9px] font-semibold text-slate-800">{name}</p>
-                  <p className="text-[7px] text-slate-400">{pos}</p>
+                  <p className="text-[11px] font-semibold text-slate-800">{name}</p>
+                  <p className="text-[9px] text-slate-400">{pos}</p>
                 </div>
                 <div className="flex items-center gap-1">
                   <div className={`size-1.5 rounded-full ${st==='active'?'bg-green-500 animate-pulse':'bg-slate-300'}`}/>
-                  <span className="text-[7px] font-semibold" style={{ color: st==='active'?'#16A34A':'#9CA3AF' }}>{st==='active'?'Activo':'Inactivo'}</span>
+                  <span className="text-[9px] font-semibold" style={{ color: st==='active'?'#16A34A':'#9CA3AF' }}>{st==='active'?'Activo':'Inactivo'}</span>
                 </div>
               </div>
             ))}
@@ -145,29 +145,29 @@ function PhoneMockup() {
           <div className="h-5 shrink-0 bg-white"/>
           <div className="flex-1 p-1.5 space-y-1.5 overflow-hidden">
             <div className="rounded-xl p-2" style={{ background: 'linear-gradient(135deg, #064E3B, #1D4ED8)' }}>
-              <p className="text-[6px] text-blue-200 font-bold mb-1">BUENOS DÍAS, CARLOS</p>
+              <p className="text-[8px] text-blue-200 font-bold mb-1">BUENOS DÍAS, CARLOS</p>
               <div className="grid grid-cols-2 gap-1">
                 {[['4','Activos','#1D9E75'],['2','Pendientes','#D97706']].map(([v,l,c])=>(
                   <div key={l} className="rounded-lg p-1 flex items-center gap-1" style={{ background: '#F2F2F4' }}>
-                    <span className="text-[10px] font-black" style={{ color: c }}>{v}</span>
-                    <span className="text-[5px]" style={{ color: `${c}AA` }}>{l}</span>
+                    <span className="text-[13px] font-black" style={{ color: c }}>{v}</span>
+                    <span className="text-[6px]" style={{ color: `${c}AA` }}>{l}</span>
                   </div>
                 ))}
               </div>
             </div>
-            <p className="text-[6px] font-bold text-slate-500 px-0.5">EMPLEADOS HOY</p>
+            <p className="text-[8px] font-bold text-slate-500 px-0.5">EMPLEADOS HOY</p>
             {[['JR','#6366F1','Juan R.','Activo'],['MC','#0D9488','María C.','Activo'],['LP','#16A34A','Luis P.','Pendiente']].map(([ini,clr,name,st],i)=>(
               <div key={i} className="flex items-center gap-1.5 px-1.5 py-1 rounded-xl bg-white">
-                <div className="size-5 rounded-md flex items-center justify-center text-[5px] font-bold text-white shrink-0" style={{ background: clr }}>{ini}</div>
-                <span className="text-[7px] font-semibold text-slate-700 flex-1">{name}</span>
-                <span className="text-[5px] font-bold px-1 py-0.5 rounded-full" style={{ background: st==='Activo'?'#DCFCE7':'#FEF3C7', color: st==='Activo'?'#16A34A':'#D97706' }}>{st}</span>
+                <div className="size-5 rounded-md flex items-center justify-center text-[6px] font-bold text-white shrink-0" style={{ background: clr }}>{ini}</div>
+                <span className="text-[9px] font-semibold text-slate-700 flex-1">{name}</span>
+                <span className="text-[6px] font-bold px-1 py-0.5 rounded-full" style={{ background: st==='Activo'?'#DCFCE7':'#FEF3C7', color: st==='Activo'?'#16A34A':'#D97706' }}>{st}</span>
               </div>
             ))}
           </div>
           {/* Bottom nav */}
           <div className="flex justify-around items-center py-1.5" style={{ background: '#111' }}>
             {['⊞','👥','📅','$'].map((ic,i)=>(
-              <div key={i} className={`size-6 rounded-lg flex items-center justify-center text-[10px] ${i===0?'bg-indigo-500':''}`} style={{ color: i===0?'white':'rgba(255,255,255,0.4)' }}>{ic}</div>
+              <div key={i} className={`size-6 rounded-lg flex items-center justify-center text-[13px] ${i===0?'bg-indigo-500':''}`} style={{ color: i===0?'white':'rgba(255,255,255,0.4)' }}>{ic}</div>
             ))}
           </div>
         </div>
@@ -663,17 +663,17 @@ export default function Landing() {
                   <div className="h-7 shrink-0 bg-white"/>
                   <div className="flex-1 p-3 space-y-2.5">
                     <div className="rounded-2xl p-3 text-white" style={{ background: 'linear-gradient(135deg, #064E3B, #1D4ED8)' }}>
-                      <p className="text-[7px] font-bold opacity-60 mb-0.5">BIENVENIDO</p>
-                      <p className="text-[10px] font-black">Cafetería El Buen Sabor</p>
+                      <p className="text-[9px] font-bold opacity-60 mb-0.5">BIENVENIDO</p>
+                      <p className="text-[13px] font-black">Cafetería El Buen Sabor</p>
                     </div>
                     <div className="rounded-2xl p-3 bg-white border" style={{ borderColor: B.border }}>
-                      <p className="text-[7px] font-bold opacity-60 mb-1">PRÓXIMO TURNO</p>
-                      <p className="text-[9px] font-black" style={{ color: B.slate }}>Hoy · 9:00 AM – 5:00 PM</p>
+                      <p className="text-[9px] font-bold opacity-60 mb-1">PRÓXIMO TURNO</p>
+                      <p className="text-[11px] font-black" style={{ color: B.slate }}>Hoy · 9:00 AM – 5:00 PM</p>
                     </div>
                     {[['Mañana','2:00 PM – 9:00 PM','Pendiente'],['Jueves','10:00 AM – 6:00 PM','Aceptado']].map(([d,h,s])=>(
                       <div key={d} className="rounded-2xl p-2.5 bg-white border flex justify-between items-center" style={{ borderColor: B.border }}>
-                        <div><p className="text-[9px] font-bold" style={{ color: B.slate }}>{d}</p><p className="text-[7px]" style={{ color: B.gray }}>{h}</p></div>
-                        <span className="text-[7px] font-bold px-2 py-0.5 rounded-full" style={{ background:s==='Aceptado'?B.greenLt:'#FEF3C7', color:s==='Aceptado'?B.green:'#D97706' }}>{s}</span>
+                        <div><p className="text-[11px] font-bold" style={{ color: B.slate }}>{d}</p><p className="text-[9px]" style={{ color: B.gray }}>{h}</p></div>
+                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background:s==='Aceptado'?B.greenLt:'#FEF3C7', color:s==='Aceptado'?B.green:'#D97706' }}>{s}</span>
                       </div>
                     ))}
                   </div>
