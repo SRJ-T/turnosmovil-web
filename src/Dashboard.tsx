@@ -2789,8 +2789,8 @@ function SettingsView({bizId}:{bizId:string}) {
               <p className="text-xs" style={{color:T.gray}}>Radio desde la ubicación del negocio donde los empleados pueden ponchar.</p>
               <Field label="Radio permitido">
                 <div className="flex items-center gap-3">
-                  <input type="number" min={50} max={5000} step={50} value={form.geofence_radius_meters} onChange={e=>setForm(p=>({...p,geofence_radius_meters:Number(e.target.value)}))} className="w-24 h-11 rounded-xl px-3 text-sm text-center font-bold" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
-                  <div><p className="text-sm font-semibold" style={{color:T.black}}>metros</p><p className="text-[14px]" style={{color:T.grayMid}}>Recomendado: 100–300m</p></div>
+                  <input type="number" min={165} max={16400} step={50} value={Math.round(form.geofence_radius_meters/0.3048)} onChange={e=>setForm(p=>({...p,geofence_radius_meters:Math.round(Number(e.target.value)*0.3048)}))} className="w-24 h-11 rounded-xl px-3 text-sm text-center font-bold" style={{background:T.bg,border:`1px solid ${T.border}`,color:T.black,outline:'none'}}/>
+                  <div><p className="text-sm font-semibold" style={{color:T.black}}>pies</p><p className="text-[14px]" style={{color:T.grayMid}}>Recomendado: 330–1000 pies</p></div>
                 </div>
                 <div className="mt-3 h-2 rounded-full overflow-hidden" style={{background:T.grayLt}}>
                   <div className="h-full rounded-full transition-all" style={{width:`${Math.min(form.geofence_radius_meters/5000*100,100)}%`,background:T.indigo}}/>
