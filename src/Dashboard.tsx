@@ -9,7 +9,8 @@ import {
   CheckCircle2, XCircle, ChevronLeft, ChevronRight, Clock,
   UserPlus, AlertTriangle, Trash2, Search, BarChart3,
   MinusCircle, LogOut, RefreshCw,
-  Send, Pencil, Palmtree, Wallet, Bot, Tag, Receipt
+  Send, Pencil, Palmtree, Wallet, Bot, Tag, Receipt,
+  LifeBuoy, ChevronDown, Mail, MapPin, Heart, Info, Lock, Building2, History, ToggleRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase, diffHours } from './lib/supabase';
@@ -84,9 +85,9 @@ function StatusChip({status}:{status:string}) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 export default function Dashboard({session}:{session:Session}) {
-  const TAB_SLUG:Record<string,string>={dashboard:'',calendar:'horario',approvals:'horas',team:'personal',payroll:'nomina',reports:'reportes',feriados:'feriados',gastos:'gastos',asistente:'asistente',settings:'configuracion'};
-  const SLUG_TAB:Record<string,string>={'':'dashboard',horario:'calendar',horas:'approvals',personal:'team',nomina:'payroll',reportes:'reports',feriados:'feriados',gastos:'gastos',asistente:'asistente',configuracion:'settings'};
-  const TAB_LABEL:Record<string,string>={dashboard:'Dashboard',calendar:'Turnos',approvals:'Horas',team:'Personal',payroll:'Nómina',reports:'Reportes',feriados:'Días Feriados',gastos:'Gastos',asistente:'Asistente AI',settings:'Configuración'};
+  const TAB_SLUG:Record<string,string>={dashboard:'',calendar:'horario',approvals:'horas',team:'personal',payroll:'nomina',reports:'reportes',feriados:'feriados',gastos:'gastos',asistente:'asistente',ayuda:'ayuda',settings:'configuracion'};
+  const SLUG_TAB:Record<string,string>={'':'dashboard',horario:'calendar',horas:'approvals',personal:'team',nomina:'payroll',reportes:'reports',feriados:'feriados',gastos:'gastos',asistente:'asistente',ayuda:'ayuda',configuracion:'settings'};
+  const TAB_LABEL:Record<string,string>={dashboard:'Dashboard',calendar:'Turnos',approvals:'Horas',team:'Personal',payroll:'Nómina',reports:'Reportes',feriados:'Días Feriados',gastos:'Gastos',asistente:'Asistente AI',ayuda:'Ayuda y Soporte',settings:'Configuración'};
   const initTab=(()=>{const parts=window.location.pathname.split('/');const slug=parts[2]??'';return SLUG_TAB[slug]??'dashboard';})();
   const [activeTab,setActiveTab] = useState(initTab);
   const [sidebarOpen,setSidebarOpen] = useState(false);
@@ -122,6 +123,7 @@ export default function Dashboard({session}:{session:Session}) {
         <NavItem icon={Palmtree}       label="Días Feriados" active={activeTab==='feriados'}  onClick={()=>{navigate('feriados');setSidebarOpen(false)}} color='#0D9488'/>
         <NavItem icon={Wallet}         label="Gastos"        active={activeTab==='gastos'}    onClick={()=>{navigate('gastos');setSidebarOpen(false)}} color={T.amber}/>
         <NavItem icon={Bot}            label="Asistente AI"  active={activeTab==='asistente'} onClick={()=>{navigate('asistente');setSidebarOpen(false)}} color={T.indigo}/>
+        <NavItem icon={LifeBuoy}       label="Ayuda"         active={activeTab==='ayuda'}     onClick={()=>{navigate('ayuda');setSidebarOpen(false)}} color='#0891B2'/>
         <NavItem icon={Settings}       label="Configuración" active={activeTab==='settings'}  onClick={()=>{navigate('settings');setSidebarOpen(false)}} color={NAV.settings}/>
       </div>
       <div className="p-3" style={{borderTop:`1px solid rgba(255,255,255,0.08)`}}>
@@ -168,6 +170,7 @@ export default function Dashboard({session}:{session:Session}) {
               {activeTab==='feriados'  && <FeriadosView bizId={bizId}/>}
               {activeTab==='gastos'    && <GastosView bizId={bizId}/>}
               {activeTab==='asistente' && <AsistenteView/>}
+              {activeTab==='ayuda'     && <HelpView/>}
               {activeTab==='settings'  && <SettingsView bizId={bizId}/>}
             </motion.div>
           )}
@@ -2804,6 +2807,266 @@ function SettingsView({bizId}:{bizId:string}) {
           </form>
         )}
       </div>
+    </div>
+  );
+}
+
+// ─── AYUDA Y SOPORTE ──────────────────────────────────────────────────────────
+function HelpView() {
+  const [openId, setOpenId] = useState<string|null>(null);
+  const kNavy='#0F2167'; const kTeal='#0891B2'; const kTealLt='#0891B218';
+
+  type Crumb={icon:React.ReactNode;label:string};
+  type MockItem={icon:React.ReactNode;color:string;label:string;sub?:string;highlight?:boolean};
+  type Step={text:string;path?:{crumbs:Crumb[];color:string};mockup?:MockItem[]};
+  type Faq={id:string;question:string;steps:Step[]};
+  type Cat={icon:React.ReactNode;color:string;colorLt:string;title:string;faqs:Faq[]};
+
+  const cats:Cat[]=[
+    {icon:<Users size={15}/>,color:T.violet,colorLt:T.violetLt,title:'Empleados',faqs:[
+      {id:'e1',question:'¿Cómo agrego un empleado?',steps:[
+        {text:'Ve al menú lateral y toca Personal.',
+         path:{crumbs:[{icon:<Menu size={11}/>,label:'Menú'},{icon:<Users size={11}/>,label:'Personal'}],color:T.violet}},
+        {text:'Toca el botón + en la parte superior derecha.',
+         mockup:[
+           {icon:<Users size={13}/>,color:T.violet,label:'Personal',sub:'3 empleados activos'},
+           {icon:<UserPlus size={13}/>,color:T.violet,label:'Invitar empleado',highlight:true},
+         ]},
+        {text:'Llena nombre, apellido y correo. El empleado recibirá una invitación por email para unirse a la app.'},
+      ]},
+      {id:'e2',question:'¿Cómo configuro el formulario 499R-4.1 de un empleado?',steps:[
+        {text:'Ve a Personal y toca el nombre del empleado.',
+         path:{crumbs:[{icon:<Menu size={11}/>,label:'Menú'},{icon:<Users size={11}/>,label:'Personal'},{icon:<Users size={11}/>,label:'Empleado'}],color:T.violet}},
+        {text:'Dentro de la ficha del empleado aparece el botón 499R. Tócalo para abrir el formulario fiscal.',
+         mockup:[
+           {icon:<Pencil size={13}/>,color:T.blue,label:'Editar empleado'},
+           {icon:<Receipt size={13}/>,color:T.green,label:'499R-4.1 — Información fiscal',highlight:true},
+           {icon:<Trash2 size={13}/>,color:T.red,label:'Eliminar empleado'},
+         ]},
+        {text:'Completa el estado civil, dependientes y exenciones. El sistema calculará la retención automáticamente.'},
+      ]},
+    ]},
+
+    {icon:<Clock size={15}/>,color:T.blue,colorLt:T.blueLt,title:'Turnos & Asistencia',faqs:[
+      {id:'t1',question:'¿Cómo creo y publico un turno?',steps:[
+        {text:'Ve al menú y toca Turnos.',
+         path:{crumbs:[{icon:<Menu size={11}/>,label:'Menú'},{icon:<Clock size={11}/>,label:'Turnos'}],color:T.blue}},
+        {text:'Toca el botón + para crear un turno nuevo. Selecciona el empleado, la fecha y los horarios de entrada y salida.',
+         mockup:[
+           {icon:<CalendarIcon size={13}/>,color:T.blue,label:'Semana actual'},
+           {icon:<Plus size={13}/>,color:T.green,label:'+ Nuevo turno',highlight:true},
+         ]},
+        {text:'Cuando el turno esté listo toca "Publicar". El empleado recibirá una notificación en la app.'},
+      ]},
+      {id:'t2',question:'¿Cómo apruebo las horas trabajadas?',steps:[
+        {text:'Ve al menú y toca Horas.',
+         path:{crumbs:[{icon:<Menu size={11}/>,label:'Menú'},{icon:<CheckCircle2 size={11}/>,label:'Horas'}],color:T.green}},
+        {text:'Las fichas pendientes aparecen con borde naranja. Toca una ficha para ver el detalle.',
+         mockup:[
+           {icon:<ClipboardCheck size={13}/>,color:T.amber,label:'Pendientes (3)',highlight:true},
+           {icon:<CheckCircle2 size={13}/>,color:T.green,label:'Aprobados (12)'},
+         ]},
+        {text:'Toca "Aprobar" para confirmar las horas o "Ajustar" para modificar el horario antes de aprobar.'},
+        {text:'Si el empleado salió antes de terminar su turno, verás la nota de justificación que dejó.'},
+      ]},
+      {id:'t3',question:'¿Qué es la Geovalla y cómo la activo?',steps:[
+        {text:'La Geovalla es un radio GPS. Si está activa, el empleado solo puede ponchar dentro de ese radio.',
+         path:{crumbs:[{icon:<Menu size={11}/>,label:'Menú'},{icon:<Settings size={11}/>,label:'Configuración'},{icon:<MapPin size={11}/>,label:'Geocerca'}],color:T.green}},
+        {text:'En Configuración → Geocerca, toca "Detectar mi ubicación". Luego define el radio en pies.',
+         mockup:[
+           {icon:<MapPin size={13}/>,color:T.green,label:'Detectar mi ubicación',highlight:true},
+           {icon:<MapPin size={13}/>,color:T.blue,label:'Radio: 300 pies'},
+           {icon:<CheckCircle2 size={13}/>,color:T.green,label:'Guardar geocerca'},
+         ]},
+      ]},
+    ]},
+
+    {icon:<DollarSign size={15}/>,color:T.green,colorLt:T.greenLt,title:'Nómina',faqs:[
+      {id:'n1',question:'¿Cómo proceso la nómina?',steps:[
+        {text:'Ve al menú y toca Nómina.',
+         path:{crumbs:[{icon:<Menu size={11}/>,label:'Menú'},{icon:<DollarSign size={11}/>,label:'Nómina'},{icon:<ChevronRight size={11}/>,label:'Ejecutar'}],color:T.green}},
+        {text:'Selecciona el período con las flechas. Verás todos los empleados con horas aprobadas.',
+         mockup:[
+           {icon:<ChevronLeft size={13}/>,color:T.blue,label:'← Semana anterior'},
+           {icon:<CalendarIcon size={13}/>,color:T.green,label:'Semana actual — listo',highlight:true},
+           {icon:<ChevronRight size={13}/>,color:T.blue,label:'Semana siguiente →'},
+         ]},
+        {text:'Cuando todo esté en verde, toca "Ejecutar Nómina". Confirma el resumen y marca el método de pago por empleado.'},
+        {text:'El empleado recibirá una notificación de pago y podrá descargar su talonario en PDF.'},
+      ]},
+      {id:'n2',question:'¿Cómo aparecen los días feriados en la nómina?',steps:[
+        {text:'Si configuraste el pago de feriados, el sistema detecta automáticamente qué días feriados caen en el período.',
+         path:{crumbs:[{icon:<Menu size={11}/>,label:'Menú'},{icon:<Settings size={11}/>,label:'Configuración'},{icon:<Palmtree size={11}/>,label:'Días Feriados'}],color:T.amber}},
+        {text:'Los empleados que no trabajaron ese día reciben 8 horas de pago feriado a la tarifa configurada (1x, 1.5x o 2x).',
+         mockup:[
+           {icon:<Clock size={13}/>,color:T.green,label:'Horas regulares (40h)'},
+           {icon:<Palmtree size={13}/>,color:T.amber,label:'Días Feriados — Navidad × 1.5x',highlight:true},
+           {icon:<DollarSign size={13}/>,color:T.green,label:'Ingresos Brutos'},
+         ]},
+      ]},
+    ]},
+
+    {icon:<Palmtree size={15}/>,color:T.amber,colorLt:T.amberLt,title:'Días Feriados',faqs:[
+      {id:'f1',question:'¿Cómo configuro cuáles feriados pago?',steps:[
+        {text:'Ve a Configuración → Días Feriados.',
+         path:{crumbs:[{icon:<Menu size={11}/>,label:'Menú'},{icon:<Settings size={11}/>,label:'Configuración'},{icon:<Palmtree size={11}/>,label:'Días Feriados'}],color:T.amber}},
+        {text:'Activa el toggle "¿Este negocio paga días feriados?". Luego escoge la tarifa.',
+         mockup:[
+           {icon:<ToggleRight size={13}/>,color:T.green,label:'¿Paga feriados? → Sí',highlight:true},
+           {icon:<DollarSign size={13}/>,color:T.amber,label:'Tarifa: Tiempo y medio (1.5x)'},
+         ]},
+        {text:'Marca los días específicos de la lista de 16 feriados de Puerto Rico. Toca Guardar.',
+         mockup:[
+           {icon:<CheckCircle2 size={13}/>,color:T.green,label:'Navidad — Dic 25',highlight:true},
+           {icon:<CheckCircle2 size={13}/>,color:T.green,label:'Día del Trabajo — Sep 1er lun'},
+           {icon:<XCircle size={13}/>,color:T.gray,label:'Grito de Lares — Sep 23'},
+         ]},
+      ]},
+      {id:'f2',question:'¿Los feriados son obligatorios en Puerto Rico?',steps:[
+        {text:'No. La Ley 180 de Puerto Rico NO obliga a los patronos a pagar días feriados no trabajados. Es una decisión del negocio.',
+         mockup:[
+           {icon:<Info size={13}/>,color:T.amber,label:'Política del negocio — no mandato de ley'},
+           {icon:<CheckCircle2 size={13}/>,color:T.green,label:'Sí aplica: si activaste el toggle'},
+           {icon:<XCircle size={13}/>,color:T.red,label:'No aplica: si el toggle está apagado'},
+         ]},
+        {text:'Si lo activas, se aplica a todos los empleados activos en el período que no trabajaron ese día.'},
+      ]},
+    ]},
+
+    {icon:<BarChart3 size={15}/>,color:kNavy,colorLt:'#0F216718',title:'Reportes',faqs:[
+      {id:'r1',question:'¿Cómo genero el reporte trimestral para el CPA?',steps:[
+        {text:'Ve al menú → Reportes → Trimestrales.',
+         path:{crumbs:[{icon:<Menu size={11}/>,label:'Menú'},{icon:<BarChart3 size={11}/>,label:'Reportes'},{icon:<Receipt size={11}/>,label:'Trimestrales'}],color:kNavy}},
+        {text:'Selecciona el trimestre con las flechas. El reporte muestra salarios brutos, retenciones de Hacienda, SS y Medicare por empleado.',
+         mockup:[
+           {icon:<ChevronLeft size={13}/>,color:kNavy,label:'← Q1 2025'},
+           {icon:<BarChart3 size={13}/>,color:kNavy,label:'Q2 2025 — Abr–Jun',highlight:true},
+           {icon:<ChevronRight size={13}/>,color:kNavy,label:'Q3 2025 →'},
+         ]},
+        {text:'Toca "Exportar PDF" para generar el informe completo con depósitos de SURI y EFTPS listos para el CPA.'},
+      ]},
+      {id:'r2',question:'¿Qué es SURI y cómo lo configuro?',steps:[
+        {text:'SURI es el Sistema Unificado de Rentas Internas de PR (Hacienda). Úsalo para radicar el SC 2745 cada trimestre.',
+         path:{crumbs:[{icon:<Menu size={11}/>,label:'Menú'},{icon:<Settings size={11}/>,label:'Configuración'},{icon:<Building2 size={11}/>,label:'Config. SURI'}],color:kNavy}},
+        {text:'En Configuración → Configuración Reporte SURI ingresa tu número de patrono y credenciales.',
+         mockup:[
+           {icon:<Info size={13}/>,color:kNavy,label:'Número de patrono (EIN)',highlight:true},
+           {icon:<Lock size={13}/>,color:kNavy,label:'Credenciales SURI'},
+           {icon:<CheckCircle2 size={13}/>,color:T.green,label:'Guardar configuración'},
+         ]},
+      ]},
+    ]},
+  ];
+
+  // ── Breadcrumb ───────────────────────────────────────────────────────────────
+  const NavBreadcrumb=({crumbs,color}:{crumbs:Crumb[];color:string})=>(
+    <div className="flex flex-wrap items-center gap-1 mt-2 px-3 py-2 rounded-xl" style={{background:`${color}0F`,border:`1px solid ${color}30`}}>
+      {crumbs.map((c,i)=>(
+        <span key={i} className="flex items-center gap-1">
+          <span className="flex items-center gap-1" style={{color}}>{c.icon}<span className="text-[13px] font-bold">{c.label}</span></span>
+          {i<crumbs.length-1&&<ChevronRight size={12} style={{color:`${color}60`}}/>}
+        </span>
+      ))}
+    </div>
+  );
+
+  // ── Mini Mockup ──────────────────────────────────────────────────────────────
+  const Mockup=({items,accentColor}:{items:MockItem[];accentColor:string})=>(
+    <div className="mt-2.5 rounded-xl overflow-hidden" style={{background:'#F9FAFB',border:`1px solid ${T.border}`}}>
+      {items.map((item,i)=>(
+        <div key={i}>
+          <div className="flex items-center gap-2.5 px-3 py-2.5" style={item.highlight?{background:`${accentColor}0F`}:{}}>
+            <div className="size-7 rounded-lg flex items-center justify-center shrink-0" style={{background:`${item.color}${item.highlight?'2E':'1A'}`}}>
+              <span style={{color:item.color}}>{item.icon}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[14px] font-semibold leading-tight" style={{color:item.highlight?accentColor:T.black,fontWeight:item.highlight?700:500}}>{item.label}</p>
+              {item.sub&&<p className="text-[11px]" style={{color:T.gray}}>{item.sub}</p>}
+            </div>
+            {item.highlight&&(
+              <span className="text-[11px] font-black px-2 py-0.5 rounded-full text-white" style={{background:accentColor}}>Aquí</span>
+            )}
+          </div>
+          {i<items.length-1&&<div style={{height:1,background:T.border}}/>}
+        </div>
+      ))}
+    </div>
+  );
+
+  return(
+    <div className="max-w-2xl mx-auto p-5 pb-20 space-y-5">
+
+      {/* Hero */}
+      <div className="rounded-2xl p-6" style={{background:`linear-gradient(135deg, ${kNavy} 0%, #2563EB 100%)`}}>
+        <LifeBuoy size={32} color="white"/>
+        <p className="text-[23px] font-black text-white mt-3">Guías visuales paso a paso</p>
+        <p className="text-[15px] mt-1" style={{color:'rgba(255,255,255,0.75)',lineHeight:1.5}}>Cada respuesta muestra exactamente a dónde ir y qué tocar en la app.</p>
+      </div>
+
+      {/* Contact */}
+      <div className="flex items-center gap-3 rounded-2xl p-4" style={{background:'white',border:`1px solid ${T.border}`}}>
+        <div className="size-10 rounded-xl flex items-center justify-center shrink-0" style={{background:`${T.blue}18`}}>
+          <Mail size={18} style={{color:T.blue}}/>
+        </div>
+        <div className="flex-1">
+          <p className="text-[14px]" style={{color:T.gray}}>¿No encontraste tu respuesta?</p>
+          <p className="text-[16px] font-bold" style={{color:T.blue}}>soporte@turnosmovil.com</p>
+        </div>
+        <ChevronRight size={18} style={{color:T.gray}}/>
+      </div>
+
+      {/* Categories */}
+      {cats.map(cat=>(
+        <div key={cat.title}>
+          {/* Category header */}
+          <div className="flex items-center gap-2.5 mb-3">
+            <div className="size-8 rounded-xl flex items-center justify-center" style={{background:cat.colorLt}}>
+              <span style={{color:cat.color}}>{cat.icon}</span>
+            </div>
+            <p className="text-[18px] font-black" style={{color:cat.color}}>{cat.title}</p>
+          </div>
+
+          {/* FAQ cards */}
+          <div className="space-y-2">
+            {cat.faqs.map(faq=>{
+              const isOpen=openId===faq.id;
+              return(
+                <div key={faq.id} className="rounded-2xl overflow-hidden transition-all" style={{background:'white',border:`1.5px solid ${isOpen?cat.color:T.border}`,boxShadow:isOpen?`0 4px 16px ${cat.color}18`:undefined}}>
+                  {/* Question */}
+                  <button onClick={()=>setOpenId(isOpen?null:faq.id)} className="w-full flex items-center justify-between gap-3 p-4 text-left">
+                    <p className="text-[16px] font-semibold flex-1" style={{color:isOpen?cat.color:T.black}}>{faq.question}</p>
+                    <span className="transition-transform shrink-0" style={{transform:isOpen?'rotate(180deg)':'rotate(0deg)',color:isOpen?cat.color:T.gray}}>
+                      <ChevronDown size={18}/>
+                    </span>
+                  </button>
+
+                  {/* Steps */}
+                  {isOpen&&(
+                    <div className="px-4 pb-5" style={{borderTop:`1px solid ${T.border}`}}>
+                      <div className="pt-4 space-y-4">
+                        {faq.steps.map((step,si)=>(
+                          <div key={si} className="flex gap-3">
+                            {/* Step number */}
+                            <div className="size-6 rounded-full flex items-center justify-center text-[13px] font-black text-white shrink-0 mt-0.5" style={{background:cat.color}}>{si+1}</div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[15px]" style={{color:T.black,lineHeight:1.6}}>{step.text}</p>
+                              {step.path&&<NavBreadcrumb crumbs={step.path.crumbs} color={step.path.color}/>}
+                              {step.mockup&&<Mockup items={step.mockup} accentColor={cat.color}/>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
+      {/* Footer */}
+      <p className="text-center text-[14px]" style={{color:T.grayMid}}>Turnos Móvil v2.0.0 · © 2026 Todos los derechos reservados.</p>
     </div>
   );
 }
