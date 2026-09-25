@@ -1,10 +1,5 @@
-import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  'https://ctdxqijdmpigqgktlwxb.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0ZHhxaWpkbXBpZ3Fna3Rsd3hiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDg3NTksImV4cCI6MjA5NjUyNDc1OX0.fztm3egC654RiC_dSKn1AuVT8fWH_zE463sfP9Fzpj8'
-);
+﻿import { useEffect, useState } from 'react';
+import { supabase } from './lib/supabase';
 
 type Stage = 'loading' | 'form' | 'success' | 'error';
 
@@ -191,7 +186,7 @@ export default function Activar() {
 
           {/* Hint */}
           <div className="flex items-center gap-1.5 mb-4">
-            <span className={password.length >= 8 ? 'text-green-600' : 'text-slate-400'} style={{fontSize:13}}>
+            <span className={password.length >= 8 ? 'text-green-600' : 'text-slate-400'} style={{fontSize:20}}>
               {password.length >= 8 ? '✅' : '⭕'}
             </span>
             <span className={`text-xs ${password.length >= 8 ? 'text-green-600' : 'text-slate-400'}`}>
